@@ -1425,6 +1425,26 @@ async function generateLeaderboardCanvas(users) {
       ctx.shadowBlur = 8; ctx.strokeStyle = frameStyle.color; ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.arc(x, y, radius - 5, 0, Math.PI * 2); ctx.stroke();
     }
+    // [LEADERBOARD COSMETIC SYNC] Show the equipped frame's recognizable ornaments, not only its color ring.
+    if (frameStyle.royal) {
+      ctx.save(); ctx.translate(x, y - radius + 1);
+      ctx.shadowColor = '#ffd34f'; ctx.shadowBlur = 12;
+      ctx.fillStyle = '#d99a25'; ctx.strokeStyle = '#fff0a6'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(-radius*.55, 5); ctx.lineTo(-radius*.43, -radius*.42);
+      ctx.lineTo(-radius*.17, -radius*.10); ctx.lineTo(0, -radius*.62);
+      ctx.lineTo(radius*.17, -radius*.10); ctx.lineTo(radius*.43, -radius*.42);
+      ctx.lineTo(radius*.55, 5); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#63eaff'; ctx.beginPath(); ctx.arc(0, -radius*.28, 2.5, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+    } else if (frameStyle.gold) {
+      ctx.save(); ctx.shadowColor = '#ffc83d'; ctx.shadowBlur = 10;
+      for (let j=0;j<8;j++) {
+        const a=-Math.PI/2+j*Math.PI/4, px=x+Math.cos(a)*(radius+1), py=y+Math.sin(a)*(radius+1);
+        ctx.fillStyle=j%2===0?'#fff2a8':'#f5b52e'; ctx.strokeStyle='#8b5307'; ctx.lineWidth=.7;
+        ctx.beginPath(); ctx.moveTo(px,py-2.8); ctx.lineTo(px+2.8,py); ctx.lineTo(px,py+2.8); ctx.lineTo(px-2.8,py); ctx.closePath(); ctx.fill(); ctx.stroke();
+      }
+      ctx.restore();
+    }
     ctx.restore();
   };
   const drawPodium = async (item, rank, x, y, w, h, color, featured) => {
