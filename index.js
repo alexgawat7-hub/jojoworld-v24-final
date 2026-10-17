@@ -3136,7 +3136,7 @@ ${renderGiftCatalog()}
           const owned = Array.isArray(user.ownedFrames) ? user.ownedFrames : [];
           const legacyOwned = [user.royalFrame ? 'Royalty Frame' : null, user.goldFrame ? 'Gold Frame' : null].filter(Boolean);
           const allOwned = [...new Set([...legacyOwned, ...owned])];
-          const equipped = String(user.equippedFrame || user.frame || (user.royalFrame ? 'Royalty Frame' : (user.goldFrame ? 'Gold Frame' : 'None'))).replace(/^👑\\s*/, '');
+          const equipped = String(user.equippedFrame || user.frame || (user.royalFrame ? 'Royalty Frame' : (user.goldFrame ? 'Gold Frame' : 'None'))).replace(/^👑\s*/, '');
           const choices = allOwned.slice(0, 8).map(name => ({
             content_type: "text",
             title: (name === equipped ? "✅ " : "🖼️ ") + String(name).slice(0, 18),
