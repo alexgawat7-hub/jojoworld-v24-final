@@ -2201,7 +2201,7 @@ A new user successfully registered using your link! 🎁
           const frameIds = { frame: 'royaltyframe' };
           const frameNames = { frame: 'Royalty Frame' };
           const ownedFrames = Array.isArray(user.ownedFrames) ? user.ownedFrames : [];
-          const frameAlreadyOwned = frameProducts.includes(product) && (ownedFrames.includes(frameNames[product]) || (product === 'frame' && (user.royalFrame || String(user.frame || '').toLowerCase().includes('royal'))));
+          const frameAlreadyOwned = frameProducts.includes(product) && (ownedFrames.includes(frameNames[product]) || (product === 'frame' && (user.royalFrame || String(user.equippedFrame || user.frame || '').toLowerCase().includes('royal'))));
           const purchasePayload = product === 'vip' ? 'BUY_VIP'
             : frameProducts.includes(product) ? (frameAlreadyOwned ? 'EQUIP_FRAME ' + frameIds[product] : (product === 'frame' ? 'BUY_FRAME' : 'BUY_PROFILE_FRAME ' + product))
             : ['rainbow','sparkle','heart','fire','ice','neon','blossom','dark','red','blue','green','yellow','gold','demon'].includes(product) ? 'EFFECT ' + product
@@ -3119,7 +3119,48 @@ ${renderGiftCatalog()}
           continue;
         }
 
-        // Profile Frame Shop retired at user request; unrelated shop categories remain available.
+        // [RESTORED] Profile Frame Shop: preserve ownership and allow re-equipping Royalty Frame.
+        if (upperRaw === 'SHOP_FRAMES') {
+          const previousPage = user.currentPage;
+          user.currentPage = "SHOP";
+          if (!await saveUserToDB(psid)) { user.currentPage = previousPage; send(psid, "⚠️ Hindi mabuksan ang Frame Shop ngayon. Subukan ulit mamaya."); continue; }
+          send(psid, "🖼️ JOJOWORLD PROFILE FRAME SHOP\n━━━━━━━━━━━━━━━━━━━━\n👑 Royalty Frame — 500 coins\n\nAng original Royalty Frame lang ang available dito. Ang dati mo nang nabili ay mananatiling pag-aari mo; hindi ka sisingilin ulit para i-equip ito.\n\nMase-save sa account mo ang frame at makikita sa profile card at leaderboard kapag naka-equip.", [
+            { content_type: "text", title: "👑 Royalty 500c", payload: "PREVIEW_FRAME" },
+            { content_type: "text", title: "🎒 My Frames", payload: "MY_FRAMES" },
+            { content_type: "text", title: "↩️ Back to Shop", payload: "SHOP" }
+          ]);
+          continue;
+        }
+
+        if (upperRaw === 'MY_FRAMES') {
+          const owned = Array.isArray(user.ownedFrames) ? user.ownedFrames : [];
+          const legacyOwned = [user.royalFrame ? 'Royalty Frame' : null, user.goldFrame ? 'Gold Frame' : null].filter(Boolean);
+          const allOwned = [...new Set([...legacyOwned, ...owned])];
+          const equipped = String(user.equippedFrame || user.frame || (user.royalFrame ? 'Royalty Frame' : (user.goldFrame ? 'Gold Frame' : 'None'))).replace(/^👑\\s*/, '');
+          const choices = allOwned.slice(0, 8).map(name => ({
+            content_type: "text",
+            title: (name === equipped ? "✅ " : "🖼️ ") + String(name).slice(0, 18),
+            payload: "EQUIP_FRAME " + String(name).toLowerCase().replace(/[^a-z]/g, "")
+          }));
+          send(psid, "🎒 MY PROFILE FRAMES\n━━━━━━━━━━━━━━━━━━━━\nOwned: " + (allOwned.length ? allOwned.join(", ") : "Wala ka pang frame na nabili.") + "\nCurrently equipped: " + equipped + "\nPumili ng frame sa ibaba para isuot sa profile card at leaderboard.", [...choices, { content_type: "text", title: "🛍️ Frame Shop", payload: "SHOP_FRAMES" }, { content_type: "text", title: "↩️ Back to Shop", payload: "SHOP" }]);
+          continue;
+        }
+
+        if (upperRaw.startsWith("EQUIP_FRAME ")) {
+          const frameId = upperRaw.slice("EQUIP_FRAME ".length).trim().toLowerCase();
+          const frameNames = { royaltyframe: "Royalty Frame", goldframe: "Gold Frame" };
+          const frameName = frameNames[frameId];
+          const owned = Array.isArray(user.ownedFrames) ? user.ownedFrames : [];
+          const legacyOwned = [user.royalFrame ? "Royalty Frame" : null, user.goldFrame ? "Gold Frame" : null].filter(Boolean);
+          if (!frameName || ![...owned, ...legacyOwned].includes(frameName)) { sendShopResult(psid, "❌ Hindi mo pa pag-aari ang frame na iyan. Bilhin muna sa Frame Shop."); continue; }
+          const old = { equippedFrame: user.equippedFrame, frame: user.frame, ownedFrames: user.ownedFrames };
+          user.ownedFrames = [...new Set([...owned, ...legacyOwned, frameName])];
+          user.equippedFrame = frameName;
+          user.frame = frameName;
+          if (!await saveUserToDB(psid)) { Object.assign(user, old); sendShopResult(psid, "⚠️ Hindi na-save ang pag-equip ng frame."); continue; }
+          sendShopResult(psid, "✅ Na-equip na ang " + frameName + "! Makikita ito sa profile card at leaderboard.");
+          continue;
+        }
 
         if (upperRaw === 'SHOP_HOUSES') {
           const previousPage = user.currentPage;
@@ -3149,12 +3190,51 @@ ${renderGiftCatalog()}
           const shopImage = await generateShopCanvas();
           await sendImage(psid, shopImage, null, [
             { content_type: "text", title: "☑️ Verified VIP 1,000c", payload: "PREVIEW_VIP" },
+            { content_type: "text", title: "👑 Royalty Frame 500c", payload: "PREVIEW_FRAME" },
+            { content_type: "text", title: "🖼️ Profile Frame Shop", payload: "SHOP_FRAMES" },
             { content_type: "text", title: "💎 Name Effects", payload: "SHOP_EFFECTS" },
             { content_type: "text", title: "🏠 Houses", payload: "SHOP_HOUSES" },
             { content_type: "text", title: "↩️ Main Menu", payload: "MENU" }
           ]);
           continue;
         }
+        // [RESTORED] Royalty Frame purchase; existing owners can re-equip without paying again.
+        if (upperRaw === "BUY_FRAME") {
+          const ownedFrames = Array.isArray(user.ownedFrames) ? user.ownedFrames : [];
+          const alreadyOwned = ownedFrames.includes("Royalty Frame") || !!user.royalFrame ||
+            String(user.equippedFrame || user.frame || "").toLowerCase().includes("royal");
+          if (alreadyOwned) {
+            user.ownedFrames = [...new Set([...ownedFrames, "Royalty Frame"])];
+            user.royalFrame = true;
+            user.equippedFrame = "Royalty Frame";
+            user.frame = "Royalty Frame";
+            if (!await saveUserToDB(psid)) { sendShopResult(psid, "⚠️ Hindi na-save ang pag-equip ng Royalty Frame. Walang coins na ikakaltas."); continue; }
+            sendShopResult(psid, "✅ Pag-aari mo na ang Royalty Frame boss! Na-equip na ulit ito—walang coins na ikin kaltas.");
+            continue;
+          }
+          if ((Number(user.coins) || 0) < 500) {
+            sendShopResult(psid, "❌ Not enough coins! Royalty Frame costs 500 coins.");
+            continue;
+          }
+          const previousFrameState = { coins: user.coins, frame: user.frame, equippedFrame: user.equippedFrame, ownedFrames: user.ownedFrames, royalFrame: user.royalFrame };
+          user.coins -= 500;
+          user.royalFrame = true;
+          user.frame = "Royalty Frame";
+          user.equippedFrame = "Royalty Frame";
+          user.ownedFrames = [...new Set([...ownedFrames, "Royalty Frame"])];
+          if (!await saveUserToDB(psid)) {
+            user.coins = previousFrameState.coins;
+            user.frame = previousFrameState.frame;
+            user.equippedFrame = previousFrameState.equippedFrame;
+            user.ownedFrames = previousFrameState.ownedFrames;
+            user.royalFrame = previousFrameState.royalFrame;
+            sendShopResult(psid, "⚠️ Hindi na-save ang frame purchase. Walang coins na ikakaltas.");
+            continue;
+          }
+          sendShopResult(psid, "🎉 SUCCESS! Royalty Frame unlocked and equipped! 👑");
+          continue;
+        }
+
         if (upperRaw === "BUY_VIP") {
           // [FIXED] Duplicate VIP validation happens before deducting coins.
           if (user.vip || user.badge === "👑 VIP Elite") { sendShopResult(psid, "❌ Meron ka na VIP boss!"); continue; }
