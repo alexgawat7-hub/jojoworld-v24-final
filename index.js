@@ -274,7 +274,7 @@ app.post('/api/color-game/bet', async (req, res) => {
     const psid = String(session.psid);
     const color = String(req.body?.color || '').toUpperCase();
     const bet = Number(req.body?.bet);
-    if (!['RED', 'BLUE', 'GREEN'].includes(color)) return res.status(400).json({ ok: false, error: 'Choose RED, BLUE, or GREEN.' });
+    if (!['RED', 'BLUE', 'GREEN', 'YELLOW', 'PINK'].includes(color)) return res.status(400).json({ ok: false, error: 'Choose RED, BLUE, GREEN, YELLOW, or PINK.' });
     if (!Number.isSafeInteger(bet) || bet < 10 || bet > 100000) return res.status(400).json({ ok: false, error: 'Bet must be a whole number from 10 to 100,000 coins.' });
     return await withDiceUserQueue(psid, async () => {
       const user = await loadUserFromDB(psid);
@@ -892,7 +892,7 @@ const ColorGameBetSchema = new mongoose.Schema({
   betId: { type: String, required: true },
   psid: { type: String, required: true },
   name: { type: String, required: true },
-  color: { type: String, enum: ['RED', 'BLUE', 'GREEN'], required: true },
+  color: { type: String, enum: ['RED', 'BLUE', 'GREEN', 'YELLOW', 'PINK'], required: true },
   amount: { type: Number, required: true },
   payout: { type: Number, default: 0 },
   status: { type: String, enum: ['pending', 'settled'], default: 'pending' },
@@ -905,8 +905,8 @@ const ColorGameStateSchema = new mongoose.Schema({
   bettingEndsAt: { type: Date, required: true },
   finishedAt: { type: Date, default: null },
   status: { type: String, enum: ['betting', 'settling', 'complete'], default: 'betting', index: true },
-  result: { type: String, enum: ['RED', 'BLUE', 'GREEN', null], default: null },
-  lastResult: { type: String, enum: ['RED', 'BLUE', 'GREEN', null], default: null },
+  result: { type: [String], enum: ['RED', 'BLUE', 'GREEN', 'YELLOW', 'PINK'], default: null },
+  lastResult: { type: [String], enum: ['RED', 'BLUE', 'GREEN', 'YELLOW', 'PINK'], default: null },
   lastRoundNumber: { type: Number, default: 0 },
   totalBet: { type: Number, default: 0 },
   bets: { type: [ColorGameBetSchema], default: [] }
@@ -1040,8 +1040,8 @@ async function recordDiceRoundRoll(psid, bet, payout, won) {
 
 // COLOR GAME ROUND ENGINE. All results and wallet changes are server-side.
 function pickColorGameResult() {
-  const roll = crypto.randomInt(0, 100);
-  return roll < 40 ? 'RED' : roll < 80 ? 'BLUE' : 'GREEN';
+  const faces = ['RED', 'BLUE', 'GREEN', 'YELLOW', 'PINK'];
+  return [0, 1, 2].map(() => faces[crypto.randomInt(0, faces.length)]);
 }
 function makeLocalColorRound(previous = null) {
   const now = Date.now();
@@ -1063,7 +1063,9 @@ async function settleColorGameRound(round) {
   if (!round || round.status !== 'settling' || !round.result) return round;
   const pendingBets = (round.bets || []).filter(b => b.status === 'pending');
   for (const bet of pendingBets) {
-    const payout = bet.color === round.result ? Number(bet.amount) * (round.result === 'GREEN' ? 4 : 2) : 0;
+    const diceColors = Array.isArray(round.result) ? round.result : (round.result ? [round.result] : []);
+    const matches = diceColors.filter(color => color === bet.color).length;
+    const payout = matches ? Number(bet.amount) * (matches + 1) : 0;
     if (MONGODB_URI && mongoose.connection.readyState === 1) {
       const session = await mongoose.startSession();
       try {
@@ -1155,7 +1157,7 @@ async function getColorGameRound() {
 }
 function colorGamePublicState(round, psid, balance) {
   const bets = Array.isArray(round.bets) ? round.bets : [];
-  const totals = { RED: 0, BLUE: 0, GREEN: 0 };
+  const totals = { RED: 0, BLUE: 0, GREEN: 0, YELLOW: 0, PINK: 0 };
   const players = new Set();
   for (const bet of bets) { totals[bet.color] = (totals[bet.color] || 0) + Number(bet.amount || 0); players.add(String(bet.psid)); }
   const myBet = bets.find(b => String(b.psid) === String(psid));
@@ -1164,7 +1166,7 @@ function colorGamePublicState(round, psid, balance) {
     roundNumber: Number(round.roundNumber || 1), status: round.status,
     bettingEndsAt: round.bettingEndsAt, startedAt: round.startedAt,
     timeLeftMs: round.status === 'betting' ? Math.max(0, new Date(round.bettingEndsAt).getTime() - Date.now()) : 0,
-    result: round.result || null, lastResult: round.lastResult || null, lastRoundNumber: Number(round.lastRoundNumber || 0),
+    result: Array.isArray(round.result) ? round.result : (round.result ? [round.result] : null), lastResult: Array.isArray(round.lastResult) ? round.lastResult : (round.lastResult ? [round.lastResult] : null), lastRoundNumber: Number(round.lastRoundNumber || 0),
     totalBet: Number(round.totalBet || 0), playerCount: players.size, totals,
     myBet: myBet ? { color: myBet.color, amount: myBet.amount, status: myBet.status, payout: myBet.payout } : null,
     bets: bets.slice().sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()).slice(0, 40).map(b => ({
