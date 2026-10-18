@@ -6,7 +6,7 @@
     $('lobby').href = '/live-games?token=' + encodeURIComponent(token);
     const mp = $('multiplayer'); if (mp) mp.href = '/neon-racing-multiplayer?token=' + encodeURIComponent(token);
   }
-  let running=false, sound=false, audio=null, last=0, progress=0, rivalProgress=0, speed=0, steer=0, nitro=0, braking=false, keys={};
+  let running=false, sound=false, audio=null, last=0, progress=0, rivalProgress=0, speed=0, steer=0, nitro=0, nitroCooldown=0, rivalBoost=0, braking=false, keys={};
   let best=Number(localStorage.getItem('jojoworldNeonRacingBest')||0);
   $('best').textContent=best;
   function resize(){const r=canvas.getBoundingClientRect(),d=window.devicePixelRatio||1;canvas.width=Math.max(300,Math.floor(r.width*d));canvas.height=Math.max(300,Math.floor(r.height*d));ctx.setTransform(d,0,0,d,0,0);draw();}
@@ -53,19 +53,22 @@
     ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='900 10px system-ui';ctx.fillText('JOJOWORLD NIGHT CIRCUIT',w/2,16);
     ctx.textAlign='left';ctx.fillStyle='#8cfff7';ctx.font='800 10px system-ui';ctx.fillText('YOU',12,h-12);ctx.textAlign='right';ctx.fillStyle='#ff85e6';ctx.fillText('RIVAL',w-12,h-12);
   }
-  function finish(won){running=false;if(won&&progress>best){best=Math.floor(progress);localStorage.setItem('jojoworldNeonRacingBest',String(best));$('best').textContent=best;}$('overlay').hidden=false;$('overlayTitle').textContent=won?'🏁 YOU WIN!':'🏁 RACE FINISHED';$('overlayText').textContent=(won?'You crossed the finish line first!':'Your rival reached the finish line first.')+' Final progress: '+Math.floor(progress)+' m. No obstacles, no coins required.';$('start').textContent='RACE AGAIN';beep(won?880:260);}
+  function finish(won){running=false;if(won&&progress>best){best=Math.floor(progress);localStorage.setItem('jojoworldNeonRacingBest',String(best));$('best').textContent=best;}$('overlay').hidden=false;$('overlayTitle').textContent=won?'🏁 YOU WIN!':'🏁 RACE FINISHED';$('overlayText').textContent=(won?'You crossed the finish line first!':'Your rival reached the finish line first.')+' Race distance: 1,000 m. Your finish: '+Math.floor(progress)+' m. No obstacles, no coins required.';$('start').textContent='RACE AGAIN';beep(won?880:260);}
   function frame(t){if(!running){draw();return;}const dt=Math.min(40,t-last||16);last=t;
-    const boosting=(keys.nitro||nitro>0);if(nitro>0)nitro=Math.max(0,nitro-dt*.00065);
-    const target=braking?95:(boosting?275:205);speed+=(target-speed)*Math.min(1,dt*.0024);
-    progress+=speed*dt*.00105;rivalProgress+=speed*dt*(progress>rivalProgress+100?.00091:.00099);
+    nitroCooldown=Math.max(0,nitroCooldown-dt/1000);if(nitro>0)nitro=Math.max(0,nitro-dt/1000);
+    if(keys.nitro&&nitro<=0&&nitroCooldown<=0){nitro=1.5;nitroCooldown=7;beep(980);}
+    const boosting=nitro>0;const target=braking?105:(boosting?275:205);speed+=(target-speed)*Math.min(1,dt*.0024);
+    progress+=speed*dt*.000075;
+    rivalBoost=Math.max(0,rivalBoost-dt/1000);if(rivalBoost<=0&&Math.random()<.003)rivalBoost=1.2;
+    rivalProgress+=dt*(rivalBoost>0?.0182:.0157);
     if(keys.left)steer=Math.max(-1,steer-dt*.0028);else if(keys.right)steer=Math.min(1,steer+dt*.0028);else steer*=Math.pow(.94,dt/16);
-    $('score').textContent=Math.min(100,Math.floor(progress/12))+'%';$('speed').textContent=Math.round(speed)+' km/h';
-    draw();if(progress>=1200){finish(progress>=rivalProgress);return;}if(rivalProgress>=1200){finish(false);return;}requestAnimationFrame(frame);
+    $('score').textContent=Math.min(100,Math.floor(progress/10))+'%';$('speed').textContent=Math.round(speed)+' km/h';
+    draw();if(progress>=1000){finish(progress>=rivalProgress);return;}if(rivalProgress>=1000){finish(false);return;}requestAnimationFrame(frame);
   }
-  function start(){running=true;progress=0;rivalProgress=0;speed=0;steer=0;nitro=0;braking=false;last=0;keys={};$('score').textContent='0%';$('speed').textContent='0 km/h';$('overlay').hidden=true;beep(720);requestAnimationFrame(frame);}
-  function hold(id,key){const b=$(id);if(!b)return;b.addEventListener('pointerdown',e=>{e.preventDefault();keys[key]=true;if(key==='nitro')nitro=1.8;if(key==='brake')braking=true;});['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,()=>{keys[key]=false;if(key==='brake')braking=false;}));}
+  function start(){running=true;progress=0;rivalProgress=0;speed=0;steer=0;nitro=0;nitroCooldown=0;rivalBoost=0;braking=false;last=0;keys={};$('score').textContent='0%';$('speed').textContent='0 km/h';$('overlay').hidden=true;beep(720);requestAnimationFrame(frame);}
+  function hold(id,key){const b=$(id);if(!b)return;b.addEventListener('pointerdown',e=>{e.preventDefault();keys[key]=true;if(key==='nitro'&&nitroCooldown<=0&&nitro<=0){nitro=1.5;nitroCooldown=7;beep(980);}if(key==='brake')braking=true;});['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,()=>{keys[key]=false;if(key==='brake')braking=false;}));}
   hold('left','left');hold('right','right');hold('nitro','nitro');hold('brake','brake');
-  window.addEventListener('keydown',e=>{if(['ArrowLeft','a','A'].includes(e.key)){keys.left=true;e.preventDefault();}if(['ArrowRight','d','D'].includes(e.key)){keys.right=true;e.preventDefault();}if(e.code==='Space'){keys.nitro=true;nitro=1.8;e.preventDefault();}if(['ArrowDown','s','S'].includes(e.key)){braking=true;e.preventDefault();}});
+  window.addEventListener('keydown',e=>{if(['ArrowLeft','a','A'].includes(e.key)){keys.left=true;e.preventDefault();}if(['ArrowRight','d','D'].includes(e.key)){keys.right=true;e.preventDefault();}if(e.code==='Space'){keys.nitro=true;e.preventDefault();}if(['ArrowDown','s','S'].includes(e.key)){braking=true;e.preventDefault();}});
   window.addEventListener('keyup',e=>{if(['ArrowLeft','a','A'].includes(e.key))keys.left=false;if(['ArrowRight','d','D'].includes(e.key))keys.right=false;if(e.code==='Space')keys.nitro=false;if(['ArrowDown','s','S'].includes(e.key))braking=false;});
   $('start').addEventListener('click',start);$('restart').addEventListener('click',start);
   $('sound').addEventListener('click',()=>{sound=!sound;$('sound').textContent=sound?'🔊 SOUND: ON':'🔊 SOUND: OFF';beep(600);});
