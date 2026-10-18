@@ -2,6 +2,7 @@ const token=new URLSearchParams(location.search).get('token')||'';
 const notice=document.getElementById('notice');
 if(token){
  const q='?token='+encodeURIComponent(token);
+ const coinShop=document.getElementById('coinShop');if(coinShop)coinShop.href='/coin-shop'+q;
  const scatterLink=document.getElementById('scatter'),diceLink=document.getElementById('dice'),rushLink=document.getElementById('rush');
  if(scatterLink)scatterLink.href='/scatter-spin'+q;
  if(diceLink)diceLink.href='/dice-arena'+q;
