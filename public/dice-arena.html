@@ -34,5 +34,22 @@ function updateBet(){document.getElementById('wager').textContent=(bet==='max'?'
 document.querySelectorAll('[data-bet]').forEach(b=>b.addEventListener('click',()=>{if(rolling)return;document.querySelectorAll('[data-bet]').forEach(x=>x.classList.toggle('active',x===b));bet=b.dataset.bet==='max'?'max':Number(b.dataset.bet);updateBet()}));
 document.querySelectorAll('[data-pred]').forEach(b=>b.addEventListener('click',()=>{if(rolling)return;pred=b.dataset.pred;document.querySelectorAll('[data-pred]').forEach(x=>x.classList.toggle('active',x===b))}));
 document.getElementById('roll').addEventListener('click',async()=>{if(rolling)return;rolling=true;const btn=document.getElementById('roll'),area=document.getElementById('dicearea'),res=document.getElementById('result');btn.disabled=true;area.classList.add('rolling');res.innerHTML='ROLLING...<small>The dice are in motion</small>';await new Promise(r=>setTimeout(r,1900));const a=1+Math.floor(Math.random()*6),b=1+Math.floor(Math.random()*6),sum=a+b,actual=sum%2?'ODD':'EVEN';drawDie('die1',a);drawDie('die2',b);area.classList.remove('rolling');res.innerHTML='TOTAL '+sum+' • '+actual+'<small>'+ (actual===pred?'Prediction matches!':'Try another prediction')+' · Preview only</small>';btn.textContent='🎲 ROLL AGAIN';btn.disabled=false;rolling=false});
+async function refreshStats(){
+  try{
+    const response=await fetch('/api/dice-arena/stats',{cache:'no-store'});
+    if(!response.ok)throw new Error('Stats unavailable');
+    const s=await response.json();
+    if(!s.ok)throw new Error('Stats unavailable');
+    document.getElementById('players').textContent=money(s.playerCount);
+    document.getElementById('rolls').textContent=money(s.totalRolls);
+    document.getElementById('totalbets').textContent=money(s.totalBet)+' coins';
+    document.getElementById('payouts').textContent=money(s.totalPayout)+' coins';
+    document.querySelector('.sub').textContent='ROUND #'+s.roundNumber+' • LIVE SHARED STATS';
+  }catch(_){
+    document.querySelector('.sub').textContent='ROLL YOUR LUCK • SHARED STATS OFFLINE';
+  }
+}
+refreshStats();
+setInterval(refreshStats,5000);
 updateBet();
 </script></body></html>
