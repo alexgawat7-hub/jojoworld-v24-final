@@ -39,7 +39,7 @@ async function loadAccount({quiet=false}={}){
  $('spin').disabled=true;accountLoading=false;return false;
 }
 $('spin').addEventListener('click',async()=>{
- if(spinning||!token)return;spinning=true;$('spin').disabled=true;$('reels').classList.add('spinning');$('result').classList.remove('reveal');$('result').innerHTML='SPINNING...<small>Waiting for the server-confirmed result</small>';
+ if(spinning||!token)return;playSound('start');spinning=true;$('spin').disabled=true;$('reels').classList.add('spinning');$('result').classList.remove('reveal');$('result').innerHTML='SPINNING...<small>Waiting for the server-confirmed result</small>';
  const els=[$('r1'),$('r2'),$('r3')];let ticker=setInterval(()=>{els.forEach(e=>e.textContent=symbols[Math.floor(Math.random()*symbols.length)]);if(++tickCount%2===0)playSound('tick')},100);
  try{
   const req=fetch('/api/scatter-spin/spin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token})});
