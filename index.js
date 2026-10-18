@@ -2511,7 +2511,7 @@ A new user successfully registered using your link! 🎁
         }
         // Legacy Messenger dice buttons/commands should no longer place bets in text chat.
         if (dicePayload === "DICE_CANCEL" || dicePayload.startsWith("DICE_BET_") ||
-            dicePayload.startsWith("DICE_ROLL_") || /^DICE\\s+\S+/i.test(dicePayload)) {
+            dicePayload.startsWith("DICE_ROLL_") || /^DICE\s+\S+/i.test(dicePayload)) {
           send(psid, '🎲 Para maglaro, i-type ang DICE ARENA at pindutin ang Open Dice Arena button.');
           continue;
         }
