@@ -383,6 +383,149 @@ app.get('/neon-racing', (req, res) => {
     if (err && !res.headersSent) { console.error('[NEON RACING] Could not serve game:', err.message); res.status(503).send('Neon Racing is temporarily unavailable.'); }
   });
 });
+// Neon Racing Multiplayer: free 1v1 races. No coin or wallet mutations.
+const neonRaceQueue = [];
+const neonRaceMatches = new Map();
+const neonRacePlayerMatch = new Map();
+function neonRacePublicState(match, psid) {
+  const mine = match.players.find(p => p.psid === psid);
+  const rival = match.players.find(p => p.psid !== psid);
+  return {
+    ok: true, status: match.status, matchId: match.id,
+    you: mine ? { name: mine.name, progress: mine.progress } : null,
+    opponent: rival ? { name: rival.name, progress: rival.progress } : null,
+    startedAt: match.startedAt || null, winner: match.winner || null,
+    message: match.status === 'waiting' ? 'Waiting for another racer…' :
+      match.status === 'racing' ? 'Race to the finish!' :
+      match.winner === psid ? 'YOU WIN!' : match.winner ? 'RACE OVER' : 'RACE FINISHED'
+  };
+}
+function neonRaceCleanup() {
+  const cutoff = Date.now() - 120000;
+  for (let i = neonRaceQueue.length - 1; i >= 0; i--) {
+    if (neonRaceQueue[i].joinedAt < cutoff) {
+      neonRacePlayerMatch.delete(neonRaceQueue[i].psid);
+      neonRaceQueue.splice(i, 1);
+    }
+  }
+  for (const [id, m] of neonRaceMatches) {
+    if (m.updatedAt < cutoff) {
+      m.players.forEach(p => neonRacePlayerMatch.delete(p.psid));
+      neonRaceMatches.delete(id);
+    }
+  }
+}
+app.get('/neon-racing-multiplayer', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'neon-racing-multiplayer.html'), err => {
+    if (err && !res.headersSent) { console.error('[NEON RACING 1V1] Could not serve game:', err.message); res.status(503).send('Neon Racing Multiplayer is temporarily unavailable.'); }
+  });
+});
+app.post('/api/neon-racing/join', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Secure session expired. Open Game Lobby again from Messenger.' });
+    const psid = String(session.psid);
+    const user = await loadUserFromDB(psid);
+    if (!user) return res.status(404).json({ ok: false, error: 'JojoWorld account not found.' });
+    neonRaceCleanup();
+    const existingId = neonRacePlayerMatch.get(psid);
+    if (existingId) {
+      const existing = neonRaceMatches.get(existingId);
+      if (existing && (existing.status === 'waiting' || existing.status === 'racing')) return res.json(neonRacePublicState(existing, psid));
+      neonRacePlayerMatch.delete(psid);
+    }
+    const name = String(user.name || user.displayName || 'Jojo Player').replace(/[<>\u0000-\u001f]/g, '').slice(0, 24) || 'Jojo Player';
+    const idx = neonRaceQueue.findIndex(p => p.psid !== psid);
+    if (idx < 0) {
+      neonRaceQueue.push({ psid, name, joinedAt: Date.now() });
+      neonRacePlayerMatch.set(psid, 'waiting');
+      return res.json({ ok: true, status: 'waiting', message: 'Waiting for another racer…' });
+    }
+    const rival = neonRaceQueue.splice(idx, 1)[0];
+    const id = crypto.randomUUID();
+    const match = { id, status: 'racing', startedAt: Date.now(), updatedAt: Date.now(), winner: null,
+      players: [{ psid: rival.psid, name: rival.name, progress: 0, lastReportAt: Date.now() },
+                { psid, name, progress: 0, lastReportAt: Date.now() }] };
+    neonRaceMatches.set(id, match);
+    neonRacePlayerMatch.set(rival.psid, id);
+    neonRacePlayerMatch.set(psid, id);
+    return res.json(neonRacePublicState(match, psid));
+  } catch (err) {
+    console.error('[NEON RACING 1V1] Join failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Could not join a race right now. Please try again.' });
+  }
+});
+app.get('/api/neon-racing/state', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Session expired. Reopen the game from Messenger.' });
+    neonRaceCleanup();
+    const psid = String(session.psid), id = neonRacePlayerMatch.get(psid);
+    res.set('Cache-Control', 'no-store');
+    if (!id) return res.json({ ok: true, status: 'idle' });
+    if (id === 'waiting') return res.json({ ok: true, status: 'waiting', message: 'Waiting for another racer…' });
+    const match = neonRaceMatches.get(id);
+    if (!match) { neonRacePlayerMatch.delete(psid); return res.json({ ok: true, status: 'idle' }); }
+    return res.json(neonRacePublicState(match, psid));
+  } catch (err) {
+    console.error('[NEON RACING 1V1] State failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Could not load race status.' });
+  }
+});
+app.post('/api/neon-racing/progress', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(401).json({ ok: false, error: 'Session expired. Reopen the game from Messenger.' });
+    const psid = String(session.psid), id = neonRacePlayerMatch.get(psid);
+    if (!id || id === 'waiting') return res.status(409).json({ ok: false, error: 'You are not in an active race.' });
+    const match = neonRaceMatches.get(id);
+    if (!match || match.status !== 'racing') return res.json(match ? neonRacePublicState(match, psid) : { ok: false, status: 'idle' });
+    const player = match.players.find(p => p.psid === psid);
+    if (!player) return res.status(403).json({ ok: false, error: 'You are not in this race.' });
+    const now = Date.now();
+    // Server caps progress by elapsed time; a client cannot instantly submit a finish.
+    const elapsed = Math.max(0, now - match.startedAt);
+    const requested = Number(req.body?.progress);
+    if (Number.isFinite(requested) && now - player.lastReportAt >= 180) {
+      player.progress = Math.max(player.progress, Math.min(99.9, Math.max(0, requested), elapsed / 1000 * 3.5));
+      player.lastReportAt = now;
+    }
+    match.updatedAt = now;
+    if (player.progress >= 99.8 && elapsed >= 25000) {
+      player.progress = 100;
+      match.status = 'finished';
+      match.winner = psid;
+      match.finishedAt = now;
+      match.players.forEach(p => { if (p.psid !== psid) p.progress = Math.min(p.progress, 99.9); });
+    }
+    return res.json(neonRacePublicState(match, psid));
+  } catch (err) {
+    console.error('[NEON RACING 1V1] Progress failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Race update failed.' });
+  }
+});
+app.post('/api/neon-racing/leave', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(401).json({ ok: false, error: 'Session expired.' });
+    const psid = String(session.psid), id = neonRacePlayerMatch.get(psid);
+    if (id === 'waiting') {
+      const idx = neonRaceQueue.findIndex(p => p.psid === psid);
+      if (idx >= 0) neonRaceQueue.splice(idx, 1);
+    } else if (id) {
+      const match = neonRaceMatches.get(id);
+      if (match && match.status === 'racing') {
+        match.status = 'finished';
+        match.winner = match.players.find(p => p.psid !== psid)?.psid || null;
+        match.updatedAt = Date.now();
+      }
+    }
+    neonRacePlayerMatch.delete(psid);
+    return res.json({ ok: true });
+  } catch (err) {
+    return res.status(503).json({ ok: false, error: 'Could not leave race.' });
+  }
+});
 app.get('/neon-battle', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'neon-battle.html'), err => {
     if (err && !res.headersSent) { console.error('[NEON BATTLE] Could not serve game:', err.message); res.status(503).send('Neon Battle is temporarily unavailable.'); }
