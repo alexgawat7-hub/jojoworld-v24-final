@@ -145,7 +145,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
       dice.forEach((d,i)=>{d.landed=false;d.dropHeight=1.35+i*.12;d.verticalVelocity=-1.3-i*.18;d.spinX=7.5+i*1.7;d.spinY=9.2-i*.8;d.spinZ=5.8+i;d.vx=[1.45,-.25,-1.2][i];d.vz=[.85,-1.05,.72][i];});
     }
     if(!rolling&&wasDropping){rollingUntil=0;}
-    dice.forEach(d=>d.rolling=rolling && (!dropping || (now-dropStart<1050 && !d.landed)));
+    dice.forEach(d=>d.rolling=rolling && (!dropping || now-dropStart<1050));
     wasDropping=dropping;
     rig.userData.pulled=document.getElementById('cordRig')?.classList.contains('pulled')||false;
   }
