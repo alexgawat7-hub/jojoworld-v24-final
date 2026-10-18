@@ -2,9 +2,10 @@ const token=new URLSearchParams(location.search).get('token')||'';
 const $=id=>document.getElementById(id), money=n=>Number(n||0).toLocaleString('en-US');
 let spinning=false,balance=0,accountConnected=false,accountLoading=false;
 const soundKey='jojoworldArcadeSound';
-let soundOn=localStorage.getItem(soundKey)!=='false',audioCtx=null,tickCount=0;
+function readArcadeSound(){try{return localStorage.getItem(soundKey)!=='false'}catch(_){return true}}
+let soundOn=readArcadeSound(),audioCtx=null,tickCount=0;
 function playSound(kind){
- soundOn=localStorage.getItem(soundKey)!=='false';if(!soundOn)return;
+ soundOn=readArcadeSound();if(!soundOn)return;
  try{
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
   if(!audioCtx)audioCtx=new AC();if(audioCtx.state==='suspended')audioCtx.resume();
