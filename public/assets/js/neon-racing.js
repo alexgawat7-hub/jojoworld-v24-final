@@ -157,8 +157,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     player.position.x+=(playerX+slide-player.position.x)*.16;
     player.rotation.z=-steer*.08-driftAmount*steer*.055;
     player.rotation.y=-steer*.12-driftAmount*steer*.09;
-    for(const wheel of player.userData.wheels)wheel.rotation.x+=speed*.0015; 
-    for(const wheel of rival.userData.wheels)wheel.rotation.x+=speed*.0008;
+    for(const wheel of player.userData.wheels){wheel.rotation.x+=speed*.0015;if(wheel.position.z<0)wheel.rotation.y=steer*.22;}
+    for(const hub of player.userData.hubs){hub.rotation.x+=speed*.0015;if(hub.position.z<0)hub.rotation.y=steer*.22;}
+    for(const wheel of rival.userData.wheels)wheel.rotation.x+=speed*.0008;for(const hub of rival.userData.hubs)hub.rotation.x+=speed*.0008;
     rival.position.x=-2.8+Math.sin(progress*.013)*.8;
     const gap=rivalProgress-progress;
     rival.position.z=-Math.max(9,Math.min(75,18+gap*.12));
