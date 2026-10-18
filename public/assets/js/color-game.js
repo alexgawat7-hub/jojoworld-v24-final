@@ -2,7 +2,7 @@ const $=id=>document.getElementById(id);
 const token=new URLSearchParams(location.search).get('token')||'';
 const money=n=>Math.max(0,Math.floor(Number(n)||0)).toLocaleString('en-US');
 const colors=['RED','BLUE','GREEN','YELLOW','PINK','WHITE'];
-let previousBetAmount=100;
+let previousBetAmount=100,lastBetAnnouncementRound='';
 let selectedColor='',balance=0,roundState=null,working=false,loading=false,lastResultKey='',soundEnabled=false,audioContext=null,lastRollRound='',pendingResultState=null,revealedRoundNumber=0,pullInProgress=false,pullStartY=0,pullStartTime=0,pullTimer=null,autoPullTimer=null;
 const lobby=$('lobby'),shop=$('shop');
 if(token){const q='?token='+encodeURIComponent(token);lobby.href='/live-games'+q;shop.href='/coin-shop'+q;}
@@ -79,6 +79,18 @@ function playRoll(){
  tone(92,.2,.075,'sine',.62);tone(138,.13,.045,'triangle',.67);
  tone(740,.1,.02,'triangle',.86);tone(990,.16,.018,'sine',.96);
 }
+function speakPlaceYourBet(roundNumber){
+ if(!soundEnabled||!('speechSynthesis' in window)||typeof SpeechSynthesisUtterance==='undefined')return;
+ const round=String(roundNumber??roundState?.roundNumber??'');
+ if(!round||lastBetAnnouncementRound===round)return;
+ lastBetAnnouncementRound=round;
+ try{
+  window.speechSynthesis.cancel();
+  const utterance=new SpeechSynthesisUtterance('Place your bet');
+  utterance.lang='en-US';utterance.rate=.88;utterance.pitch=.86;utterance.volume=.9;
+  window.speechSynthesis.speak(utterance);
+ }catch(_){}
+}
 function playCordPull(){
  if(!soundEnabled)return;
  noiseBurst(.24,.045,0,1000);
@@ -97,7 +109,7 @@ window.addEventListener('color-dice-impact',event=>{
 });
 $('soundToggle').addEventListener('click',()=>{
  soundEnabled=!soundEnabled;$('soundToggle').textContent=soundEnabled?'🔊 SOUND ON':'🔇 SOUND OFF';$('soundToggle').setAttribute('aria-pressed',String(soundEnabled));
- if(soundEnabled){audio();tone(660,.08,.025,'sine');}
+ if(soundEnabled){audio();tone(660,.08,.025,'sine');if(roundState?.status==='betting')speakPlaceYourBet(roundState.roundNumber);}
 });
 const pullCord=$('pullCord'),cordRig=$('cordRig'),cordHint=$('cordHint');
 function beginCordPull(){
@@ -129,6 +141,7 @@ function renderState(state){
  $('roundStatus').textContent=state.status==='betting'?'BETTING OPEN':state.status==='settling'?'DICE ROLLING':'ROUND RESULT';
  $('timer').parentElement.classList.toggle('closed',state.status!=='betting');
  if(state.status==='betting'){
+  if(soundEnabled)speakPlaceYourBet(state.roundNumber);
   renderDice(['GREEN','RED','GREEN'],time<=3500);
   if(time<=3500&&time>0&&lastRollRound!==String(state.roundNumber)){lastRollRound=String(state.roundNumber);playRoll();}
  } else if(state.status==='settling'){
