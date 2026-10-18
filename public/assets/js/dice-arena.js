@@ -1,3 +1,4 @@
+const token=new URLSearchParams(location.search).get('token')||'';
 const faces={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
 function drawDie(id,n){const el=document.getElementById(id);el.innerHTML='';for(let i=0;i<9;i++){const p=document.createElement('i');p.className='pip'+(faces[n].includes(i)?' on':'');el.appendChild(p)}}
 drawDie('die1',3);drawDie('die2',5);
@@ -40,7 +41,6 @@ function addRecent(total,won){
 function updateBet(){document.getElementById('wager').textContent=(bet==='max'?'MAX':money(bet))+' coins'}
 document.querySelectorAll('[data-bet]').forEach(b=>b.addEventListener('click',()=>{if(rolling)return;document.querySelectorAll('[data-bet]').forEach(x=>x.classList.toggle('active',x===b));bet=b.dataset.bet==='max'?'max':Number(b.dataset.bet);updateBet()}));
 document.querySelectorAll('[data-pred]').forEach(b=>b.addEventListener('click',()=>{if(rolling)return;pred=b.dataset.pred;document.querySelectorAll('[data-pred]').forEach(x=>x.classList.toggle('active',x===b))}));
-const token=new URLSearchParams(location.search).get('token')||'';
 async function loadAccount({quiet=false}={}) {
   if(accountLoading)return;
   accountLoading=true;
