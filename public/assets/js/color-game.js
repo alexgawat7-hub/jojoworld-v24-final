@@ -4,6 +4,7 @@ const money=n=>Math.max(0,Math.floor(Number(n)||0)).toLocaleString('en-US');
 const compactMoney=n=>{const v=Math.max(0,Number(n)||0);return v>=1000000?(v/1000000).toFixed(v%1000000===0?0:1)+'M':v>=1000?(v/1000).toFixed(v%1000===0?0:1)+'K':String(Math.floor(v));};
 const colors=['RED','BLUE','GREEN','YELLOW','PINK','WHITE'];
 let previousBetAmount=100,lastBetAnnouncementRound='',lastCountdownSecond='';
+let masterGain=null,masterCompressor=null;
 let selectedColor='',balance=0,roundState=null,working=false,loading=false,lastResultKey='',soundEnabled=false,audioContext=null,lastRollRound='',pendingResultState=null,revealedRoundNumber=0,pullInProgress=false,pullStartY=0,pullStartTime=0,pullTimer=null,autoPullTimer=null;
 const lobby=$('lobby'),shop=$('shop');
 if(token){const q='?token='+encodeURIComponent(token);lobby.href='/live-games'+q;shop.href='/coin-shop'+q;}
@@ -69,7 +70,7 @@ function tone(freq,duration,volume=0.035,type='sine',delay=0){
  const a=audio();if(!a)return;
  const osc=a.createOscillator(),gain=a.createGain(),start=a.currentTime+delay;
  osc.type=type;osc.frequency.setValueAtTime(freq,start);gain.gain.setValueAtTime(volume,start);gain.gain.exponentialRampToValueAtTime(.0001,start+duration);
- osc.connect(gain);gain.connect(a.destination);osc.start(start);osc.stop(start+duration);
+ osc.connect(gain);gain.connect(masterGain||a.destination);osc.start(start);osc.stop(start+duration);
 }
 function noiseBurst(duration=.12,volume=.025,delay=0,filterFrequency=1500){
  if(!soundEnabled)return;
@@ -79,38 +80,36 @@ function noiseBurst(duration=.12,volume=.025,delay=0,filterFrequency=1500){
  const source=a.createBufferSource(),filter=a.createBiquadFilter(),gain=a.createGain(),start=a.currentTime+delay;
  source.buffer=buffer;filter.type='lowpass';filter.frequency.setValueAtTime(filterFrequency,start);
  gain.gain.setValueAtTime(.0001,start);gain.gain.linearRampToValueAtTime(volume,start+.008);gain.gain.exponentialRampToValueAtTime(.0001,start+duration);
- source.connect(filter);filter.connect(gain);gain.connect(a.destination);source.start(start);source.stop(start+duration);
+ source.connect(filter);filter.connect(gain);gain.connect(masterGain||a.destination);source.start(start);source.stop(start+duration);
 }
 function playRoll(){
  if(!soundEnabled)return;
  // Layered wooden/plastic clacks, a short rolling rattle, then three tray impacts.
- noiseBurst(.48,.035,0,1900);
+ noiseBurst(.48,.085,0,1900);
  for(let i=0;i<10;i++){
   const delay=i*.067+Math.random()*.025;
-  tone(115+Math.random()*180,.045,.028,'triangle',delay);
-  tone(420+Math.random()*680,.026,.009,'square',delay+.018);
-  if(i%2===0)noiseBurst(.035,.014,delay,2400);
+  tone(115+Math.random()*180,.045,.065,'triangle',delay);
+  tone(420+Math.random()*680,.026,.025,'square',delay+.018);
+  if(i%2===0)noiseBurst(.035,.035,delay,2400);
  }
- noiseBurst(.11,.055,.61,850);
- tone(92,.2,.075,'sine',.62);tone(138,.13,.045,'triangle',.67);
+ noiseBurst(.11,.11,.61,850);
+ tone(92,.2,.14,'sine',.62);tone(138,.13,.085,'triangle',.67);
  tone(740,.1,.02,'triangle',.86);tone(990,.16,.018,'sine',.96);
 }
 function speakPlaceYourBet(roundNumber){
  if(!soundEnabled||!('speechSynthesis' in window)||typeof SpeechSynthesisUtterance==='undefined')return;
  const round=String(roundNumber??roundState?.roundNumber??'');
  if(!round||lastBetAnnouncementRound===round)return;
- // Reserve the round before speaking: state polls every 1.2s, so waiting for onstart
- // can enqueue the same announcement multiple times on slower mobile browsers.
  lastBetAnnouncementRound=round;
  try{
-  const utterance=new SpeechSynthesisUtterance('Place your bet!');
-  utterance.lang='en-US';utterance.rate=.9;utterance.pitch=.92;utterance.volume=1;
-  utterance.onerror=()=>{if(lastBetAnnouncementRound===round)lastBetAnnouncementRound='';};
   const synth=window.speechSynthesis;
-  synth.cancel();
-  const speak=()=>{try{if(soundEnabled&&lastBetAnnouncementRound===round)synth.speak(utterance);}catch(_){if(lastBetAnnouncementRound===round)lastBetAnnouncementRound='';}};
-  synth.resume();
-  window.setTimeout(speak,180);
+  const utterance=new SpeechSynthesisUtterance('Place your bet!');
+  utterance.lang='en-US';utterance.rate=.88;utterance.pitch=1;utterance.volume=1;
+  const voices=synth.getVoices?synth.getVoices():[];
+  utterance.voice=voices.find(v=>/^en(-|_)/i.test(v.lang)&&/google|english|us/i.test(v.name))||voices.find(v=>/^en(-|_)/i.test(v.lang))||null;
+  utterance.onerror=()=>{if(lastBetAnnouncementRound===round)lastBetAnnouncementRound='';};
+  const speak=()=>{try{if(soundEnabled&&lastBetAnnouncementRound===round){synth.resume();synth.speak(utterance);}}catch(_){if(lastBetAnnouncementRound===round)lastBetAnnouncementRound='';}};
+  window.setTimeout(speak,250);
  }catch(_){if(lastBetAnnouncementRound===round)lastBetAnnouncementRound='';}
 }
 function playCountdown(second){
@@ -121,16 +120,16 @@ function playCountdown(second){
 function playCordPull(){
  if(!soundEnabled)return;
  // A taut cable scrape, ratchet ticks, then the heavy release latch.
- noiseBurst(.32,.042,0,1150);
- tone(205,.18,.026,'sawtooth',.015);
+ noiseBurst(.32,.095,0,1150);
+ tone(205,.18,.065,'sawtooth',.015);
  for(let i=0;i<5;i++){
   const t=.045+i*.052;
-  tone(460-i*38,.026,.018,'square',t);
-  noiseBurst(.022,.012,t,1900-i*150);
+  tone(460-i*38,.026,.045,'square',t);
+  noiseBurst(.022,.03,t,1900-i*150);
  }
- tone(128,.2,.052,'triangle',.28);
- noiseBurst(.09,.052,.34,780);
- tone(72,.28,.07,'sine',.35);
+ tone(128,.2,.11,'triangle',.28);
+ noiseBurst(.09,.11,.34,780);
+ tone(72,.28,.14,'sine',.35);
  tone(310,.055,.025,'triangle',.39);
 }
 let lastImpactSound=0;
@@ -140,12 +139,12 @@ window.addEventListener('color-dice-impact',event=>{
  if(now-lastImpactSound<45)return;
  lastImpactSound=now;
  const strength=Math.max(.15,Math.min(1,Number(event.detail?.strength)||.3));
- noiseBurst(.045,.012+strength*.028,0,1250+strength*900);
- tone(105+strength*95,.065,.012+strength*.028,'triangle');
+ noiseBurst(.045,.035+strength*.055,0,1250+strength*900);
+ tone(105+strength*95,.065,.035+strength*.055,'triangle');
 });
 $('soundToggle').addEventListener('click',()=>{
  soundEnabled=!soundEnabled;$('soundToggle').textContent=soundEnabled?'🔊 SOUND ON':'🔇 SOUND OFF';$('soundToggle').setAttribute('aria-pressed',String(soundEnabled));
- if(soundEnabled){const a=audio();if(a?.state==='suspended')a.resume().catch(()=>{});tone(660,.08,.035,'sine');if(roundState?.status==='betting'){speakPlaceYourBet(roundState.roundNumber);const seconds=Math.ceil(Math.max(0,Number(roundState.timeLeftMs)||0)/1000);if(seconds<=10&&seconds>0){lastCountdownSecond=String(roundState.roundNumber)+':'+seconds;playCountdown(seconds);}}}
+ if(soundEnabled){const a=audio();if(a?.state==='suspended')a.resume().catch(()=>{});tone(660,.12,.09,'sine');tone(990,.14,.065,'sine',.1);if(roundState?.status==='betting'){speakPlaceYourBet(roundState.roundNumber);const seconds=Math.ceil(Math.max(0,Number(roundState.timeLeftMs)||0)/1000);if(seconds<=10&&seconds>0){lastCountdownSecond=String(roundState.roundNumber)+':'+seconds;playCountdown(seconds);}}}
 });
 const pullCord=$('pullCord'),cordRig=$('cordRig'),cordHint=$('cordHint');
 function beginCordPull(){
