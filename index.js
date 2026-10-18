@@ -1156,10 +1156,27 @@ async function getColorGameRound() {
   return local;
 }
 function colorGamePublicState(round, psid, balance) {
-  const bets = Array.isArray(round.bets) ? round.bets : [];
+  const allowedColors = new Set(['RED', 'BLUE', 'GREEN', 'YELLOW', 'PINK', 'WHITE']);
+  const roundStartedAt = new Date(round.startedAt || 0).getTime();
+  // Only expose valid bets belonging to this round. Older/malformed persisted
+  // rows must not appear as current live bets after a round has restarted.
+  const bets = (Array.isArray(round.bets) ? round.bets : []).filter(b => {
+    if (!b || typeof b.psid !== 'string' || !b.psid.trim()) return false;
+    if (!allowedColors.has(String(b.color || '').toUpperCase())) return false;
+    const amount = Number(b.amount);
+    if (!Number.isSafeInteger(amount) || amount < 10 || amount > 100000) return false;
+    const createdAt = new Date(b.createdAt || 0).getTime();
+    return Number.isFinite(createdAt) && createdAt >= roundStartedAt;
+  });
   const totals = { RED: 0, BLUE: 0, GREEN: 0, YELLOW: 0, PINK: 0, WHITE: 0 };
   const players = new Set();
-  for (const bet of bets) { totals[bet.color] = (totals[bet.color] || 0) + Number(bet.amount || 0); players.add(String(bet.psid)); }
+  let totalBet = 0;
+  for (const bet of bets) {
+    const color = String(bet.color).toUpperCase();
+    totals[color] += Number(bet.amount);
+    totalBet += Number(bet.amount);
+    players.add(String(bet.psid));
+  }
   const myBet = bets.find(b => String(b.psid) === String(psid));
   return {
     ok: true, balance: Math.max(0, Math.floor(Number(balance) || 0)),
@@ -1167,10 +1184,10 @@ function colorGamePublicState(round, psid, balance) {
     bettingEndsAt: round.bettingEndsAt, startedAt: round.startedAt,
     timeLeftMs: round.status === 'betting' ? Math.max(0, new Date(round.bettingEndsAt).getTime() - Date.now()) : 0,
     result: Array.isArray(round.result) ? round.result : (round.result ? [round.result] : null), lastResult: Array.isArray(round.lastResult) ? round.lastResult : (round.lastResult ? [round.lastResult] : null), lastRoundNumber: Number(round.lastRoundNumber || 0),
-    totalBet: Number(round.totalBet || 0), playerCount: players.size, totals,
+    totalBet, playerCount: players.size, totals,
     myBet: myBet ? { color: myBet.color, amount: myBet.amount, status: myBet.status, payout: myBet.payout } : null,
     bets: bets.slice().sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()).slice(0, 40).map(b => ({
-      name: String(b.name || 'Jojo Player').slice(0, 24), color: b.color, amount: Number(b.amount || 0),
+      name: String(b.name || 'Jojo Player').slice(0, 24), color: String(b.color).toUpperCase(), amount: Number(b.amount),
       payout: Number(b.payout || 0), status: b.status
     }))
   };
