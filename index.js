@@ -128,6 +128,18 @@ function loadCachedProfilePhotoUrl(url) {
 }
 const app = express();
 
+// [JOJOWORLD DICE ARENA WEB GAME ROUTE] Serve the animated HTML game interface.
+// This is currently a visual prototype; wager settlement remains in the Messenger backend
+// until the authenticated game-session API is added and tested.
+app.get('/dice-arena', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'dice-arena.html'), err => {
+    if (err && !res.headersSent) {
+      console.error('[DICE ARENA] Could not serve game page:', err.message);
+      res.status(503).send('Dice Arena is temporarily unavailable.');
+    }
+  });
+});
+
 // Body-parser rawBody configuration para sa PayMongo Webhook HMAC signature
 app.use(bodyParser.json({
   verify: (req, res, buf) => {
