@@ -106,23 +106,28 @@ function playRoll(){
  tone(92,.2,.14,'sine',.62);tone(138,.13,.085,'triangle',.67);
  tone(740,.1,.02,'triangle',.86);tone(990,.16,.018,'sine',.96);
 }
+const placeBetVoice=new Audio('/assets/audio/place-your-bet.mp3?v=20261018a');
+placeBetVoice.preload='auto';placeBetVoice.volume=1;
+let voicePrimed=false;
+function primePlaceBetVoice(){
+ if(voicePrimed)return;
+ try{
+  placeBetVoice.muted=true;
+  const p=placeBetVoice.play();
+  if(p&&typeof p.then==='function')p.then(()=>{placeBetVoice.pause();placeBetVoice.currentTime=0;placeBetVoice.muted=false;voicePrimed=true;}).catch(()=>{placeBetVoice.muted=false;});
+  else{placeBetVoice.pause();placeBetVoice.currentTime=0;placeBetVoice.muted=false;voicePrimed=true;}
+ }catch(_){placeBetVoice.muted=false;}
+}
 function speakPlaceYourBet(roundNumber){
- if(!soundEnabled||!('speechSynthesis' in window)||typeof SpeechSynthesisUtterance==='undefined')return false;
+ if(!soundEnabled)return false;
  const round=String(roundNumber??roundState?.roundNumber??'');
  if(!round||lastBetAnnouncementRound===round)return false;
- // Only announce a real betting round, never during idle/results or as a sound-toggle test.
  if(roundState&&String(roundState.roundNumber)!==round)return false;
  lastBetAnnouncementRound=round;
  try{
-  const synth=window.speechSynthesis;
-  const utterance=new SpeechSynthesisUtterance('Place your bet!');
-  utterance.lang='en-US';utterance.rate=.9;utterance.pitch=1;utterance.volume=1;
-  const voices=synth.getVoices?synth.getVoices():[];
-  const english=voices.find(v=>/^en(-|_)/i.test(v.lang));
-  if(english)utterance.voice=english;
-  utterance.onerror=()=>{if(lastBetAnnouncementRound===round)lastBetAnnouncementRound='';};
-  if(synth.paused)synth.resume();
-  synth.speak(utterance);
+  placeBetVoice.pause();placeBetVoice.currentTime=0;placeBetVoice.muted=false;placeBetVoice.volume=1;
+  const playback=placeBetVoice.play();
+  if(playback&&typeof playback.catch==='function')playback.catch(()=>{if(lastBetAnnouncementRound===round)lastBetAnnouncementRound='';});
   return true;
  }catch(_){if(lastBetAnnouncementRound===round)lastBetAnnouncementRound='';return false;}
 }
@@ -158,7 +163,7 @@ window.addEventListener('color-dice-impact',event=>{
 });
 $('soundToggle').addEventListener('click',()=>{
  soundEnabled=!soundEnabled;$('soundToggle').textContent=soundEnabled?'🔊 SOUND ON':'🔇 SOUND OFF';$('soundToggle').setAttribute('aria-pressed',String(soundEnabled));
- if(soundEnabled){const a=audio();if(a?.state==='suspended')a.resume().catch(()=>{});tone(660,.12,.09,'sine');tone(990,.14,.065,'sine',.1);if('speechSynthesis' in window&&typeof SpeechSynthesisUtterance!=='undefined'){try{const synth=window.speechSynthesis;synth.cancel();const unlock=new SpeechSynthesisUtterance(' ');unlock.volume=0;unlock.rate=1;synth.speak(unlock);}catch(_){}}if(roundState?.status==='betting'){speakPlaceYourBet(roundState.roundNumber);const seconds=Math.ceil(Math.max(0,Number(roundState.timeLeftMs)||0)/1000);if(seconds<=10&&seconds>0){lastCountdownSecond=String(roundState.roundNumber)+':'+seconds;playCountdown(seconds);}}}
+ if(soundEnabled){const a=audio();if(a?.state==='suspended')a.resume().catch(()=>{});primePlaceBetVoice();tone(660,.12,.09,'sine');tone(990,.14,.065,'sine',.1);if('speechSynthesis' in window&&typeof SpeechSynthesisUtterance!=='undefined'){try{const synth=window.speechSynthesis;synth.cancel();const unlock=new SpeechSynthesisUtterance(' ');unlock.volume=0;unlock.rate=1;synth.speak(unlock);}catch(_){}}if(roundState?.status==='betting'){speakPlaceYourBet(roundState.roundNumber);const seconds=Math.ceil(Math.max(0,Number(roundState.timeLeftMs)||0)/1000);if(seconds<=10&&seconds>0){lastCountdownSecond=String(roundState.roundNumber)+':'+seconds;playCountdown(seconds);}}}
 });
 const pullCord=$('pullCord'),cordRig=$('cordRig'),cordHint=$('cordHint');
 function beginCordPull(){
@@ -191,7 +196,7 @@ function renderState(state){
  $('timer').parentElement.classList.toggle('closed',state.status!=='betting');
  if(state.status==='betting'){
   if(String(lastCountdownSecond).split(':')[0]!==String(state.roundNumber))lastCountdownSecond='';
-  if(soundEnabled){speakPlaceYourBet(state.roundNumber);const seconds=Math.ceil(time/1000),countdownKey=String(state.roundNumber)+':'+seconds;if(seconds<=10&&seconds>0&&lastCountdownSecond!==countdownKey){lastCountdownSecond=countdownKey;playCountdown(seconds);}if(time<=1050&&time>0&&lastCountdownBeepRound!==String(state.roundNumber)){lastCountdownBeepRound=String(state.roundNumber);tone(1180,.12,.11,'square');tone(820,.16,.09,'triangle',.13);}}
+  if(soundEnabled){speakPlaceYourBet(state.roundNumber);const seconds=Math.ceil(time/1000),countdownKey=String(state.roundNumber)+':'+seconds;if(seconds<=10&&seconds>0&&lastCountdownSecond!==countdownKey){lastCountdownSecond=countdownKey;playCountdown(seconds);}if(seconds===1&&time>0&&lastCountdownBeepRound!==String(state.roundNumber)){lastCountdownBeepRound=String(state.roundNumber);tone(1180,.12,.13,'square');tone(820,.16,.11,'triangle',.13);}}
   renderDice(['GREEN','RED','GREEN'],time<=3500);
   if(time<=3500&&time>0&&lastRollRound!==String(state.roundNumber)){lastRollRound=String(state.roundNumber);playRoll();}
  } else if(state.status==='settling'){
