@@ -641,12 +641,22 @@ async function generateProfileCanvas(user) {
   const label=(value,x,y,size=18,color='#91a9d3',align='left')=>{ctx.textAlign=align;ctx.fillStyle=color;ctx.font=size+'px Sans';ctx.fillText(value,x,y);};
   const heading=(value,x,y)=>{ctx.textAlign='left';ctx.fillStyle='#f4f7ff';ctx.font='bold 24px Sans';ctx.fillText(value,x,y);};
   const displayName = getPlainDisplayName(user).slice(0, 26);
-  ctx.save();ctx.textAlign='center';ctx.shadowColor='#ff5fd2';ctx.shadowBlur=18;
-  const logoGrad=ctx.createLinearGradient(260,35,540,65);logoGrad.addColorStop(0,'#54f4ff');logoGrad.addColorStop(.28,'#a58bff');logoGrad.addColorStop(.55,'#ff77d8');logoGrad.addColorStop(.78,'#ffe66d');logoGrad.addColorStop(1,'#65ffb8');
-  ctx.fillStyle=logoGrad;ctx.font='bold 34px Sans';ctx.fillText('JOJOWORLD',W/2,62);ctx.shadowBlur=0;
-  const titleLine=ctx.createLinearGradient(210,0,590,0);titleLine.addColorStop(0,'rgba(66,245,255,0)');titleLine.addColorStop(.25,'rgba(66,245,255,0.9)');titleLine.addColorStop(.52,'rgba(255,98,210,0.95)');titleLine.addColorStop(.78,'rgba(255,230,109,0.9)');titleLine.addColorStop(1,'rgba(101,255,184,0)');
-  ctx.strokeStyle=titleLine;ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(210,74);ctx.lineTo(590,74);ctx.stroke();
-  ctx.fillStyle='#d4e8ff';ctx.font='14px Sans';ctx.fillText('VISUAL PROFILE  •  YOUR WORLD, YOUR STYLE',W/2,96);ctx.restore();
+  // [JOJOWORLD LOGO UPGRADE] Premium crown + globe emblem with metallic lettering and neon edge light.
+  ctx.save();ctx.textAlign='center';ctx.lineJoin='round';
+  const logoGrad=ctx.createLinearGradient(255,32,545,68);
+  logoGrad.addColorStop(0,'#20e8ff');logoGrad.addColorStop(.24,'#8da8ff');logoGrad.addColorStop(.48,'#ffffff');logoGrad.addColorStop(.68,'#ffd66b');logoGrad.addColorStop(.84,'#ff68d6');logoGrad.addColorStop(1,'#5fffe0');
+  // Fine halo and globe mark above the wordmark.
+  ctx.shadowColor='#32dfff';ctx.shadowBlur=13;ctx.strokeStyle='rgba(58,220,255,.78)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(W/2,27,15,Math.PI*1.08,Math.PI*1.92);ctx.stroke();ctx.shadowBlur=0;
+  const globe=ctx.createRadialGradient(W/2-4,22,1,W/2,27,12);globe.addColorStop(0,'#f4ffff');globe.addColorStop(.28,'#49eaff');globe.addColorStop(.72,'#1764e8');globe.addColorStop(1,'#091b51');
+  ctx.fillStyle=globe;ctx.beginPath();ctx.arc(W/2,27,11,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#ffe7a0';ctx.lineWidth=1.4;ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=.8;ctx.beginPath();ctx.ellipse(W/2,27,5,10,0,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.ellipse(W/2,27,10,4,0,0,Math.PI*2);ctx.stroke();
+  // Small royal crown silhouette.
+  ctx.save();ctx.translate(W/2,9);ctx.shadowColor='#ffc857';ctx.shadowBlur=8;ctx.fillStyle='#ffd66b';ctx.strokeStyle='#fff4c5';ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(-11,3);ctx.lineTo(-9,-4);ctx.lineTo(-4,0);ctx.lineTo(0,-7);ctx.lineTo(4,0);ctx.lineTo(9,-4);ctx.lineTo(11,3);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
+  ctx.shadowColor='#171b66';ctx.shadowBlur=5;ctx.font='bold 34px Sans';ctx.lineWidth=2.8;ctx.strokeStyle='#091329';ctx.strokeText('JOJOWORLD',W/2,64);ctx.shadowColor='#ffb85c';ctx.shadowBlur=13;ctx.fillStyle=logoGrad;ctx.fillText('JOJOWORLD',W/2,64);ctx.shadowBlur=0;
+  ctx.strokeStyle='#fff6d2';ctx.globalAlpha=.72;ctx.lineWidth=.7;ctx.strokeText('JOJOWORLD',W/2,63);ctx.globalAlpha=1;
+  const titleLine=ctx.createLinearGradient(170,0,630,0);titleLine.addColorStop(0,'rgba(66,245,255,0)');titleLine.addColorStop(.2,'#42f5ff');titleLine.addColorStop(.5,'#ffe66d');titleLine.addColorStop(.8,'#ff62d2');titleLine.addColorStop(1,'rgba(255,98,210,0)');
+  ctx.shadowColor='#42eaff';ctx.shadowBlur=7;ctx.strokeStyle=titleLine;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(170,75);ctx.lineTo(630,75);ctx.stroke();ctx.shadowBlur=0;
+  ctx.fillStyle='#d4e8ff';ctx.font='bold 12px Sans';ctx.fillText('✦  YOUR WORLD  •  YOUR STYLE  ✦',W/2,96);ctx.restore();
   // [UPGRADED V28] Main identity card; avatar and text no longer overlap.
   panel(28,118,744,300,'#d9a441');
   // Apply the pre-generated AI artwork behind the equipped name effect when available.
