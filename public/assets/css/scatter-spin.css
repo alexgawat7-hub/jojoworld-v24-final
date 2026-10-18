@@ -81,3 +81,5 @@ html,body{overflow:hidden!important;touch-action:pan-x}
 .prizeamount{font-size:8px!important}
 .links a{padding:5px 4px!important;font-size:9px!important}
 @media(max-height:700px){.sub{display:none}.balance{padding:4px 7px!important}.machine{padding:4px 7px!important}.reel{height:clamp(38px,7vh,54px)!important}.jackpot{padding:4px 7px!important}.prizeboard{padding:3px 7px!important}.prizerow{padding:1px 0!important}.links a{padding:4px!important}}
+
+.game-nav .shop-link{border-color:#b59a54;background:linear-gradient(100deg,#3a2d22,#292040);color:#ffe49a;white-space:nowrap}
