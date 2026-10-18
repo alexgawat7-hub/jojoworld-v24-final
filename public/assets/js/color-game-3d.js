@@ -128,8 +128,15 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
   const diceGeo = new RoundedBoxGeometry(.78,.78,.78,4,.075);
   function makeDie(index) {
     const root = new THREE.Group();
-    const body = new THREE.Mesh(diceGeo, mat(colors[['red','blue','green'][index]],.28,.24,{clearcoat:1,clearcoatRoughness:.15}));
+    const body = new THREE.Mesh(diceGeo, mat(colors[['green','red','green'][index]],.28,.24,{clearcoat:1,clearcoatRoughness:.15}));
     body.castShadow=true; body.receiveShadow=true; root.add(body);
+    // Inset enamel face plates reproduce the requested green / red-pink / red-green dice look.
+    // The upper plate tracks the server-confirmed die color; the front plate provides the contrasting side.
+    const topPlate = new THREE.Mesh(new RoundedBoxGeometry(.57,.025,.57,3,.035), mat(colors[['green','red','red'][index]],.22,.22,{clearcoat:1,clearcoatRoughness:.12}));
+    topPlate.position.set(0,.391,0);topPlate.castShadow=true;root.add(topPlate);
+    const sideColors=[colors.green,colors.pink,colors.green];
+    const sidePlate = new THREE.Mesh(new RoundedBoxGeometry(.57,.57,.025,3,.035), mat(sideColors[index],.24,.22,{clearcoat:1,clearcoatRoughness:.12}));
+    sidePlate.position.set(0,0,.391);sidePlate.castShadow=true;root.add(sidePlate);
     // Real raised ivory pips on all six faces, laid out as standard die patterns.
     const patterns = [
       [[0,0]], [[-.19,-.19],[.19,.19]], [[-.2,-.2],[0,0],[.2,.2]],
@@ -156,7 +163,7 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
     });
     root.position.set([-1.65,0,1.65][index],.295,0);
     root.rotation.set(.12+index*.13,.25+index*.4,.1-index*.1);
-    scene.add(root);dice.push({root,body,index,phase:index*2.1,rolling:false,landed:false,dropHeight:0,verticalVelocity:0,spinX:0,spinY:0,spinZ:0,vx:0,vz:0,target:colors[['red','blue','green'][index]]});
+    scene.add(root);dice.push({root,body,topPlate,sidePlate,index,phase:index*2.1,rolling:false,landed:false,dropHeight:0,verticalVelocity:0,spinX:0,spinY:0,spinZ:0,vx:0,vz:0,target:colors[['red','blue','green'][index]]});
   }
   for(let i=0;i<3;i++)makeDie(i);
   // A banker-operated overhead release arm, cable and weighted brass pull.
@@ -179,6 +186,7 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
       names.forEach((name,i)=>{
         dice[i].target=colors[name]??colors.red;
         dice[i].body.material.color.setHex(dice[i].target);
+        dice[i].topPlate.material.color.setHex(dice[i].target);
       });
       lastColors=signature;
     }
