@@ -3120,14 +3120,12 @@ ${renderGiftCatalog()}
         }
 
         // [RESTORED] Profile Frame Shop: preserve ownership and allow re-equipping Royalty Frame.
+        // [SIMPLIFIED] Royalty Frame is sold directly from the main Shop beside Verified VIP.
+        // Old/stale Profile Frame Shop buttons return users to the main Shop instead of opening a separate page.
         if (upperRaw === 'SHOP_FRAMES') {
-          const previousPage = user.currentPage;
-          user.currentPage = "SHOP";
-          if (!await saveUserToDB(psid)) { user.currentPage = previousPage; send(psid, "⚠️ Hindi mabuksan ang Frame Shop ngayon. Subukan ulit mamaya."); continue; }
-          send(psid, "🖼️ JOJOWORLD PROFILE FRAME SHOP\n━━━━━━━━━━━━━━━━━━━━\n👑 Royalty Frame — 500 coins\n\nAng original Royalty Frame lang ang available dito. Ang dati mo nang nabili ay mananatiling pag-aari mo; hindi ka sisingilin ulit para i-equip ito.\n\nMase-save sa account mo ang frame at makikita sa profile card at leaderboard kapag naka-equip.", [
-            { content_type: "text", title: "👑 Royalty 500c", payload: "PREVIEW_FRAME" },
-            { content_type: "text", title: "🎒 My Frames", payload: "MY_FRAMES" },
-            { content_type: "text", title: "↩️ Back to Shop", payload: "SHOP" }
+          send(psid, "👑 Royalty Frame is available directly in the main Shop beside Verified VIP.", [
+            { content_type: "text", title: "👑 Royalty Frame 500c", payload: "PREVIEW_FRAME" },
+            { content_type: "text", title: "↩️ Main Shop", payload: "SHOP" }
           ]);
           continue;
         }
@@ -3191,7 +3189,6 @@ ${renderGiftCatalog()}
           await sendImage(psid, shopImage, null, [
             { content_type: "text", title: "☑️ Verified VIP 1,000c", payload: "PREVIEW_VIP" },
             { content_type: "text", title: "👑 Royalty Frame 500c", payload: "PREVIEW_FRAME" },
-            { content_type: "text", title: "🖼️ Profile Frame Shop", payload: "SHOP_FRAMES" },
             { content_type: "text", title: "💎 Name Effects", payload: "SHOP_EFFECTS" },
             { content_type: "text", title: "🏠 Houses", payload: "SHOP_HOUSES" },
             { content_type: "text", title: "↩️ Main Menu", payload: "MENU" }
