@@ -1,12 +1,3 @@
-const soundButton=document.getElementById('soundToggle');
-const soundKey='jojoworldArcadeSound';
-function readSoundSetting(){try{return localStorage.getItem(soundKey)!=='false'}catch(_){return true}}
-function saveSoundSetting(value){try{localStorage.setItem(soundKey,String(value))}catch(_){}}
-let arcadeSoundOn=readSoundSetting();
-function renderSoundControl(){if(!soundButton)return;soundButton.textContent=arcadeSoundOn?'🔊 ARCADE SOUND ON':'🔇 ARCADE SOUND OFF';soundButton.setAttribute('aria-pressed',String(arcadeSoundOn));}
-renderSoundControl();
-if(soundButton){soundButton.addEventListener('click',function(event){event.preventDefault();event.stopPropagation();arcadeSoundOn=!arcadeSoundOn;saveSoundSetting(arcadeSoundOn);renderSoundControl();});}
-
 const token=new URLSearchParams(location.search).get('token')||'';
 const notice=document.getElementById('notice');
 if(token){
