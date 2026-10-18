@@ -57,11 +57,11 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     const root=new THREE.Group();
     const paint=mat(color,.28,.48), trim=mat(0x111820,.5,.35), glass=mat(0x172d3b,.2,.4), light= new THREE.MeshStandardMaterial({color:accent,emissive:accent,emissiveIntensity:2});
     const body=new THREE.Mesh(new THREE.BoxGeometry(1.9,.48,3.8),paint);body.position.y=.72;body.castShadow=true;root.add(body);
-    const hood=new THREE.Mesh(new THREE.BoxGeometry(1.72,.18,1.1),paint);hood.position.set(0,.98,1.02);hood.castShadow=true;root.add(hood);
+    const hood=new THREE.Mesh(new THREE.BoxGeometry(1.72,.18,1.1),paint);hood.position.set(0,.98,-1.02);hood.castShadow=true;root.add(hood);
     const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.35,.58,1.65),glass);cabin.position.set(0,1.15,-.28);cabin.castShadow=true;root.add(cabin);
     const roof=new THREE.Mesh(new THREE.BoxGeometry(1.15,.09,.92),paint);roof.position.set(0,1.47,-.25);root.add(roof);
     const frontLip=new THREE.Mesh(new THREE.BoxGeometry(1.82,.13,.25),trim);frontLip.position.set(0,.48,1.83);root.add(frontLip);
-    const spoiler=new THREE.Mesh(new THREE.BoxGeometry(1.4,.1,.25),paint);spoiler.position.set(0,1.14,-1.78);root.add(spoiler);
+    const spoiler=new THREE.Mesh(new THREE.BoxGeometry(1.4,.1,.25),paint);spoiler.position.set(0,1.14,1.78);root.add(spoiler);
     for(const x of [-.99,.99])for(const z of [-1.22,1.22]){
       const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.38,.38,.22,18),tireMat);wheel.rotation.z=Math.PI/2;wheel.position.set(x,.43,z);wheel.castShadow=true;root.add(wheel);
       const hub=new THREE.Mesh(new THREE.CylinderGeometry(.19,.19,.232,12),chrome);hub.rotation.z=Math.PI/2;hub.position.set(x,.43,z);root.add(hub);
@@ -70,7 +70,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
       const lamp=new THREE.Mesh(new THREE.BoxGeometry(.42,.13,.05),light);lamp.position.set(x,.82,1.93);root.add(lamp);
     }
     const tailMat=new THREE.MeshStandardMaterial({color:0xff2424,emissive:0xff1010,emissiveIntensity:1.4});
-    for(const x of [-.63,.63]){const tail=new THREE.Mesh(new THREE.BoxGeometry(.36,.12,.05),tailMat);tail.position.set(x,.79,-1.93);root.add(tail);}
+    for(const x of [-.63,.63]){const tail=new THREE.Mesh(new THREE.BoxGeometry(.36,.12,.05),tailMat);tail.position.set(x,.79,1.93);root.add(tail);}
     scene.add(root);return root;
   }
   const player=addCar(0x176d9a,0x8ef7ff);player.position.set(0,0,0);
@@ -139,7 +139,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     camera.position.y=5.2+(nitro>0?.12:0);
     camera.lookAt(player.position.x*.35,1.0,-16);
     // Recycle lane marks and roadside models toward the camera for continuous travel.
-    const movement=speed*.0105;
+    const movement=speed*.075;
     for(const m of laneMarks){m.position.z+=movement;if(m.position.z>12)m.position.z-=260;}
     for(const o of roadside){o.group.position.z+=movement;if(o.group.position.z>18){o.group.position.z-=260;o.z=o.group.position.z;}}
     if(nitro>0){
@@ -163,9 +163,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     if(keys.nitro&&nitro<=0&&nitroCooldown<=0){nitro=1.5;nitroCooldown=7;beep(980);}
     const boosting=nitro>0,target=braking?95:(boosting?260:205);
     speed+=(target-speed)*Math.min(1,sec*2.4);
-    progress+=speed*sec*.105;
+    progress+=speed*sec*.078;
     rivalBoost=Math.max(0,rivalBoost-sec);if(rivalBoost<=0&&Math.random()<.045)rivalBoost=1.1;
-    rivalProgress+=sec*(rivalBoost>0?19:15.8);
+    rivalProgress+=sec*(rivalBoost>0?18.8:16.2);
     if(keys.left)steer=Math.max(-1,steer-sec*1.7);else if(keys.right)steer=Math.min(1,steer+sec*1.7);else steer*=Math.pow(.91,sec*60);
     $('score').textContent=Math.min(100,Math.floor(progress/10))+'%';$('speed').textContent=Math.round(speed)+' km/h';
     draw();
