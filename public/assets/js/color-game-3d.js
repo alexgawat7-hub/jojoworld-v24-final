@@ -10,8 +10,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     yellow: 0xf5b900, pink: 0xe936a9
   };
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(34, 2.8, 0.1, 100);
-  camera.position.set(0, 4.2, 10.8);
+  const camera = new THREE.PerspectiveCamera(36, 2.8, 0.1, 100);
+  camera.position.set(0, 2.15, 6.3);
   camera.lookAt(0, 0.15, 0);
   const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
@@ -64,7 +64,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
   const dome = new THREE.Mesh(new THREE.SphereGeometry(1,48,24,0,Math.PI*2,0,Math.PI/2), domeMat);
   dome.scale.set(3.0,1.2,1.05); dome.position.set(0,-.02,0); dome.castShadow=false; base.add(dome);
   const hoop = new THREE.Mesh(new THREE.TorusGeometry(2.85,.055,10,64), brightGold);
-  hoop.scale.set(1,1,.37); hoop.rotation.x=Math.PI/2; hoop.position.set(0,-.18,0); base.add(hoop);
+  hoop.scale.set(1,1,.37); hoop.position.set(0,-.18,0); base.add(hoop);
   // Side hinges, latch, and a front control panel make the machine feel manufactured.
   for (const x of [-2.9,2.9]) {
     const hinge = new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.45,20), brightGold);
@@ -108,7 +108,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
         pip.position.set(u,v,.005); group.add(pip);root.add(group);
       });
     });
-    root.position.set([-1.65,0,1.65][index],.22,0);
+    root.position.set([-1.65,0,1.65][index],.42,0);
     root.rotation.set(.12+index*.13,.25+index*.4,.1-index*.1);
     scene.add(root);dice.push({root,body,index,phase:index*2.1,rolling:false,target:colors[['red','blue','green'][index]]});
   }
@@ -159,15 +159,15 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     dice.forEach((d,i)=>{
       if(d.rolling) {
         d.root.rotation.x+=dt*(6.8+i*1.1);d.root.rotation.y+=dt*(8.1-i*.7);d.root.rotation.z+=dt*(5.2+i);
-        d.root.position.y=.22+Math.abs(Math.sin(now*.012+d.phase))*.24;
+        d.root.position.y=.42+Math.abs(Math.sin(now*.012+d.phase))*.24;
         if(stage.classList.contains('dice-drop')) {
           const p=Math.min(1,(now-dropStart)/920);
-          d.root.position.y=.22+Math.abs(1-p)*1.7;
+          d.root.position.y=.42+Math.abs(1-p)*1.7;
           d.root.position.x=[-1.65,0,1.65][i]+Math.sin(p*13+i)*(.22*(1-p));
-          if(p>=1){d.root.position.y=.22;d.rolling=false;d.root.rotation.x=Math.round(d.root.rotation.x/(Math.PI/2))*(Math.PI/2);}
+          if(p>=1){d.root.position.y=.42;d.rolling=false;d.root.rotation.x=Math.round(d.root.rotation.x/(Math.PI/2))*(Math.PI/2);}
         }
       } else {
-        d.root.position.set([-1.65,0,1.65][i],.22,0);
+        d.root.position.set([-1.65,0,1.65][i],.42,0);
         d.root.rotation.x+=(.06-d.root.rotation.x)*Math.min(1,dt*4);
         d.root.rotation.z+=(0-d.root.rotation.z)*Math.min(1,dt*4);
         d.root.rotation.y+=(.15+i*.28-d.root.rotation.y)*Math.min(1,dt*4);
