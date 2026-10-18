@@ -801,7 +801,7 @@ async function generateProfileCanvas(user) {
     {x:28,w:174,title:'COINS',value:String(Number(user.coins)||0),color:'#ffd875'},
     {x:218,w:174,title:'LEVEL / XP',value:'LVL '+levelStats.level,color:'#ffe08a',level:true},
     {x:408,w:174,title:'NET WORTH',value:String(getNetWorth(user)),color:'#f4d28b'},
-    {x:598,w:174,title:'PROFILE OPENS',value:String(Number(user.views)||0),color:'#ffe7b0'}
+    {x:598,w:174,title:'PROFILE VIEWS',value:String(Number(user.views)||0),color:'#ffe7b0'}
   ];
   stats.forEach(s=>{
     panel(s.x,438,s.w,94,'#344777');
