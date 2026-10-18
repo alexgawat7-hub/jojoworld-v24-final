@@ -191,7 +191,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     const boosting=nitro>0,target=braking?95:(boosting?260:205);
     speed+=(target-speed)*Math.min(1,sec*2.4);
     const hardTurn=Math.abs(steer)>.56&&speed>125&&!braking;
-    driftAmount+=(hardTurn?1:0-driftAmount)*Math.min(1,sec*(hardTurn?4.5:2.2));
+    driftAmount+=((hardTurn?1:0)-driftAmount)*Math.min(1,sec*(hardTurn?4.5:2.2));
     if(hardTurn&&Math.random()<.72)emitSmoke();
     updateSmoke(sec);
     progress+=speed*sec*.078;
