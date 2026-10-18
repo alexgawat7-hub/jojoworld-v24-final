@@ -3,9 +3,10 @@ function drawDie(id,n){const el=document.getElementById(id);el.innerHTML='';for(
 drawDie('die1',3);drawDie('die2',5);
 let bet=100,pred='ODD',rolling=false,accountConnected=false,accountLoading=false,resultUnconfirmed=false;
 const soundKey='jojoworldArcadeSound';
-let soundOn=localStorage.getItem(soundKey)!=='false',audioCtx=null,rollTick=0;
+function readArcadeSound(){try{return localStorage.getItem(soundKey)!=='false'}catch(_){return true}}
+let soundOn=readArcadeSound(),audioCtx=null,rollTick=0;
 function playSound(kind){
- soundOn=localStorage.getItem(soundKey)!=='false';if(!soundOn)return;
+ soundOn=readArcadeSound();if(!soundOn)return;
  try{
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
   if(!audioCtx)audioCtx=new AC();if(audioCtx.state==='suspended')audioCtx.resume();
