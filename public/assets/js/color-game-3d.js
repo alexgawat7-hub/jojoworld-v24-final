@@ -116,9 +116,11 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
   }
   box(1.3,.15,.22,darkMetal,0,-.27,1.52);
   box(.9,.055,.06,brightGold,0,-.18,1.65);
-  for (let i=0;i<5;i++) {
-    const lamp = new THREE.Mesh(new THREE.SphereGeometry(.055,12,8), mat([0xff314e,0x36a5ff,0x26f5a0,0xffd54b,0xff62ce][i],.1,.18,{emissive:[0xff183d,0x086dff,0x00b96b,0xe9a900,0xec239b][i],emissiveIntensity:1.3}));
-    lamp.position.set(-.36+i*.18,-.13,1.69);base.add(lamp);
+  for (let i=0;i<6;i++) {
+    const lampColors=[0xff314e,0x36a5ff,0x26f5a0,0xffd54b,0xff62ce,0xf4f5f6];
+    const emissiveColors=[0xff183d,0x086dff,0x00b96b,0xe9a900,0xec239b,0x9caab4];
+    const lamp = new THREE.Mesh(new THREE.SphereGeometry(.055,12,8), mat(lampColors[i],.1,.18,{emissive:emissiveColors[i],emissiveIntensity:1.3}));
+    lamp.position.set(-.45+i*.18,-.13,1.69);base.add(lamp);
   }
 
   const dice = [];
