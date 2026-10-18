@@ -293,6 +293,48 @@ app.post('/api/scatter-spin/spin', async (req, res) => {
 // [JOJOWORLD DICE ARENA WEB GAME ROUTE] Serve the animated HTML game interface.
 // This is currently a visual prototype; wager settlement remains in the Messenger backend
 // until the authenticated game-session API is added and tested.
+// [JOJOWORLD BROWSER COIN SHOP] Use the existing PayMongo top-up flow without returning to Messenger.
+app.get('/coin-shop', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'coin-shop.html'), err => {
+    if (err && !res.headersSent) {
+      console.error('[COIN SHOP] Could not serve coin shop:', err.message);
+      res.status(503).send('Coin Shop is temporarily unavailable.');
+    }
+  });
+});
+app.get('/api/coin-shop/session', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Your secure game session expired. Open Game Lobby again to reconnect.' });
+    const user = await loadUserFromDB(String(session.psid));
+    if (!user) return res.status(404).json({ ok: false, error: 'JojoWorld account not found.' });
+    res.set('Cache-Control', 'no-store');
+    return res.json({ ok: true, balance: Math.max(0, Math.floor(Number(user.coins) || 0)), packages: Object.entries(TOPUP_RATES).map(([amount, coins]) => ({ amount: Number(amount), coins })) });
+  } catch (err) {
+    console.error('[COIN SHOP] Session read failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Coin Shop is temporarily unavailable.' });
+  }
+});
+app.post('/api/coin-shop/checkout', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Your secure game session expired. Reopen Game Lobby to reconnect.' });
+    if (!PAYMONGO_SECRET || !PAYMONGO_WEBHOOK_SECRET || !MONGODB_URI || mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ ok: false, error: 'Online top-up is not configured right now. No payment was started.' });
+    }
+    const amount = Number(req.body?.amount);
+    const coins = TOPUP_RATES[amount];
+    if (!Number.isSafeInteger(amount) || !coins) return res.status(400).json({ ok: false, error: 'Choose one of the listed coin packages.' });
+    const checkoutUrl = await createPaymongoLink(amount, coins, String(session.psid));
+    if (!checkoutUrl) return res.status(503).json({ ok: false, error: 'Could not create a secure checkout link. No coins were charged; please try again.' });
+    res.set('Cache-Control', 'no-store');
+    return res.json({ ok: true, checkoutUrl, amount, coins });
+  } catch (err) {
+    console.error('[COIN SHOP] Checkout creation failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Checkout is temporarily unavailable. Please try again.' });
+  }
+});
+
 app.get('/live-games', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'live-games.html'), err => {
     if (err && !res.headersSent) {
