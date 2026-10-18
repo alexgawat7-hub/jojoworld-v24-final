@@ -137,10 +137,10 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
       lastColors=signature;
     }
     const dropping=stage.classList.contains('dice-drop');
-    const rolling=stage.classList.contains('rolling') || stage.classList.contains('dice-drop');
-    dice.forEach(d=>d.rolling=rolling);
+    const rolling=stage.classList.contains('rolling') || dropping;
     if(dropping&&!wasDropping){dropStart=now;rollingUntil=now+1.05;}
     if(!rolling&&wasDropping){rollingUntil=0;}
+    dice.forEach(d=>d.rolling=rolling && (!dropping || now-dropStart<920));
     wasDropping=dropping;
     rig.userData.pulled=document.getElementById('cordRig')?.classList.contains('pulled')||false;
   }
