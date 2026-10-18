@@ -61,7 +61,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.35,.58,1.65),glass);cabin.position.set(0,1.15,-.28);cabin.castShadow=true;root.add(cabin);
     const roof=new THREE.Mesh(new THREE.BoxGeometry(1.15,.09,.92),paint);roof.position.set(0,1.47,-.25);root.add(roof);
     const frontLip=new THREE.Mesh(new THREE.BoxGeometry(1.82,.13,.25),trim);frontLip.position.set(0,.48,-1.88);root.add(frontLip);
-    const spoiler=new THREE.Mesh(new THREE.BoxGeometry(1.4,.1,.25),paint);spoiler.position.set(0,1.14,1.78);root.add(spoiler);\n    const skirtMat=mat(0x10151c,.48,.25);for(const x of [-.91,.91]){const skirt=new THREE.Mesh(new THREE.BoxGeometry(.12,.18,2.25),skirtMat);skirt.position.set(x,.52,0);root.add(skirt);}\n    for(const x of [-.98,.98]){const mirror=new THREE.Mesh(new THREE.BoxGeometry(.24,.12,.22),paint);mirror.position.set(x,1.05,-.63);root.add(mirror);}
+    const spoiler=new THREE.Mesh(new THREE.BoxGeometry(1.4,.1,.25),paint);spoiler.position.set(0,1.14,1.78);root.add(spoiler);
+    const skirtMat=mat(0x10151c,.48,.25);for(const x of [-.91,.91]){const skirt=new THREE.Mesh(new THREE.BoxGeometry(.12,.18,2.25),skirtMat);skirt.position.set(x,.52,0);root.add(skirt);}
+    for(const x of [-.98,.98]){const mirror=new THREE.Mesh(new THREE.BoxGeometry(.24,.12,.22),paint);mirror.position.set(x,1.05,-.63);root.add(mirror);}
     root.userData.wheels=[];root.userData.hubs=[];
     for(const x of [-.99,.99])for(const z of [-1.22,1.22]){
       const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.38,.38,.22,18),tireMat);wheel.rotation.z=Math.PI/2;wheel.position.set(x,.43,z);wheel.castShadow=true;root.add(wheel);root.userData.wheels.push(wheel);
