@@ -205,9 +205,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     player.position.x+=(playerX+slide-player.position.x)*.16;
     player.rotation.z=-steer*.08-driftAmount*steer*.055;
     player.rotation.y=-steer*.12-driftAmount*steer*.09;
-    for(const wheel of player.userData.wheels){wheel.rotation.x+=speed*.0015;if(wheel.position.z<0)wheel.rotation.y=steer*.22;}
-    for(const hub of player.userData.hubs){hub.rotation.x+=speed*.0015;if(hub.position.z<0)hub.rotation.y=steer*.22;}
-    for(const wheel of rival.userData.wheels)wheel.rotation.x+=speed*.0008;for(const hub of rival.userData.hubs)hub.rotation.x+=speed*.0008;
+    for(const wheel of player.userData.wheels){wheel.rotation.x+=speed*.00025;if(wheel.position.z<0)wheel.rotation.y=steer*.22;}
+    for(const hub of player.userData.hubs){hub.rotation.x+=speed*.00025;if(hub.position.z<0)hub.rotation.y=steer*.22;}
+    for(const wheel of rival.userData.wheels)wheel.rotation.x+=speed*.00018;for(const hub of rival.userData.hubs)hub.rotation.x+=speed*.00018;
     rival.position.x=-2.8+Math.sin(progress*.013)*.8;
     const gap=rivalProgress-progress;
     rival.position.z=-Math.max(9,Math.min(75,18+gap*.12));
@@ -215,7 +215,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     camera.position.y=5.0+(nitro>0?.12:0);
     camera.lookAt(player.position.x*.35,1.0,-16);
     // Recycle lane marks and roadside models toward the camera for continuous travel.
-    const movement=speed*.075;
+    const movement=speed*.00125;
     for(const m of laneMarks){m.position.z+=movement;if(m.position.z>12)m.position.z-=260;}
     for(const o of roadside){o.group.position.z+=movement;if(o.group.position.z>18){o.group.position.z-=260;o.z=o.group.position.z;}}
     for(const p of nitroPickups){p.position.z+=movement;p.rotation.y+=.035;p.position.y=.95+Math.sin(performance.now()*.004+p.position.x)*.12;if(p.position.z>2){p.position.z=-245-Math.random()*18;p.position.x=[-3.6,0,3.6][Math.floor(Math.random()*3)];}else if(p.position.z>-.9&&p.position.z<1.5&&Math.abs(p.position.x-player.position.x)<1.65){collectNitro(p);}}
