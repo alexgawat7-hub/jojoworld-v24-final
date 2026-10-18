@@ -83,6 +83,7 @@ function applyStats(s){
 }
 document.getElementById('roll').addEventListener('click',async()=>{
   if(rolling||!token||!accountConnected)return;
+  playSound('start');
   rolling=true;
   const btn=document.getElementById('roll'),area=document.getElementById('dicearea'),res=document.getElementById('result');
   let flicker=null;
