@@ -31,7 +31,7 @@ $('spin').addEventListener('click',async()=>{
  const els=[$('r1'),$('r2'),$('r3')];let ticker=setInterval(()=>els.forEach(e=>e.textContent=symbols[Math.floor(Math.random()*symbols.length)]),85);
  try{
   const req=fetch('/api/scatter-spin/spin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token})});
-  await new Promise(r=>setTimeout(r,1500));const response=await req;const d=await response.json();clearInterval(ticker);$('reels').classList.remove('spinning');
+  const response=await req;const d=await response.json();clearInterval(ticker);$('reels').classList.remove('spinning');
   if(!response.ok||!d.ok){if(d.balance!==undefined)setBalance(d.balance);$('result').classList.remove('win-result','jackpot-result');$('result').classList.add('loss-result');$('result').innerHTML='SPIN NOT COMPLETED<small>'+(d.error||'Please try again.')+'</small>';return}
   d.symbols.forEach((v,i)=>els[i].textContent=v);els.forEach(e=>{e.classList.remove('win');if(d.win>0){void e.offsetWidth;e.classList.add('win')}});setBalance(d.balance);setJackpot(d.jackpot);
   $('result').classList.remove('win-result','jackpot-result','loss-result');$('result').classList.add(d.jackpotWin?'jackpot-result':d.win>0?'win-result':'loss-result');$('result').innerHTML=(d.jackpotWin?'🏆 GRAND JACKPOT!':d.win>0?'✨ '+d.message:'💣 NO WIN — SPIN AGAIN!')+'<small>'+(d.jackpotWin?'You won '+money(d.win)+' coins!':d.win>0?'+'+money(d.win)+' coins • '+d.message:'No prize on this spin. Better luck next time! Your result is confirmed.')+'</small>';$('result').classList.add('reveal');
