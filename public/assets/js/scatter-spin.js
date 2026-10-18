@@ -20,7 +20,6 @@ renderSound();
 soundButton.addEventListener('click',()=>{soundOn=!soundOn;try{localStorage.setItem(soundKey,String(soundOn))}catch(_){}renderSound();if(soundOn)playSound('tap')});
 const lobbyLink=$('lobbyLink'),lobbyBottom=$('lobbyBottom');
 if(token){const q='?token='+encodeURIComponent(token);lobbyLink.href='/live-games'+q;lobbyBottom.href='/live-games'+q}
- }
 const symbols=['💣','❌','🪙','🎁','💎','👑','🍀','⭐'];
 function setBalance(n){balance=Number(n)||0;$('balance').textContent=money(balance)+' coins'}
 function setJackpot(n){$('jackpot').textContent=money(n)+' coins'}
