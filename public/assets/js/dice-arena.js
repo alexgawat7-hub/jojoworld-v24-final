@@ -3,10 +3,8 @@ const faces={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
 function drawDie(id,n){const el=document.getElementById(id);el.innerHTML='';for(let i=0;i<9;i++){const p=document.createElement('i');p.className='pip'+(faces[n].includes(i)?' on':'');el.appendChild(p)}}
 drawDie('die1',3);drawDie('die2',5);
 let bet=100,pred='ODD',rolling=false,accountConnected=false,accountLoading=false,resultUnconfirmed=false;
-const soundKey='jojoworldDiceSound';
+const soundKey='jojoworldArcadeSound';
 let soundOn=false,audioCtx=null,rollTick=0;
-const soundButton=document.getElementById('soundToggle');
-function renderSound(){soundButton.textContent=soundOn?'🔊 SOUND ON':'🔇 SOUND OFF';soundButton.setAttribute('aria-pressed',String(soundOn))}
 function playSound(kind='tap'){
  if(!soundOn)return;
  try{
@@ -21,8 +19,7 @@ function playSound(kind='tap'){
  }catch(_){}
 }
 try{soundOn=localStorage.getItem(soundKey)==='true'}catch(_){}
-renderSound();
-soundButton.addEventListener('click',()=>{soundOn=!soundOn;try{localStorage.setItem(soundKey,String(soundOn))}catch(_){}renderSound();if(soundOn)playSound('tap')});
+window.addEventListener('storage',e=>{if(e.key===soundKey)soundOn=e.newValue==='true'});
 const lobbyLink=document.getElementById('lobbyLink'),coinShopLink=document.getElementById('coinShopLink');
 if(token){lobbyLink.href='/live-games?token='+encodeURIComponent(token);if(coinShopLink)coinShopLink.href='/coin-shop?token='+encodeURIComponent(token)}
 const recentRolls=[];
