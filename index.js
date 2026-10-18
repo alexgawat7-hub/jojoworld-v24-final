@@ -1607,8 +1607,18 @@ async function generateLeaderboardCanvas(users) {
     if (podiumLines[1]) drawEffectNameLine(podiumLines[1], podiumCenterX, y + 216, podiumFontSize, podiumEffect, w - 18, featured ? '#fff0a4' : '#eff8ff', 'center');
     ctx.fillStyle = '#ffd85e'; ctx.font = 'bold ' + (featured ? 23 : 21) + 'px Sans'; // [UPGRADED V28] Larger coin flex stats.
     ctx.fillText((Math.max(0, Number(item.user.coins) || 0)).toLocaleString('en-US') + ' coins', x + w / 2, y + 239);
+    // [HOUSE ART ON PODIUM] Show a small illustration of the player's owned house, matching ranks 4–10.
     ctx.fillStyle = '#d4f6ff'; ctx.font = '17px Sans'; // [UPGRADED V28] Larger house and property stats.
-    ctx.fillText('House: ' + getHouse(item), x + w / 2, y + 261);
+    const podiumHouseKey = String(item.user.house || 'none').toLowerCase();
+    const podiumHouseTier = getHouseTier(podiumHouseKey);
+    if (podiumHouseTier > 0) {
+      drawHouseArt(ctx, podiumHouseKey, x + w / 2 - 75, y + 255, 24, 21);
+      ctx.textAlign = 'left';
+      ctx.fillText(getHouse(item), x + w / 2 - 55, y + 261);
+      ctx.textAlign = 'center';
+    } else {
+      ctx.fillText('House: ' + getHouse(item), x + w / 2, y + 261);
+    }
     ctx.fillText('Value: ' + getHouseWorth(item).toLocaleString('en-US') + 'c', x + w / 2, y + 282);
     ctx.fillStyle = '#ffe08a'; ctx.font = 'bold 18px Sans'; // [UPGRADED V28] Larger net-worth flex stat.
     ctx.fillText('NET WORTH: ' + item.net.toLocaleString('en-US') + 'c', x + w / 2, y + 304);
