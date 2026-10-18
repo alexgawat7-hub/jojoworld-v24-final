@@ -50,10 +50,35 @@ function tone(freq,duration,volume=0.035,type='sine',delay=0){
  osc.type=type;osc.frequency.setValueAtTime(freq,start);gain.gain.setValueAtTime(volume,start);gain.gain.exponentialRampToValueAtTime(.0001,start+duration);
  osc.connect(gain);gain.connect(a.destination);osc.start(start);osc.stop(start+duration);
 }
+function noiseBurst(duration=.12,volume=.025,delay=0,filterFrequency=1500){
+ if(!soundEnabled)return;
+ const a=audio();if(!a)return;
+ const length=Math.max(1,Math.floor(a.sampleRate*duration)),buffer=a.createBuffer(1,length,a.sampleRate),data=buffer.getChannelData(0);
+ for(let i=0;i<length;i++){const fade=1-i/length;data[i]=(Math.random()*2-1)*fade*fade;}
+ const source=a.createBufferSource(),filter=a.createBiquadFilter(),gain=a.createGain(),start=a.currentTime+delay;
+ source.buffer=buffer;filter.type='lowpass';filter.frequency.setValueAtTime(filterFrequency,start);
+ gain.gain.setValueAtTime(.0001,start);gain.gain.linearRampToValueAtTime(volume,start+.008);gain.gain.exponentialRampToValueAtTime(.0001,start+duration);
+ source.connect(filter);filter.connect(gain);gain.connect(a.destination);source.start(start);source.stop(start+duration);
+}
 function playRoll(){
  if(!soundEnabled)return;
- for(let i=0;i<8;i++){tone(150+Math.random()*250,.055,.025,'triangle',i*.075);tone(500+Math.random()*700,.025,.012,'square',i*.075+.025);}
- tone(105,.18,.06,'sine',.68);tone(740,.09,.025,'triangle',.82);
+ // Layered wooden/plastic clacks, a short rolling rattle, then three tray impacts.
+ noiseBurst(.48,.035,0,1900);
+ for(let i=0;i<10;i++){
+  const delay=i*.067+Math.random()*.025;
+  tone(115+Math.random()*180,.045,.028,'triangle',delay);
+  tone(420+Math.random()*680,.026,.009,'square',delay+.018);
+  if(i%2===0)noiseBurst(.035,.014,delay,2400);
+ }
+ noiseBurst(.11,.055,.61,850);
+ tone(92,.2,.075,'sine',.62);tone(138,.13,.045,'triangle',.67);
+ tone(740,.1,.02,'triangle',.86);tone(990,.16,.018,'sine',.96);
+}
+function playCordPull(){
+ if(!soundEnabled)return;
+ noiseBurst(.24,.045,0,1000);
+ tone(180,.13,.035,'sawtooth',.015);tone(125,.18,.05,'triangle',.13);
+ tone(72,.24,.065,'sine',.27);
 }
 $('soundToggle').addEventListener('click',()=>{
  soundEnabled=!soundEnabled;$('soundToggle').textContent=soundEnabled?'🔊 SOUND ON':'🔇 SOUND OFF';$('soundToggle').setAttribute('aria-pressed',String(soundEnabled));
@@ -65,7 +90,7 @@ function beginCordPull(){
  if(autoPullTimer){clearTimeout(autoPullTimer);autoPullTimer=null;}
  pullInProgress=true;pullCord.classList.add('pulled');pullCord.classList.remove('ready');cordRig.classList.add('pulled');cordHint.textContent='DICE DROPPING…';
  const stage=$('colorStage');stage.classList.remove('revealed','rolling');stage.classList.add('dice-drop');renderDice(['RED','BLUE','GREEN'],true);
- playRoll();tone(92,.22,.07,'sine',.55);tone(180,.12,.04,'triangle',.72);
+ playCordPull();playRoll();
  if(pullTimer)clearTimeout(pullTimer);
  pullTimer=setTimeout(()=>{pullInProgress=false;revealedRoundNumber=Number(pendingResultState?.roundNumber||roundState.roundNumber);pullCord.classList.remove('pulled');cordRig.classList.remove('pulled');stage.classList.remove('dice-drop');if(pendingResultState)renderState(pendingResultState);},1050);
  return true;
