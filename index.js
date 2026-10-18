@@ -188,8 +188,6 @@ app.post('/api/dice-arena/roll', async (req, res) => {
       const bet = String(rawBet).toUpperCase() === 'MAX' ? balance : Number(rawBet);
       if (!Number.isSafeInteger(bet) || bet < 10) return res.status(400).json({ ok: false, error: 'Minimum bet is 10 coins.' });
       if (bet > balance) return res.status(400).json({ ok: false, error: 'Not enough coins.', balance });
-      const waitMs = 3000 - (Date.now() - (Number(user.lastDiceRoll) || 0));
-      if (waitMs > 0) return res.status(429).json({ ok: false, error: 'Please wait before rolling again.', waitMs });
       const oldState = { coins: user.coins, lastDiceRoll: user.lastDiceRoll, diceWins: user.diceWins, diceLosses: user.diceLosses };
       const die1 = crypto.randomInt(1, 7), die2 = crypto.randomInt(1, 7);
       const total = die1 + die2;
