@@ -6,7 +6,8 @@ if(token){
  const scatterLink=document.getElementById('scatter'),diceLink=document.getElementById('dice'),rushLink=document.getElementById('rush'),battleLink=document.getElementById('battle');
  if(scatterLink)scatterLink.href='/scatter-spin'+q;
  if(diceLink)diceLink.href='/dice-arena'+q;
- if(rushLink)rushLink.href='/neon-tap-rush'+q;\n if(battleLink)battleLink.href='/neon-battle'+q;
+ if(rushLink)rushLink.href='/neon-tap-rush'+q;
+ if(battleLink)battleLink.href='/neon-battle'+q;
  fetch('/api/scatter-spin/session'+q,{cache:'no-store'}).then(async r=>{const d=await r.json();if(!r.ok||!d.ok)throw Error(d.error||'Could not connect');document.getElementById('balance').textContent=Number(d.balance||0).toLocaleString('en-US')+' coins';document.getElementById('session').innerHTML='ACCOUNT CONNECTED<br>READY TO PLAY'}).catch(e=>{document.getElementById('balance').textContent='Unavailable';document.getElementById('session').innerHTML='RECONNECT NEEDED';notice.style.display='block';notice.textContent=e.message+' — Reopen Game Lobby from Messenger to create a fresh secure link.'});
 }else{
  document.getElementById('balance').textContent='Open from Messenger';
