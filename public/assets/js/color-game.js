@@ -20,10 +20,12 @@ $('clearBtn')?.addEventListener('click',()=>{selectedColor='';$('betAmount').val
 $('maxBet').addEventListener('click',()=>{$('betAmount').value=String(Math.min(100000,balance));renderControls()});
 function renderControls(){
  const amount=Number($('betAmount').value),valid=Number.isSafeInteger(amount)&&amount>=10&&amount<=100000;
- const open=roundState&&roundState.status==='betting'&&roundState.timeLeftMs>0&&!roundState.myBet;
+ const myBets=Array.isArray(roundState?.myBets)?roundState.myBets:(roundState?.myBet?[roundState.myBet]:[]);
+ const alreadyBet=!!selectedColor&&myBets.some(b=>String(b.color).toUpperCase()===selectedColor);
+ const open=roundState&&roundState.status==='betting'&&roundState.timeLeftMs>0;
  document.querySelectorAll('.color-choice').forEach(b=>b.disabled=!open||working);
- $('placeBet').disabled=!open||working||!selectedColor||!valid||amount>balance;
- $('placeBet').textContent=working?'CONFIRMING BET…':roundState?.myBet?('BET LOCKED · '+roundState.myBet.color):!selectedColor?'SELECT A COLOR':!valid?'ENTER 10–100,000 COINS':amount>balance?'NOT ENOUGH COINS':'BET '+money(amount)+' ON '+selectedColor;
+ $('placeBet').disabled=!open||working||!selectedColor||alreadyBet||!valid||amount>balance;
+ $('placeBet').textContent=working?'CONFIRMING BET…':!selectedColor?'SELECT A COLOR':alreadyBet?('ALREADY BET ON '+selectedColor):!valid?'ENTER 10–100,000 COINS':amount>balance?'NOT ENOUGH COINS':'BET '+money(amount)+' ON '+selectedColor;
  $('betAmount').disabled=!open||working;
  $('maxBet').disabled=!open||working;
  document.querySelectorAll('.quick-bets button').forEach(b=>b.disabled=!open||working);
@@ -176,13 +178,19 @@ function renderState(state){
   if(revealedRoundNumber!==Number(state.roundNumber)){
    if(!pullInProgress){renderDice(['GREEN','RED','GREEN'],true);$('colorStage').classList.remove('dice-drop');pullCord.classList.add('ready');cordHint.textContent='BETTING CLOSED · BANKER PULLING THE CORD';setMessage('🎰 BANKER IS PULLING THE CORD','The banker triggers the mechanism. The three dice will drop before the server-confirmed result is revealed.');if(!autoPullTimer)autoPullTimer=setTimeout(()=>{autoPullTimer=null;beginCordPull();},850);}
   }else{
-   const key=state.roundNumber+':'+state.result.join(',');const counts={};state.result.forEach(c=>counts[c]=(counts[c]||0)+1);const matches=state.myBet?(counts[state.myBet.color]||0):0;
-   setMessage('ROUND #'+state.roundNumber+' · '+state.result.join(' · '),state.myBet?(matches?'Your color appeared '+matches+' time(s): total return '+money(state.myBet.payout)+' coins.':'Your color did not appear on the dice.'):'Three-dice result confirmed by the game server.');
+   const key=state.roundNumber+':'+state.result.join(',');const counts={};state.result.forEach(c=>counts[c]=(counts[c]||0)+1);
+   const ownBets=Array.isArray(state.myBets)?state.myBets:(state.myBet?[state.myBet]:[]);
+   const winningBets=ownBets.filter(b=>(counts[String(b.color).toUpperCase()]||0)>0);
+   const totalPayout=ownBets.reduce((sum,b)=>sum+(Number(b.payout)||0),0);
+   setMessage('ROUND #'+state.roundNumber+' · '+state.result.join(' · '),ownBets.length?(winningBets.length?'Winning colors: '+winningBets.map(b=>b.color).join(', ')+'. Total return '+money(totalPayout)+' coins.':'None of your selected colors appeared on the dice.'):'Three-dice result confirmed by the game server.');
    lastResultKey=key;cordHint.textContent='RESULT REVEALED · NEXT ROUND SOON';pullCord.classList.remove('ready');
   }
  }else if(state.status==='settling'){pullCord.classList.remove('ready');cordHint.textContent='DICE ARE PREPARING…';setMessage('🎲 THE THREE DICE ARE ROLLING','The server is confirming the three color results and payouts.');}
  else if(state.status==='betting'){pullCord.classList.remove('ready');cordHint.textContent='BANKER WILL PULL WHEN BETTING CLOSES';if(state.lastResult)setMessage('LAST ROUND: '+(Array.isArray(state.lastResult)?state.lastResult.join(' · '):state.lastResult),'Round #'+state.lastRoundNumber+' · Place your bet for this round.');else setMessage('PLACE YOUR BET','Choose one of six colors. More matching dice means a higher total return.');}
- if($('totalBet'))$('totalBet').textContent=money(state.myBet?.amount||0);if($('winAmount'))$('winAmount').textContent=money(state.myBet?.payout||0);renderBets(state);renderControls();
+ const ownBets=Array.isArray(state.myBets)?state.myBets:(state.myBet?[state.myBet]:[]);
+ if($('totalBet'))$('totalBet').textContent=money(ownBets.reduce((sum,b)=>sum+(Number(b.amount)||0),0));
+ if($('winAmount'))$('winAmount').textContent=money(ownBets.reduce((sum,b)=>sum+(Number(b.payout)||0),0));
+ renderBets(state);renderControls();
 }
 async function loadState(showErrors=false){
  if(loading||!token)return;
