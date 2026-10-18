@@ -2091,7 +2091,7 @@ function sendMenu(id) {
     { content_type: "text", title: "💘 Match (2)", payload: "FIND MATCH" },
     { content_type: "text", title: "💰 Top Up (3)", payload: "TOP UP" },
     { content_type: "text", title: "🎁 Daily (4)", payload: "DAILY" },
-    { content_type: "text", title: "🎰 Scatter Spin / Dice Arena (5)", payload: "SPIN" },
+    { content_type: "text", title: "🎮 Live Games (5)", payload: "SPIN" },
     { content_type: "text", title: "🛍️ Shop (6)", payload: "SHOP" },
     { content_type: "text", title: "🏆 Rank (7)", payload: "LEADERBOARD" },
     { content_type: "text", title: "🔗 Referral (8)", payload: "INVITE" }
@@ -2558,7 +2558,7 @@ A new user successfully registered using your link! 🎁
               await axios.post('https://graph.facebook.com/v19.0/me/messages?access_token=' + PAGE_TOKEN, {
                 recipient: { id: psid },
                 message: { attachment: { type: 'template', payload: { template_type: 'button',
-                  text: '🎮 Choose a live browser game. Both games use your JojoWorld virtual coin balance.',
+                  text: '🎮 Choose a live game. Both games use your JojoWorld virtual coin balance.',
                   buttons: [
                     { type: 'web_url', url: scatterUrl, title: '🎰 Scatter Spin' },
                     { type: 'web_url', url: launchUrl, title: '🎲 Dice Arena' }
