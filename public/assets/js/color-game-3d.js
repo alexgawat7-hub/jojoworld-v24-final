@@ -157,8 +157,14 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
   mount.classList.add('three-ready');
   stage.classList.add('three-ready');
 
+  let framePending=false;
+  function scheduleFrame() {
+    if (document.hidden || framePending) return;
+    framePending=true;
+    requestAnimationFrame(()=>{framePending=false;animate();});
+  }
   function animate() {
-    requestAnimationFrame(animate);
+    if (document.hidden) return;
     const now=performance.now(),dt=Math.min(.04,(now-lastTime)/1000||.016);lastTime=now;
     syncState(now);
     const activeDrop=stage.classList.contains('dice-drop');
@@ -239,8 +245,13 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     cord.position.y=rig.userData.pulled?-.87:-.72;
     pull.position.y=rig.userData.pulled?-1.45:-1.27;
     renderer.render(scene,camera);
+    scheduleFrame();
   }
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden){lastTime=performance.now();scheduleFrame();}
+  });
   animate();
+  // Pause rendering in background tabs to save mobile battery and resume when visible.
   // Graceful fallback if WebGL cannot initialize: the original CSS dice remain visible.
 })();
 
