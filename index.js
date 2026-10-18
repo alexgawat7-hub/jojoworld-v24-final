@@ -2527,6 +2527,31 @@ A new user successfully registered using your link! 🎁
           continue;
         }
 
+        // Open a gift sender's profile from the buttons attached to the profile image.
+        if (upperRaw.startsWith("VIEW_GIFTER_")) {
+          const targetPsid = upperRaw.slice("VIEW_GIFTER_".length);
+          if (!targetPsid || targetPsid === psid) {
+            send(psid, "ℹ️ Iyan ang sarili mong profile o hindi valid ang sender.");
+            continue;
+          }
+          const target = await loadUserFromDB(targetPsid);
+          if (!target) {
+            send(psid, "⚠️ Hindi na makita ang profile ng gift sender.");
+            continue;
+          }
+          try {
+            const targetImage = await generateProfileCanvas({ ...target, id: targetPsid });
+            await sendImage(psid, targetImage, `🎁 GIFT SENDER PROFILE\\n👤 ${cleanText(target.name || "JojoWorld Member")}\\n✨ Profile ng taong nagbigay ng gift.`, [
+              { content_type: "text", title: "👤 My Profile", payload: "PROFILE" },
+              { content_type: "text", title: "↩️ Main Menu", payload: "MENU" }
+            ]);
+          } catch (profileError) {
+            console.error("Gift sender profile failed:", profileError.message);
+            send(psid, "⚠️ Hindi mabuksan ang profile ng gift sender ngayon.");
+          }
+          continue;
+        }
+
         // [UPGRADED V28] Visual-only profile: show equipped/purchased shop items on the profile image, not the legacy text wall.
         if (["profile", "me", "my"].includes(cleanText) || ["PROFILE", "ME", "MY"].includes(upperRaw)) {
           const previousViews = user.views || 0;
@@ -2539,12 +2564,24 @@ A new user successfully registered using your link! 🎁
           }
           try {
             const profileImage = await generateProfileCanvas({ ...user, id: psid });
-            await sendImage(psid, profileImage, `👑✨ 𝐉𝐎𝐉𝐎𝐖𝐎𝐑𝐋𝐃 • 𝐕𝐈𝐒𝐔𝐀𝐋 𝐏𝐑𝐎𝐅𝐈𝐋𝐄 ✨👑\n💎 Your equipped shop items, proudly displayed.\n🌟 Type LEVEL to check your XP progress.\n⚡ Use the buttons below to customize your profile.`, [
+            const giftSenderButtons = (Array.isArray(user.giftHistory) ? user.giftHistory.slice(-3).reverse() : [])
+              .filter(entry => entry && entry.senderPsid && entry.senderPsid !== psid)
+              .map(entry => ({
+                content_type: "text",
+                title: ("🎁 " + cleanText(entry.senderName || "Gift Sender")).slice(0, 20),
+                payload: "VIEW_GIFTER_" + String(entry.senderPsid)
+              }));
+            await sendImage(psid, profileImage, `👑✨ 𝐉𝐎𝐉𝐎𝐖𝐎𝐑𝐋𝐃 • 𝐕𝐈𝐒𝐔𝐀𝐋 𝐏𝐑𝐎𝐅𝐈𝐋𝐄 ✨👑
+💎 Your equipped shop items, proudly displayed.
+🌟 Type LEVEL to check your XP progress.
+🎁 Tap a gift sender button below to open their profile.
+⚡ Use the buttons below to customize your profile.`, [
               { content_type: "text", title: "✏️ Edit Profile", payload: "EDIT_PROFILE_MENU" },
               { content_type: "text", title: "♈ Set Zodiac", payload: "SET_ZODIAC_MENU" },
               { content_type: "text", title: "🎯 Set Goal", payload: "SET_GOAL_MENU" },
               { content_type: "text", title: "📸 Change Photo", payload: "SET_PROFILE_PHOTO" },
-              { content_type: "text", title: "↩️ Main Menu", payload: "MENU" }
+              { content_type: "text", title: "↩️ Main Menu", payload: "MENU" },
+              ...giftSenderButtons
             ]);
           } catch (canvasError) {
             console.error("Visual profile generation failed:", canvasError.message);
