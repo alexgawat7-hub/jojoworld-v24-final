@@ -35,6 +35,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
   sun.shadow.camera.left=-24;sun.shadow.camera.right=24;sun.shadow.camera.top=35;sun.shadow.camera.bottom=-25;
   scene.add(sun);
   const fill = new THREE.DirectionalLight(0x8acbff,1.0);fill.position.set(12,10,-30);scene.add(fill);
+  // Soft local street lighting adds depth while keeping the scene light enough for mobile.
+  const streetGlow = new THREE.PointLight(0xffc77a,.65,22,2);
+  streetGlow.position.set(-6,4,-10);scene.add(streetGlow);
 
   const mat=(color,roughness=.8,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
   // Procedural asphalt grain: generated locally so no paid API or extra asset download is needed.
@@ -58,6 +61,13 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     return texture;
   }
   const asphalt= new THREE.MeshStandardMaterial({color:0xffffff,map:makeRoadTexture(),roughness:.91,metalness:.04});
+  // Fine shoulder reflectors and slightly worn road-edge markers.
+  const reflectorMat=new THREE.MeshStandardMaterial({color:0xffd28a,emissive:0x4d2b08,emissiveIntensity:.55,roughness:.42});
+  const reflectorMeshes=[];
+  for(let z=-246;z<12;z+=8)for(const side of [-1,1]){
+    const reflector=new THREE.Mesh(new THREE.BoxGeometry(.16,.09,.28),reflectorMat);
+    reflector.position.set(side*8.9,.12,z);scene.add(reflector);reflectorMeshes.push(reflector);
+  }
   const shoulder=mat(0x626b72,.92), grass=mat(0x263d3a,1), concrete=mat(0x858e96,.8);
   const laneMat=mat(0xe6e0cd,.65), darkGlass=mat(0x182b3a,.28,.25), tireMat=mat(0x111315,1), chrome=mat(0x9da7ad,.32,.75);
   const road = new THREE.Mesh(new THREE.PlaneGeometry(15,260),asphalt);road.rotation.x=-Math.PI/2;road.position.set(0,-.035,-100);road.receiveShadow=true;scene.add(road);
@@ -225,7 +235,12 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
       const buffer=audio.createBuffer(1,audio.sampleRate*2,audio.sampleRate),data=buffer.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*.7;
       const wind=audio.createBufferSource();wind.buffer=buffer;wind.loop=true;const windFilter=audio.createBiquadFilter();windFilter.type='lowpass';windFilter.frequency.value=500;const windGain=audio.createGain();windGain.gain.value=.0001;wind.connect(windFilter);windFilter.connect(windGain);windGain.connect(master);wind.start();
       const tire=audio.createBufferSource();tire.buffer=buffer;tire.loop=true;const tireFilter=audio.createBiquadFilter();tireFilter.type='bandpass';tireFilter.frequency.value=1500;const tireGain=audio.createGain();tireGain.gain.value=.0001;tire.connect(tireFilter);tireFilter.connect(tireGain);tireGain.connect(master);tire.start();
-      audioRig={master,engine,engineFilter,engineGain,harmonic,harmonicGain,windGain,windFilter,tireGain,tireFilter};
+      // Low-frequency drivetrain pulse layered under the engine tone for a fuller motor sound.
+      const motor=audio.createOscillator();motor.type='triangle';motor.frequency.value=42;
+      const motorFilter=audio.createBiquadFilter();motorFilter.type='lowpass';motorFilter.frequency.value=120;
+      const motorGain=audio.createGain();motorGain.gain.value=.0001;
+      motor.connect(motorFilter);motorFilter.connect(motorGain);motorGain.connect(master);motor.start();
+      audioRig={master,engine,engineFilter,engineGain,harmonic,harmonicGain,windGain,windFilter,tireGain,tireFilter,motor,motorGain,motorFilter};
       if(audio.state==='suspended')audio.resume();
     }catch(err){console.warn('Audio unavailable',err);}
   }
@@ -238,6 +253,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     audioRig.engineFilter.frequency.setTargetAtTime(180+speed*2.2,t,.08);
     audioRig.harmonic.frequency.setTargetAtTime(76+speed*.92,t,.07);
     audioRig.harmonicGain.gain.setTargetAtTime(running?.006+throttle*.018:.0001,t,.08);
+    audioRig.motor.frequency.setTargetAtTime(28+speed*.24+(nitro>0?8:0),t,.07);
+    audioRig.motorGain.gain.setTargetAtTime(running?.012+throttle*.026:.0001,t,.08);
+    audioRig.motorFilter.frequency.setTargetAtTime(80+speed*.7,t,.08);
     audioRig.windGain.gain.setTargetAtTime(running?Math.min(.14,speed/245*.14):.0001,t,.12);
     audioRig.windFilter.frequency.setTargetAtTime(250+speed*5,t,.1);
     audioRig.tireGain.gain.setTargetAtTime(running&&driftAmount>.35?Math.min(.12,driftAmount*.1):.0001,t,.06);
@@ -271,6 +289,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     // Recycle lane marks and roadside models toward the camera for continuous travel.
     const movement=speed*.00125;
     for(const m of laneMarks){m.position.z+=movement;if(m.position.z>12)m.position.z-=260;}
+    for(const m of reflectorMeshes){m.position.z+=movement;if(m.position.z>12)m.position.z-=260;}
+    streetGlow.position.x=-6+player.position.x*.12;
+    streetGlow.intensity=.35+Math.min(speed/245,.9)*.45;
     for(const o of roadside){o.group.position.z+=movement;if(o.group.position.z>18){o.group.position.z-=260;o.z=o.group.position.z;}}
     for(const p of nitroPickups){p.position.z+=movement;p.rotation.y+=.035;p.position.y=.95+Math.sin(performance.now()*.004+p.position.x)*.12;if(p.position.z>2){p.position.z=-245-Math.random()*18;p.position.x=[-3.6,0,3.6][Math.floor(Math.random()*3)];}else if(p.position.z>-.9&&p.position.z<1.5&&Math.abs(p.position.x-player.position.x)<1.65){collectNitro(p);}}
     if(nitro>0){
@@ -323,7 +344,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
   window.addEventListener('keydown',e=>{if(['ArrowLeft','a','A'].includes(e.key)){keys.left=true;e.preventDefault();}if(['ArrowRight','d','D'].includes(e.key)){keys.right=true;e.preventDefault();}if(e.code==='Space'){e.preventDefault();}if(['ArrowDown','s','S'].includes(e.key)){braking=true;e.preventDefault();}});
   window.addEventListener('keyup',e=>{if(['ArrowLeft','a','A'].includes(e.key))keys.left=false;if(['ArrowRight','d','D'].includes(e.key))keys.right=false;if(['ArrowDown','s','S'].includes(e.key))braking=false;});
   $('start').addEventListener('click',start);$('restart').addEventListener('click',start);
-  $('sound').addEventListener('click',()=>{sound=!sound;$('sound').textContent=sound?'🔊 SOUND: ON':'🔊 SOUND: OFF';if(sound){ensureAudio();beep(600);}else if(audioRig&&audio){audioRig.engineGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.harmonicGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.windGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.tireGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);}});
+  $('sound').addEventListener('click',()=>{sound=!sound;$('sound').textContent=sound?'🔊 SOUND: ON':'🔊 SOUND: OFF';if(sound){ensureAudio();beep(600);}else if(audioRig&&audio){audioRig.engineGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.harmonicGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.motorGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.windGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.tireGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);}});
   window.addEventListener('resize',resize);
   resize();draw();
   // If WebGL is unavailable, show a clear message instead of a blank game panel.
