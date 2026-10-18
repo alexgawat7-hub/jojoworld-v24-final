@@ -2,6 +2,7 @@ const $=id=>document.getElementById(id);
 const token=new URLSearchParams(location.search).get('token')||'';
 const money=n=>Math.max(0,Math.floor(Number(n)||0)).toLocaleString('en-US');
 const colors=['RED','BLUE','GREEN','YELLOW','PINK'];
+let previousBetAmount=100;
 let selectedColor='',balance=0,roundState=null,working=false,loading=false,lastResultKey='',soundEnabled=false,audioContext=null,lastRollRound='',pendingResultState=null,revealedRoundNumber=0,pullInProgress=false,pullStartY=0,pullStartTime=0,pullTimer=null,autoPullTimer=null;
 const lobby=$('lobby'),shop=$('shop');
 if(token){const q='?token='+encodeURIComponent(token);lobby.href='/live-games'+q;shop.href='/coin-shop'+q;}
@@ -11,6 +12,10 @@ function chooseColor(color){selectedColor=color;document.querySelectorAll('.colo
 document.querySelectorAll('.color-choice').forEach(b=>b.addEventListener('click',()=>chooseColor(b.dataset.color)));
 document.querySelectorAll('.quick-bets button').forEach(b=>b.addEventListener('click',()=>{$('betAmount').value=b.dataset.amount;renderControls()}));
 $('betAmount').addEventListener('input',renderControls);
+$('againBtn')?.addEventListener('click',()=>{$('betAmount').value=String(previousBetAmount);renderControls();});
+$('doubleBtn')?.addEventListener('click',()=>{$('betAmount').value=String(Math.min(100000,Math.max(10,Number($('betAmount').value||10)*2)));renderControls();});
+$('undoBtn')?.addEventListener('click',()=>{selectedColor='';document.querySelectorAll('.color-choice').forEach(b=>b.classList.remove('active'));$('betAmount').value=String(previousBetAmount);renderControls();});
+$('clearBtn')?.addEventListener('click',()=>{selectedColor='';$('betAmount').value='10';document.querySelectorAll('.color-choice').forEach(b=>b.classList.remove('active'));renderControls();});
 $('maxBet').addEventListener('click',()=>{$('betAmount').value=String(Math.min(100000,balance));renderControls()});
 function renderControls(){
  const amount=Number($('betAmount').value),valid=Number.isSafeInteger(amount)&&amount>=10&&amount<=100000;
@@ -23,7 +28,7 @@ function renderControls(){
  document.querySelectorAll('.quick-bets button').forEach(b=>b.disabled=!open||working);
 }
 function renderBets(state){
- $('playerCount').textContent=money(state.playerCount)+' PLAYER'+(state.playerCount===1?'':'S');
+ $('playerCount').textContent=money(state.playerCount)+' PLAYER'+(state.playerCount===1?'':'S');if($('livePlayerCount'))$('livePlayerCount').textContent=money(state.playerCount)+' PLAYER'+(state.playerCount===1?'':'S');
  $('redTotal').textContent=money(state.totals.RED);
  $('blueTotal').textContent=money(state.totals.BLUE);
  $('greenTotal').textContent=money(state.totals.GREEN);$('yellowTotal').textContent=money(state.totals.YELLOW);$('pinkTotal').textContent=money(state.totals.PINK);
@@ -143,7 +148,7 @@ function renderState(state){
   }
  }else if(state.status==='settling'){pullCord.classList.remove('ready');cordHint.textContent='DICE ARE PREPARING…';setMessage('🎲 THE THREE DICE ARE ROLLING','The server is confirming the three color results and payouts.');}
  else if(state.status==='betting'){pullCord.classList.remove('ready');cordHint.textContent='BANKER WILL PULL WHEN BETTING CLOSES';if(state.lastResult)setMessage('LAST ROUND: '+(Array.isArray(state.lastResult)?state.lastResult.join(' · '):state.lastResult),'Round #'+state.lastRoundNumber+' · Place your bet for this round.');else setMessage('PLACE YOUR BET','Choose one of five colors. More matching dice means a higher total return.');}
- renderBets(state);renderControls();
+ if($('totalBet'))$('totalBet').textContent=money(state.myBet?.amount||0);if($('winAmount'))$('winAmount').textContent=money(state.myBet?.payout||0);renderBets(state);renderControls();
 }
 async function loadState(showErrors=false){
  if(loading||!token)return;
@@ -158,9 +163,10 @@ async function loadState(showErrors=false){
 }
 $('placeBet').addEventListener('click',async()=>{
  if(working||!token||!selectedColor)return;
+ if(selectedColor==='WHITE'){setMessage('WHITE IS NOT AVAILABLE YET','This live server currently supports red, blue, green, yellow, and pink only.');return;}
  const amount=Number($('betAmount').value);
  if(!Number.isSafeInteger(amount)||amount<10||amount>100000||amount>balance){setMessage('CHECK YOUR BET','Enter a whole-number bet within your balance.');return;}
- working=true;renderControls();
+ previousBetAmount=amount;working=true;renderControls();
  try{
   const response=await fetch('/api/color-game/bet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,color:selectedColor,bet:amount})});
   const data=await response.json();
