@@ -2652,10 +2652,9 @@ A new user successfully registered using your link! 🎁
                 payload: "VIEW_GIFTER_" + String(entry.senderPsid)
               }));
             await sendImage(psid, profileImage, `👑✨ 𝐉𝐎𝐉𝐎𝐖𝐎𝐑𝐋𝐃 • 𝐕𝐈𝐒𝐔𝐀𝐋 𝐏𝐑𝐎𝐅𝐈𝐋𝐄 ✨👑
-💎 Your equipped shop items, proudly displayed.
-🌟 Type LEVEL to check your XP progress.
-🎁 Tap a gift sender button below to open their profile.
-⚡ Use the buttons below to customize your profile.`, [
+💎 Your profile, your style.
+🌟 Type LEVEL to view your XP progress.
+🎁 Gift sender buttons appear when available.`, [
               { content_type: "text", title: "✏️ Edit Profile", payload: "EDIT_PROFILE_MENU" },
               { content_type: "text", title: "📸 Change Photo", payload: "SET_PROFILE_PHOTO" },
               { content_type: "text", title: "↩️ Main Menu", payload: "MENU" },
