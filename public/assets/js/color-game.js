@@ -2,7 +2,7 @@ const $=id=>document.getElementById(id);
 const token=new URLSearchParams(location.search).get('token')||'';
 const money=n=>Math.max(0,Math.floor(Number(n)||0)).toLocaleString('en-US');
 const colors=['RED','BLUE','GREEN','YELLOW','PINK','WHITE'];
-let previousBetAmount=100,lastBetAnnouncementRound='';
+let previousBetAmount=100,lastBetAnnouncementRound='',lastCountdownSecond='';
 let selectedColor='',balance=0,roundState=null,working=false,loading=false,lastResultKey='',soundEnabled=false,audioContext=null,lastRollRound='',pendingResultState=null,revealedRoundNumber=0,pullInProgress=false,pullStartY=0,pullStartTime=0,pullTimer=null,autoPullTimer=null;
 const lobby=$('lobby'),shop=$('shop');
 if(token){const q='?token='+encodeURIComponent(token);lobby.href='/live-games'+q;shop.href='/coin-shop'+q;}
@@ -85,11 +85,16 @@ function speakPlaceYourBet(roundNumber){
  if(!round||lastBetAnnouncementRound===round)return;
  lastBetAnnouncementRound=round;
  try{
-  window.speechSynthesis.cancel();
-  const utterance=new SpeechSynthesisUtterance('Place your bet');
-  utterance.lang='en-US';utterance.rate=.88;utterance.pitch=.86;utterance.volume=.9;
-  window.speechSynthesis.speak(utterance);
+  const utterance=new SpeechSynthesisUtterance('Place your bet!');
+  utterance.lang='en-US';utterance.rate=.92;utterance.pitch=.95;utterance.volume=1;
+  window.speechSynthesis.cancel();window.speechSynthesis.resume();
+  window.setTimeout(()=>{try{window.speechSynthesis.speak(utterance);}catch(_){}},120);
  }catch(_){}
+}
+function playCountdown(second){
+ if(!soundEnabled)return;
+ if(second===1){tone(520,.16,.055,'square');tone(330,.22,.05,'triangle',.18);}
+ else {tone(second<=3?880:660,.075,.035,'sine');tone(second<=3?660:495,.075,.028,'sine',.095);}
 }
 function playCordPull(){
  if(!soundEnabled)return;
@@ -109,7 +114,7 @@ window.addEventListener('color-dice-impact',event=>{
 });
 $('soundToggle').addEventListener('click',()=>{
  soundEnabled=!soundEnabled;$('soundToggle').textContent=soundEnabled?'🔊 SOUND ON':'🔇 SOUND OFF';$('soundToggle').setAttribute('aria-pressed',String(soundEnabled));
- if(soundEnabled){audio();tone(660,.08,.025,'sine');if(roundState?.status==='betting')speakPlaceYourBet(roundState.roundNumber);}
+ if(soundEnabled){const a=audio();if(a?.state==='suspended')a.resume().catch(()=>{});tone(660,.08,.035,'sine');if(roundState?.status==='betting'){speakPlaceYourBet(roundState.roundNumber);const seconds=Math.ceil(Math.max(0,Number(roundState.timeLeftMs)||0)/1000);if(seconds<=10&&seconds>0){lastCountdownSecond=String(roundState.roundNumber)+':'+seconds;playCountdown(seconds);}}}
 });
 const pullCord=$('pullCord'),cordRig=$('cordRig'),cordHint=$('cordHint');
 function beginCordPull(){
@@ -141,7 +146,8 @@ function renderState(state){
  $('roundStatus').textContent=state.status==='betting'?'BETTING OPEN':state.status==='settling'?'DICE ROLLING':'ROUND RESULT';
  $('timer').parentElement.classList.toggle('closed',state.status!=='betting');
  if(state.status==='betting'){
-  if(soundEnabled)speakPlaceYourBet(state.roundNumber);
+  if(String(lastCountdownSecond).split(':')[0]!==String(state.roundNumber))lastCountdownSecond='';
+  if(soundEnabled){speakPlaceYourBet(state.roundNumber);const seconds=Math.ceil(time/1000),countdownKey=String(state.roundNumber)+':'+seconds;if(seconds<=10&&seconds>0&&lastCountdownSecond!==countdownKey){lastCountdownSecond=countdownKey;playCountdown(seconds);}}
   renderDice(['GREEN','RED','GREEN'],time<=3500);
   if(time<=3500&&time>0&&lastRollRound!==String(state.roundNumber)){lastRollRound=String(state.roundNumber);playRoll();}
  } else if(state.status==='settling'){
