@@ -161,7 +161,7 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
         pip.position.set(u,v,.005); group.add(pip);root.add(group);
       });
     });
-    root.position.set([-1.65,0,1.65][index],.295,0);
+    root.position.set([-1.65,0,1.65][index],.33,0);
     root.rotation.set(.12+index*.13,.25+index*.4,.1-index*.1);
     scene.add(root);dice.push({root,body,topPlate,sidePlate,index,phase:index*2.1,rolling:false,landed:false,dropHeight:0,verticalVelocity:0,spinX:0,spinY:0,spinZ:0,vx:0,vz:0,target:colors[['red','blue','green'][index]]});
   }
@@ -198,8 +198,8 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
         d.landed=false;
         // Begin just above the felt, inside the recessed tray. Avoid teleporting
         // upward on pull: gravity carries each die down into the tray immediately.
-        d.dropHeight=.16+i*.035;
-        d.verticalVelocity=-.35-i*.12;
+        d.dropHeight=.48+i*.08;
+        d.verticalVelocity=-.12-i*.08;
         d.spinX=5.2+i*1.1;d.spinY=7.2-i*.65;d.spinZ=4.4+i*.8;
         d.vx=[.72,-.18,-.66][i];d.vz=[.28,-.34,.22][i];
       });
@@ -260,7 +260,7 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
               d.verticalVelocity=Math.abs(d.verticalVelocity)*.34;
             } else {d.verticalVelocity=0;d.landed=true;}
           }
-          d.root.position.y=.295+d.dropHeight;
+          d.root.position.y=.33+d.dropHeight;
           // Lateral momentum, felt-tray boundaries, and pairwise impacts keep the dice from floating through each other.
           if(!d.landed){
             d.root.position.x+=d.vx*dt;
@@ -279,7 +279,7 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
           const damp=Math.exp(-2.4*dt);
           d.spinX*=damp;d.spinY*=damp;d.spinZ*=damp;
           if(d.landed) {
-            d.root.position.y=.295;
+            d.root.position.y=.33;
             // Settle toward a clear three-dice presentation after the last bounce.
             const homeX=[-1.65,0,1.65][i];
             d.root.position.x+=(homeX-d.root.position.x)*Math.min(1,dt*1.8);
@@ -292,11 +292,11 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
           }
         } else {
           d.root.rotation.x+=dt*(6.8+i*1.1);d.root.rotation.y+=dt*(8.1-i*.7);d.root.rotation.z+=dt*(5.2+i);
-          d.root.position.y=.295+Math.abs(Math.sin(now*.012+d.phase))*.18;
+          d.root.position.y=.33+Math.abs(Math.sin(now*.012+d.phase))*.18;
           d.root.position.x=[-1.65,0,1.65][i]+Math.sin(now*.004+i)*.08;
         }
       } else {
-        d.root.position.set([-1.65,0,1.65][i],.295,0);
+        d.root.position.set([-1.65,0,1.65][i],.33,0);
         d.root.position.z=0;
         d.root.rotation.x+=(.06-d.root.rotation.x)*Math.min(1,dt*4);
         d.root.rotation.z+=(0-d.root.rotation.z)*Math.min(1,dt*4);
