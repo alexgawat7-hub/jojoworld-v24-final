@@ -106,22 +106,25 @@ function playRoll(){
  tone(92,.2,.14,'sine',.62);tone(138,.13,.085,'triangle',.67);
  tone(740,.1,.02,'triangle',.86);tone(990,.16,.018,'sine',.96);
 }
-function speakPlaceYourBet(roundNumber,force=false){
+function speakPlaceYourBet(roundNumber){
  if(!soundEnabled||!('speechSynthesis' in window)||typeof SpeechSynthesisUtterance==='undefined')return false;
  const round=String(roundNumber??roundState?.roundNumber??'');
- if(!force&&(!round||lastBetAnnouncementRound===round))return false;
- if(round&&!force)lastBetAnnouncementRound=round;
+ if(!round||lastBetAnnouncementRound===round)return false;
+ // Only announce a real betting round, never during idle/results or as a sound-toggle test.
+ if(roundState&&String(roundState.roundNumber)!==round)return false;
+ lastBetAnnouncementRound=round;
  try{
   const synth=window.speechSynthesis;
-  // Speak immediately on the SOUND ON tap; deferred speech can be blocked on mobile.
   const utterance=new SpeechSynthesisUtterance('Place your bet!');
   utterance.lang='en-US';utterance.rate=.9;utterance.pitch=1;utterance.volume=1;
   const voices=synth.getVoices?synth.getVoices():[];
   const english=voices.find(v=>/^en(-|_)/i.test(v.lang));
   if(english)utterance.voice=english;
-  utterance.onerror=()=>{if(round&&!force&&lastBetAnnouncementRound===round)lastBetAnnouncementRound='';};
-  synth.resume();synth.speak(utterance);return true;
- }catch(_){if(round&&!force&&lastBetAnnouncementRound===round)lastBetAnnouncementRound='';return false;}
+  utterance.onerror=()=>{if(lastBetAnnouncementRound===round)lastBetAnnouncementRound='';};
+  synth.resume();
+  synth.speak(utterance);
+  return true;
+ }catch(_){if(lastBetAnnouncementRound===round)lastBetAnnouncementRound='';return false;}
 }
 function playCountdown(second){
  if(!soundEnabled)return;
@@ -155,7 +158,7 @@ window.addEventListener('color-dice-impact',event=>{
 });
 $('soundToggle').addEventListener('click',()=>{
  soundEnabled=!soundEnabled;$('soundToggle').textContent=soundEnabled?'🔊 SOUND ON':'🔇 SOUND OFF';$('soundToggle').setAttribute('aria-pressed',String(soundEnabled));
- if(soundEnabled){const a=audio();if(a?.state==='suspended')a.resume().catch(()=>{});tone(660,.12,.09,'sine');tone(990,.14,.065,'sine',.1);if(roundState?.status==='betting'){speakPlaceYourBet(roundState.roundNumber,true);const seconds=Math.ceil(Math.max(0,Number(roundState.timeLeftMs)||0)/1000);if(seconds<=10&&seconds>0){lastCountdownSecond=String(roundState.roundNumber)+':'+seconds;playCountdown(seconds);}}else{speakPlaceYourBet('sound-test-'+Date.now(),true);}}
+ if(soundEnabled){const a=audio();if(a?.state==='suspended')a.resume().catch(()=>{});tone(660,.12,.09,'sine');tone(990,.14,.065,'sine',.1);if(roundState?.status==='betting'){speakPlaceYourBet(roundState.roundNumber);const seconds=Math.ceil(Math.max(0,Number(roundState.timeLeftMs)||0)/1000);if(seconds<=10&&seconds>0){lastCountdownSecond=String(roundState.roundNumber)+':'+seconds;playCountdown(seconds);}}}
 });
 const pullCord=$('pullCord'),cordRig=$('cordRig'),cordHint=$('cordHint');
 function beginCordPull(){
