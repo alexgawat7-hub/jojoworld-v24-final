@@ -293,6 +293,198 @@ app.post('/api/scatter-spin/spin', async (req, res) => {
 // [JOJOWORLD DICE ARENA WEB GAME ROUTE] Serve the animated HTML game interface.
 // This is currently a visual prototype; wager settlement remains in the Messenger backend
 // until the authenticated game-session API is added and tested.
+// [JOJOWORLD NEON BATTLE] Free 1v1 skill game. Coins are rewards only; players never wager coins.
+async function settleNeonBattle(matchId) {
+  if (mongoose.connection.readyState !== 1) return;
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const match = await NeonBattleMatchModel.findOne({ matchId, status: 'settling', rewardsApplied: false }).session(session);
+      if (!match) return;
+      const p1 = String(match.player1.psid), p2 = String(match.player2.psid);
+      let r1 = 10, r2 = 10;
+      if (match.winnerPsid === p1) { r1 = 20; r2 = 5; }
+      else if (match.winnerPsid === p2) { r1 = 5; r2 = 20; }
+      for (const item of [{ psid: p1, reward: r1 }, { psid: p2, reward: r2 }]) {
+        const result = await UserModel.updateOne({ psid: item.psid }, { $inc: { 'data.coins': item.reward } }, { session });
+        if (!result.matchedCount) throw new Error('Neon Battle player account was not found during reward settlement.');
+      }
+      match.status = 'finished';
+      match.rewardsApplied = true;
+      match.updatedAt = new Date();
+      await match.save({ session });
+    });
+  } catch (err) {
+    console.error('[NEON BATTLE] Reward settlement failed:', err.message);
+  } finally {
+    await session.endSession();
+  }
+}
+function neonBattleDamage(move1, move2) {
+  let damage1 = 0, damage2 = 0;
+  if (move1 === 'attack' && move2 === 'attack') { damage1 = 10; damage2 = 10; }
+  else if (move1 === 'attack' && move2 === 'guard') damage2 = 4;
+  else if (move1 === 'guard' && move2 === 'attack') damage1 = 4;
+  else if (move1 === 'guard' && move2 === 'dash') damage1 = 5;
+  else if (move1 === 'dash' && move2 === 'guard') damage2 = 5;
+  return { damage1, damage2 };
+}
+async function resolveNeonBattleRound(matchId) {
+  const match = await NeonBattleMatchModel.findOne({ matchId, status: 'active' }).lean();
+  if (!match) return null;
+  const round = Number(match.roundNumber || 1);
+  const actions = match.actions || {};
+  const roundMoves = actions[String(round)] || {};
+  const move1 = roundMoves[String(match.player1.psid)];
+  const move2 = roundMoves[String(match.player2.psid)];
+  if (!move1 || !move2 || Number(match.resolvedRound || 0) >= round) return match;
+  const hit = neonBattleDamage(move1, move2);
+  const hp1 = Math.max(0, Number(match.hp1 || 0) - hit.damage1);
+  const hp2 = Math.max(0, Number(match.hp2 || 0) - hit.damage2);
+  const finished = hp1 <= 0 || hp2 <= 0 || round >= 5;
+  let winnerPsid = null;
+  if (finished && hp1 > hp2) winnerPsid = String(match.player1.psid);
+  else if (finished && hp2 > hp1) winnerPsid = String(match.player2.psid);
+  const log = { round, move1, move2, hp1, hp2, damage1: hit.damage1, damage2: hit.damage2 };
+  const updated = await NeonBattleMatchModel.findOneAndUpdate(
+    { matchId, status: 'active', roundNumber: round, resolvedRound: round - 1 },
+    { $set: { hp1, hp2, resolvedRound: round, roundNumber: finished ? round : round + 1, status: finished ? 'settling' : 'active', winnerPsid, updatedAt: new Date() }, $push: { roundLog: log } },
+    { new: true }
+  ).lean();
+  if (updated && updated.status === 'settling') await settleNeonBattle(matchId);
+  return updated || await NeonBattleMatchModel.findOne({ matchId }).lean();
+}
+function neonBattleState(match, psid, balance) {
+  const isP1 = String(match.player1.psid) === String(psid);
+  const me = isP1 ? match.player1 : match.player2;
+  const rival = isP1 ? match.player2 : match.player1;
+  const currentMoves = (match.actions || {})[String(match.roundNumber)] || {};
+  const youMoved = Boolean(currentMoves[String(psid)]);
+  const opponentMoved = Boolean(currentMoves[String(rival.psid)]);
+  const latest = Array.isArray(match.roundLog) && match.roundLog.length ? match.roundLog[match.roundLog.length - 1] : null;
+  let winner = 'pending', reward = 0;
+  if (match.status === 'finished') {
+    if (!match.winnerPsid) { winner = 'draw'; reward = 10; }
+    else if (String(match.winnerPsid) === String(psid)) { winner = 'you'; reward = 20; }
+    else { winner = 'opponent'; reward = 5; }
+  }
+  let lastRound = null;
+  if (latest) {
+    const myMove = isP1 ? latest.move1 : latest.move2;
+    const theirMove = isP1 ? latest.move2 : latest.move1;
+    const myDamage = isP1 ? latest.damage1 : latest.damage2;
+    const theirDamage = isP1 ? latest.damage2 : latest.damage1;
+    lastRound = { round: latest.round, message: 'Round ' + latest.round + ': You used ' + myMove.toUpperCase() + ', rival used ' + theirMove.toUpperCase() + '. Damage dealt: ' + theirDamage + ', received: ' + myDamage + '.' };
+  }
+  return { ok: true, status: match.status, matchId: match.matchId, roundNumber: match.roundNumber, youMoved, opponentMoved, you: { name: me.name, hp: isP1 ? match.hp1 : match.hp2 }, opponent: { name: rival.name, hp: isP1 ? match.hp2 : match.hp1 }, lastRound, winner, reward, balance };
+}
+app.get('/neon-battle', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'neon-battle.html'), err => {
+    if (err && !res.headersSent) { console.error('[NEON BATTLE] Could not serve game:', err.message); res.status(503).send('Neon Battle is temporarily unavailable.'); }
+  });
+});
+app.post('/api/neon-battle/join', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Secure session expired. Open Game Lobby again from Messenger.' });
+    const psid = String(session.psid);
+    return await withDiceUserQueue(psid, async () => {
+      const user = await loadUserFromDB(psid);
+      if (!user) return res.status(404).json({ ok: false, error: 'JojoWorld account not found.' });
+      let own = await NeonBattleQueueModel.findOne({ psid });
+      if (own && own.status === 'matched' && own.matchId) {
+        const oldMatch = await NeonBattleMatchModel.findOne({ matchId: own.matchId }).lean();
+        if (oldMatch && (oldMatch.status === 'active' || oldMatch.status === 'settling')) return res.json({ ok: true, status: 'matched', matchId: oldMatch.matchId });
+      }
+      if (own && own.status === 'waiting' && Date.now() - new Date(own.updatedAt || own.createdAt).getTime() < 90000) {
+        return res.json({ ok: true, status: 'waiting' });
+      }
+      const name = String(user.name || user.displayName || 'Jojo Player').replace(/[<>\u0000-\u001f]/g, '').slice(0, 24) || 'Jojo Player';
+      own = await NeonBattleQueueModel.findOneAndUpdate({ psid }, { $set: { displayName: name, status: 'waiting', matchId: null, createdAt: new Date(), updatedAt: new Date() } }, { upsert: true, new: true, setDefaultsOnInsert: true });
+      await NeonBattleQueueModel.updateMany({ status: 'waiting', updatedAt: { $lt: new Date(Date.now() - 90000) } }, { $set: { status: 'waiting', updatedAt: new Date() } });
+      const matchId = crypto.randomUUID();
+      const rival = await NeonBattleQueueModel.findOneAndUpdate(
+        { psid: { $ne: psid }, status: 'waiting', updatedAt: { $gte: new Date(Date.now() - 90000) } },
+        { $set: { status: 'matched', matchId, updatedAt: new Date() } },
+        { new: true, sort: { createdAt: 1 } }
+      );
+      if (!rival) return res.json({ ok: true, status: 'waiting' });
+      try {
+        await NeonBattleMatchModel.create({ matchId, player1: { psid: rival.psid, name: rival.displayName || 'Jojo Player' }, player2: { psid, name }, status: 'active', roundNumber: 1, resolvedRound: 0, hp1: 100, hp2: 100, actions: {}, roundLog: [] });
+        await NeonBattleQueueModel.updateOne({ psid }, { $set: { status: 'matched', matchId, updatedAt: new Date() } });
+        return res.json({ ok: true, status: 'matched', matchId });
+      } catch (err) {
+        await NeonBattleQueueModel.updateOne({ psid: rival.psid, matchId }, { $set: { status: 'waiting', matchId: null, updatedAt: new Date() } });
+        throw err;
+      }
+    });
+  } catch (err) {
+    console.error('[NEON BATTLE] Matchmaking failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Could not find a rival right now. Please try again.' });
+  }
+});
+app.get('/api/neon-battle/state', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Secure session expired. Open Game Lobby again from Messenger.' });
+    const psid = String(session.psid);
+    const queue = await NeonBattleQueueModel.findOne({ psid }).lean();
+    if (!queue) return res.json({ ok: true, status: 'idle' });
+    if (queue.status === 'waiting') return res.json({ ok: true, status: 'waiting' });
+    if (!queue.matchId) return res.json({ ok: true, status: 'idle' });
+    let match = await NeonBattleMatchModel.findOne({ matchId: queue.matchId }).lean();
+    if (!match) return res.json({ ok: true, status: 'idle' });
+    if (match.status === 'active') match = await resolveNeonBattleRound(match.matchId) || match;
+    if (match.status === 'settling') {
+      await settleNeonBattle(match.matchId);
+      match = await NeonBattleMatchModel.findOne({ matchId: match.matchId }).lean() || match;
+    }
+    const user = await loadUserFromDB(psid);
+    res.set('Cache-Control', 'no-store');
+    return res.json(neonBattleState(match, psid, Math.max(0, Math.floor(Number(user?.coins) || 0))));
+  } catch (err) {
+    console.error('[NEON BATTLE] State read failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Neon Battle is temporarily unavailable.' });
+  }
+});
+app.post('/api/neon-battle/move', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Secure session expired. Reopen Neon Battle from Messenger.' });
+    const psid = String(session.psid), matchId = String(req.body?.matchId || '');
+    const move = String(req.body?.move || '').toLowerCase();
+    if (!/^[a-f0-9-]{36}$/i.test(matchId) || !['attack', 'guard', 'dash'].includes(move)) return res.status(400).json({ ok: false, error: 'Choose Attack, Guard, or Dash.' });
+    const match = await NeonBattleMatchModel.findOne({ matchId, status: 'active', $or: [{ 'player1.psid': psid }, { 'player2.psid': psid }] }).lean();
+    if (!match) return res.status(404).json({ ok: false, error: 'Active match not found. Find a new rival.' });
+    const round = Number(match.roundNumber || 1);
+    const pathKey = 'actions.' + String(round) + '.' + psid;
+    const updated = await NeonBattleMatchModel.findOneAndUpdate(
+      { matchId, status: 'active', roundNumber: round, [pathKey]: { $exists: false } },
+      { $set: { [pathKey]: move, updatedAt: new Date() } },
+      { new: true }
+    ).lean();
+    if (!updated) return res.status(409).json({ ok: false, error: 'Your move is already locked for this round or the round has changed.' });
+    const resolved = await resolveNeonBattleRound(matchId);
+    res.set('Cache-Control', 'no-store');
+    return res.json({ ok: true, status: resolved?.status || 'active', roundNumber: resolved?.roundNumber || round });
+  } catch (err) {
+    console.error('[NEON BATTLE] Move failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Could not submit your move. Please try again.' });
+  }
+});
+app.post('/api/neon-battle/leave', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Secure session expired. Reopen Game Lobby from Messenger.' });
+    await NeonBattleQueueModel.deleteOne({ psid: String(session.psid), status: 'waiting' });
+    res.set('Cache-Control', 'no-store');
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('[NEON BATTLE] Leave queue failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Could not cancel matchmaking.' });
+  }
+});
+
 // [JOJOWORLD BROWSER COIN SHOP] Use the existing PayMongo top-up flow without returning to Messenger.
 app.get('/coin-shop', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'coin-shop.html'), err => {
@@ -449,6 +641,34 @@ const DiceRoundSchema = new mongoose.Schema({
 }, { strict: false });
 const DiceRoundModel = mongoose.models.JDiceRound || mongoose.model('JDiceRound', DiceRoundSchema);
 const DICE_ROUND_WINDOW_MS = 5 * 60 * 1000;
+
+// Neon Battle uses MongoDB-backed matchmaking and server-resolved, simultaneous moves.
+const NeonBattleQueueSchema = new mongoose.Schema({
+  psid: { type: String, required: true, unique: true },
+  displayName: { type: String, default: 'Jojo Player' },
+  status: { type: String, enum: ['waiting', 'matched'], default: 'waiting', index: true },
+  matchId: { type: String, default: null, index: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now, index: true }
+}, { strict: true });
+const NeonBattleQueueModel = mongoose.models.JNeonBattleQueue || mongoose.model('JNeonBattleQueue', NeonBattleQueueSchema);
+const NeonBattleMatchSchema = new mongoose.Schema({
+  matchId: { type: String, required: true, unique: true },
+  player1: { psid: String, name: String },
+  player2: { psid: String, name: String },
+  status: { type: String, enum: ['active', 'settling', 'finished'], default: 'active', index: true },
+  roundNumber: { type: Number, default: 1 },
+  resolvedRound: { type: Number, default: 0 },
+  hp1: { type: Number, default: 100 },
+  hp2: { type: Number, default: 100 },
+  actions: { type: mongoose.Schema.Types.Mixed, default: {} },
+  roundLog: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  winnerPsid: { type: String, default: null },
+  rewardsApplied: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+}, { strict: true });
+const NeonBattleMatchModel = mongoose.models.JNeonBattleMatch || mongoose.model('JNeonBattleMatch', NeonBattleMatchSchema);
 
 const processedMessengerMessages = new Set();
 
