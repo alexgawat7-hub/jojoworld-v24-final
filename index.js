@@ -1693,7 +1693,8 @@ async function generateLeaderboardCanvas(users) {
     ctx.fillText(coins.toLocaleString('en-US') + ' coins', 184, y + 70);
     ctx.fillStyle = '#a8eefa'; ctx.font = 'bold 15px Sans';
     const ownedHouseKey = String(item.user.house || 'none').toLowerCase();
-    if (getHouseTier(ownedHouseKey) > 0) drawHouseArt(ctx, ownedHouseKey, 364, y + 49, 26, 22);
+    // [FIXED V38] Align the Top 4–10 house artwork vertically with the house text baseline, matching the podium row spacing.
+    if (getHouseTier(ownedHouseKey) > 0) drawHouseArt(ctx, ownedHouseKey, 364, y + 53, 26, 22);
     const houseText = getHouseTier(ownedHouseKey) > 0
       ? getHouse(item) + ' • ' + getHouseWorth(item).toLocaleString('en-US') + 'c'
       : 'No House';
