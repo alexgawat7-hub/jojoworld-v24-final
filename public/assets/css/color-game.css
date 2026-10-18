@@ -126,3 +126,9 @@ body:before{opacity:.09;background-image:radial-gradient(#ffe7a3 1px,transparent
 .cord-string{box-shadow:0 0 2px #000b,1px 0 #fff5}
 @media(max-width:390px){.dice-stage{height:clamp(190px,55vw,230px);min-height:190px}.round-panel{padding:10px}.banker-booth{margin-left:2px;margin-right:2px}}
 @media(prefers-reduced-motion:reduce){#machine3d{animation:none}}
+
+/* Full-screen arcade-machine presentation for the complete Color Dice scene. */
+.dice-stage{background:radial-gradient(ellipse at 50% 25%,#2d8864 0,#0a3e2d 48%,#03120f 100%);border:2px solid #c9a45c;box-shadow:inset 0 0 0 4px #fff1,inset 0 -20px 35px #0008,0 12px 26px #0009}
+#machine3d{filter:drop-shadow(0 8px 12px #0008)}
+#machine3d canvas{image-rendering:auto}
+@media(min-width:560px){.app{width:min(100%,760px)}.round-panel,.bet-panel,.live-board{padding:16px}.dice-stage{height:clamp(245px,35vw,310px);max-width:650px}}
