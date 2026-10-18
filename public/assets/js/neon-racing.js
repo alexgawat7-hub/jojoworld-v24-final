@@ -1,1 +1,73 @@
-(()=>{const $=id=>document.getElementById(id),canvas=$('track'),ctx=canvas.getContext('2d');const token=new URLSearchParams(location.search).get('token');if(token){$('lobby').href='/live-games?token='+encodeURIComponent(token);const mp=$('multiplayer');if(mp)mp.href='/neon-racing-multiplayer?token='+encodeURIComponent(token);}let running=false,carLane=1,obstacles=[],distance=0,best=Number(localStorage.getItem('jojoworldNeonRacingBest')||0),speed=1,last=0,spawn=0,sound=false,audio=null,keys={};$('best').textContent=best;function resize(){const r=canvas.getBoundingClientRect();canvas.width=Math.max(300,Math.floor(r.width*devicePixelRatio));canvas.height=Math.max(300,Math.floor(r.height*devicePixelRatio));ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0)}function beep(f=500){if(!sound)return;try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();const o=audio.createOscillator(),g=audio.createGain();o.frequency.value=f;g.gain.value=.035;o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+.07)}catch{}}function draw(){const w=canvas.clientWidth,h=canvas.clientHeight;ctx.clearRect(0,0,w,h);const horizon=h*.16;let grad=ctx.createLinearGradient(0,0,0,h);grad.addColorStop(0,'#121739');grad.addColorStop(1,'#070b17');ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);ctx.fillStyle='#1a2140';ctx.beginPath();ctx.moveTo(w*.28,horizon);ctx.lineTo(w*.72,horizon);ctx.lineTo(w*.98,h);ctx.lineTo(w*.02,h);ctx.fill();ctx.strokeStyle='#56f8ff';ctx.lineWidth=2;ctx.shadowBlur=10;ctx.shadowColor='#56f8ff';for(let lane=1;lane<3;lane++){let x=w*(.28+lane*.147);ctx.beginPath();ctx.moveTo(w*.5+(x-w*.5)*.02,horizon);ctx.lineTo(x,h);ctx.stroke()}ctx.shadowBlur=0;const offset=(distance*8)%48;for(let y=horizon+offset;y<h;y+=48){ctx.strokeStyle='#b34fff';ctx.globalAlpha=.55;ctx.beginPath();ctx.moveTo(w*.06,y);ctx.lineTo(w*.94,y);ctx.stroke()}ctx.globalAlpha=1;for(const o of obstacles){const y=horizon+(h-horizon)*o.p,x=w*(.28+(o.lane+.5)*.147);const sz=16+o.p*18;ctx.fillStyle='#ff5cbd';ctx.shadowColor='#ff5cbd';ctx.shadowBlur=12;ctx.fillRect(x-sz/2,y-sz,sz,sz*1.45);ctx.shadowBlur=0}const x=w*(.28+(carLane+.5)*.147),y=h*.82;ctx.shadowColor='#5affef';ctx.shadowBlur=18;ctx.fillStyle='#6bfff0';ctx.beginPath();ctx.moveTo(x,y-25);ctx.lineTo(x+17,y+18);ctx.lineTo(x,y+11);ctx.lineTo(x-17,y+18);ctx.closePath();ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#fff';ctx.font='10px system-ui';ctx.textAlign='center';ctx.fillText('JOJOWORLD CIRCUIT',w/2,20)}function end(){running=false;$('overlay').hidden=false;$('overlayTitle').textContent='CRASH!';$('overlayText').textContent='Distance: '+Math.floor(distance)+' • Best: '+best+'. Tap race again to beat your record.';$('start').textContent='RACE AGAIN';beep(140)}function frame(t){if(!running){draw();return}const dt=Math.min(40,t-last||16);last=t;distance+=dt*.018*speed;speed=1+Math.min(2,distance/180);$('score').textContent=Math.floor(distance);$('speed').textContent=speed.toFixed(1)+'x';if(keys.left)carLane=Math.max(0,carLane-0.035*dt/16);if(keys.right)carLane=Math.min(2,carLane+0.035*dt/16);carLane=Math.round(carLane*100)/100;spawn+=dt;if(spawn>Math.max(350,850-distance*2)){spawn=0;obstacles.push({lane:Math.floor(Math.random()*3),p:0})}obstacles.forEach(o=>o.p+=dt*.00055*speed);obstacles=obstacles.filter(o=>o.p<1.1);if(obstacles.some(o=>o.p>.78&&o.p<.91&&Math.abs(o.lane-carLane)<.35)){end();return}draw();requestAnimationFrame(frame)}function start(){running=true;carLane=1;obstacles=[];distance=0;speed=1;spawn=0;last=0;$('score').textContent='0';$('speed').textContent='1x';$('overlay').hidden=true;beep(700);requestAnimationFrame(frame)}function steer(which,on){keys[which]=on}[['left','left'],['right','right']].forEach(([id,key])=>{const b=$(id);b.addEventListener('pointerdown',e=>{e.preventDefault();steer(key,true)});['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,()=>steer(key,false)))});window.addEventListener('keydown',e=>{if(['ArrowLeft','a','A'].includes(e.key)){keys.left=true;e.preventDefault()}if(['ArrowRight','d','D'].includes(e.key)){keys.right=true;e.preventDefault()}});window.addEventListener('keyup',e=>{if(['ArrowLeft','a','A'].includes(e.key))keys.left=false;if(['ArrowRight','d','D'].includes(e.key))keys.right=false});$('start').addEventListener('click',start);$('restart').addEventListener('click',start);$('sound').addEventListener('click',()=>{sound=!sound;$('sound').textContent=sound?'🔊 SOUND: ON':'🔊 SOUND: OFF';beep(600)});const observer=new ResizeObserver(resize);observer.observe(canvas);resize();draw();})();
+(()=> {
+  const $ = id => document.getElementById(id);
+  const canvas = $('track'), ctx = canvas.getContext('2d');
+  const token = new URLSearchParams(location.search).get('token');
+  if (token) {
+    $('lobby').href = '/live-games?token=' + encodeURIComponent(token);
+    const mp = $('multiplayer'); if (mp) mp.href = '/neon-racing-multiplayer?token=' + encodeURIComponent(token);
+  }
+  let running=false, sound=false, audio=null, last=0, progress=0, rivalProgress=0, speed=0, steer=0, nitro=0, braking=false, keys={};
+  let best=Number(localStorage.getItem('jojoworldNeonRacingBest')||0);
+  $('best').textContent=best;
+  function resize(){const r=canvas.getBoundingClientRect(),d=window.devicePixelRatio||1;canvas.width=Math.max(300,Math.floor(r.width*d));canvas.height=Math.max(300,Math.floor(r.height*d));ctx.setTransform(d,0,0,d,0,0);draw();}
+  function beep(f=500){if(!sound)return;try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();const o=audio.createOscillator(),g=audio.createGain();o.frequency.value=f;g.gain.value=.035;o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+.09)}catch{}}
+  function poly(points,fill,stroke){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1.5;ctx.stroke();}}
+  function car(x,y,w,h,body,accent,front=false){
+    ctx.save();ctx.translate(x,y);
+    ctx.shadowColor=accent;ctx.shadowBlur=13;
+    // low, wide sports-car silhouette with wheels and glass
+    poly([[-w*.43,-h*.18],[-w*.34,-h*.43],[-w*.18,-h*.53],[w*.18,-h*.53],[w*.34,-h*.43],[w*.43,-h*.18],[w*.47,h*.32],[w*.34,h*.46],[-w*.34,h*.46],[-w*.47,h*.32]],body,accent);
+    ctx.shadowBlur=0;
+    poly([[-w*.25,-h*.24],[-w*.14,-h*.43],[w*.14,-h*.43],[w*.25,-h*.24]],'#172c4c','#6ffaff');
+    ctx.fillStyle=front?'#fff6c2':'#ff466d';ctx.fillRect(-w*.34,front?h*.27:-h*.22,w*.17,h*.07);ctx.fillRect(w*.17,front?h*.27:-h*.22,w*.17,h*.07);
+    ctx.fillStyle='#050812';ctx.fillRect(-w*.47,-h*.12,w*.12,h*.28);ctx.fillRect(w*.35,-h*.12,w*.12,h*.28);
+    ctx.restore();
+  }
+  function draw(){
+    const w=canvas.clientWidth||360,h=canvas.clientHeight||360;ctx.clearRect(0,0,w,h);
+    const horizon=h*.22;
+    const sky=ctx.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#090d25');sky.addColorStop(.55,'#24205a');sky.addColorStop(1,'#080b16');ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);
+    // skyline and distant glow
+    ctx.fillStyle='#101630';
+    for(let i=0;i<16;i++){const bw=w/13, bx=(i*w/13)-((progress*.03)%bw), bh=18+((i*37)%48);ctx.fillRect(bx,horizon-bh,bw*.7,bh);ctx.fillStyle=i%2?'#6efaff':'#ff65d8';for(let j=0;j<3;j++)ctx.fillRect(bx+4+j*6,horizon-bh+6,2,3);ctx.fillStyle='#101630';}
+    const curve=Math.sin(progress*.004)*w*.045;
+    const topL=w*.39+curve,topR=w*.61+curve,botL=-w*.1+curve*.3,botR=w*1.1+curve*.3;
+    poly([[topL,horizon],[topR,horizon],[botR,h],[botL,h]],'#202941');
+    poly([[topL,horizon],[topL+3,horizon],[botL+8,h],[botL,h]],'#4ff9ff');
+    poly([[topR-3,horizon],[topR,horizon],[botR,h],[botR-8,h]],'#ff57d5');
+    // road surface sheen
+    const road=ctx.createLinearGradient(0,horizon,0,h);road.addColorStop(0,'#303754');road.addColorStop(1,'#11192b');poly([[topL+4,horizon],[topR-4,horizon],[botR-8,h],[botL+8,h]],road);
+    // lane markers scroll smoothly with speed
+    const phase=(progress*1.8)%70;
+    for(let y=horizon+phase;y<h;y+=70){const p=(y-horizon)/(h-horizon),half=(topR-topL)/2+(w*.5)*(p),center=w/2+curve*(1-p);ctx.strokeStyle='#9ba8c8';ctx.globalAlpha=.45;ctx.lineWidth=1+p*2;ctx.beginPath();ctx.moveTo(center-w*.12*p,y);ctx.lineTo(center-w*.12*p,y+18*p+4);ctx.moveTo(center+w*.12*p,y);ctx.lineTo(center+w*.12*p,y+18*p+4);ctx.stroke();ctx.globalAlpha=1;}
+    // speed streaks during nitro
+    if(nitro>0){ctx.strokeStyle='#72faff';ctx.globalAlpha=.4;for(let i=0;i<12;i++){let x=(i*47+progress*3)%w,y=h*.35+(i*31)% (h*.55);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-8,y+28);ctx.stroke()}ctx.globalAlpha=1;}
+    // rival car appears ahead and grows as the player catches up
+    const gap=rivalProgress-progress,ry=horizon+Math.max(.04,Math.min(.78,.25-gap/850))*(h-horizon);
+    const rivalX=w*.5+curve*.45-w*.16;
+    if(gap>-230&&gap<850)car(rivalX,ry,Math.max(24,w*.105*(.5+ry/h)),Math.max(38,h*.13*(.45+ry/h)),'#b83cff','#ff65dc',false);
+    // player's sports car
+    const px=w*.5+steer*w*.24+curve*.35, py=h*.83;
+    car(px,py,w*.25,h*.24,nitro>0?'#35dfff':'#20c9d9','#79ffff',true);
+    // HUD on canvas
+    ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='900 10px system-ui';ctx.fillText('JOJOWORLD NIGHT CIRCUIT',w/2,16);
+    ctx.textAlign='left';ctx.fillStyle='#8cfff7';ctx.font='800 10px system-ui';ctx.fillText('YOU',12,h-12);ctx.textAlign='right';ctx.fillStyle='#ff85e6';ctx.fillText('RIVAL',w-12,h-12);
+  }
+  function finish(won){running=false;if(won&&progress>best){best=Math.floor(progress);localStorage.setItem('jojoworldNeonRacingBest',String(best));$('best').textContent=best;}$('overlay').hidden=false;$('overlayTitle').textContent=won?'🏁 YOU WIN!':'🏁 RACE FINISHED';$('overlayText').textContent=(won?'You crossed the finish line first!':'Your rival reached the finish line first.')+' Final progress: '+Math.floor(progress)+' m. No obstacles, no coins required.';$('start').textContent='RACE AGAIN';beep(won?880:260);}
+  function frame(t){if(!running){draw();return;}const dt=Math.min(40,t-last||16);last=t;
+    const boosting=(keys.nitro||nitro>0);if(nitro>0)nitro=Math.max(0,nitro-dt*.00065);
+    const target=braking?95:(boosting?275:205);speed+=(target-speed)*Math.min(1,dt*.0024);
+    progress+=speed*dt*.00105;rivalProgress+=((progress>rivalProgress+100)?speed*.00093:speed*.00112)*dt;
+    if(keys.left)steer=Math.max(-1,steer-dt*.0028);else if(keys.right)steer=Math.min(1,steer+dt*.0028);else steer*=Math.pow(.94,dt/16);
+    $('score').textContent=Math.min(100,Math.floor(progress/12))+'%';$('speed').textContent=Math.round(speed)+' km/h';
+    draw();if(progress>=1200){finish(progress>=rivalProgress);return;}if(rivalProgress>=1200){finish(false);return;}requestAnimationFrame(frame);
+  }
+  function start(){running=true;progress=0;rivalProgress=0;speed=0;steer=0;nitro=0;braking=false;last=0;keys={};$('score').textContent='0%';$('speed').textContent='0 km/h';$('overlay').hidden=true;beep(720);requestAnimationFrame(frame);}
+  function hold(id,key){const b=$(id);if(!b)return;b.addEventListener('pointerdown',e=>{e.preventDefault();keys[key]=true;if(key==='nitro')nitro=1.8;if(key==='brake')braking=true;});['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,()=>{keys[key]=false;if(key==='brake')braking=false;}));}
+  hold('left','left');hold('right','right');hold('nitro','nitro');hold('brake','brake');
+  window.addEventListener('keydown',e=>{if(['ArrowLeft','a','A'].includes(e.key)){keys.left=true;e.preventDefault();}if(['ArrowRight','d','D'].includes(e.key)){keys.right=true;e.preventDefault();}if(e.code==='Space'){keys.nitro=true;nitro=1.8;e.preventDefault();}if(['ArrowDown','s','S'].includes(e.key)){braking=true;e.preventDefault();}});
+  window.addEventListener('keyup',e=>{if(['ArrowLeft','a','A'].includes(e.key))keys.left=false;if(['ArrowRight','d','D'].includes(e.key))keys.right=false;if(e.code==='Space')keys.nitro=false;if(['ArrowDown','s','S'].includes(e.key))braking=false;});
+  $('start').addEventListener('click',start);$('restart').addEventListener('click',start);
+  $('sound').addEventListener('click',()=>{sound=!sound;$('sound').textContent=sound?'🔊 SOUND: ON':'🔊 SOUND: OFF';beep(600);});
+  const observer=new ResizeObserver(resize);observer.observe(canvas);resize();draw();
+})();
