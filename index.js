@@ -236,6 +236,57 @@ app.get('/api/dice-arena/stats', async (req, res) => {
   }
 });
 
+// [JOJOWORLD BROWSER SCATTER SPIN] Secure browser session and server-side virtual-coin settlement.
+app.get('/api/scatter-spin/session', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Open Scatter Spin from Messenger to reconnect your account.' });
+    const user = await loadUserFromDB(session.psid);
+    if (!user) return res.status(404).json({ ok: false, error: 'JojoWorld account not found.' });
+    res.set('Cache-Control', 'no-store');
+    return res.json({ ok: true, balance: Math.max(0, Math.floor(Number(user.coins) || 0)), jackpot: Math.max(0, Math.floor(Number(db.jackpotPool) || 1500)) });
+  } catch (err) {
+    console.error('[SCATTER SPIN] Session read failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Scatter Spin account is temporarily unavailable.' });
+  }
+});
+app.post('/api/scatter-spin/spin', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Session expired. Reopen Scatter Spin from Messenger.' });
+    return await withDiceUserQueue(String(session.psid), async () => {
+      const user = await loadUserFromDB(String(session.psid));
+      if (!user) return res.status(404).json({ ok: false, error: 'JojoWorld account not found.' });
+      const balance = Math.max(0, Math.floor(Number(user.coins) || 0));
+      if (balance < 10) return res.status(400).json({ ok: false, error: 'Scatter Spin costs 10 coins.', balance });
+      const oldCoins = user.coins, oldJackpot = db.jackpotPool;
+      user.coins = balance - 10;
+      db.jackpotPool = Math.max(0, Math.floor(Number(db.jackpotPool) || 1500)) + 5;
+      const roll = crypto.randomInt(0, 10000) / 10000;
+      let result = { visual: ['💥','💣','❌','💣'], win: 0, text: 'ZONK! Better luck next spin.', jackpot: false };
+      if (roll < 0.025) result = { visual: ['👑','👑','👑'], win: db.jackpotPool, text: 'GRAND JACKPOT!', jackpot: true };
+      else if (roll < 0.22) result = { visual: ['💎','💎','💎'], win: 75, text: 'BIG WIN! +75 coins', jackpot: false };
+      else if (roll < 0.58) result = { visual: ['🪙','🪙','🎁'], win: 20, text: 'SMALL WIN! +20 coins', jackpot: false };
+      if (result.jackpot) {
+        user.coins += result.win;
+        db.jackpotPool = 1500;
+      } else {
+        user.coins += result.win;
+      }
+      if (!await saveUserToDB(String(session.psid), { saveJackpot: true })) {
+        user.coins = oldCoins;
+        db.jackpotPool = oldJackpot;
+        return res.status(503).json({ ok: false, error: 'Spin was not saved. No coins were charged; please try again.' });
+      }
+      res.set('Cache-Control', 'no-store');
+      return res.json({ ok: true, symbols: result.visual, win: result.win, jackpotWin: result.jackpot, message: result.text, balance: Math.max(0, Math.floor(Number(user.coins) || 0)), jackpot: Math.max(0, Math.floor(Number(db.jackpotPool) || 0)) });
+    });
+  } catch (err) {
+    console.error('[SCATTER SPIN] Spin failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Scatter Spin is temporarily unavailable.' });
+  }
+});
+
 // [JOJOWORLD DICE ARENA WEB GAME ROUTE] Serve the animated HTML game interface.
 // This is currently a visual prototype; wager settlement remains in the Messenger backend
 // until the authenticated game-session API is added and tested.
@@ -244,6 +295,15 @@ app.get('/dice-arena', (req, res) => {
     if (err && !res.headersSent) {
       console.error('[DICE ARENA] Could not serve game page:', err.message);
       res.status(503).send('Dice Arena is temporarily unavailable.');
+    }
+  });
+});
+
+app.get('/scatter-spin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'scatter-spin.html'), err => {
+    if (err && !res.headersSent) {
+      console.error('[SCATTER SPIN] Could not serve game page:', err.message);
+      res.status(503).send('Scatter Spin is temporarily unavailable.');
     }
   });
 });
@@ -2494,11 +2554,15 @@ A new user successfully registered using your link! 🎁
               await DiceWebSessionModel.deleteMany({ psid });
               await DiceWebSessionModel.create({ tokenHash, psid, expiresAt: new Date(Date.now() + 20 * 60 * 1000) });
               const launchUrl = publicBase + '/dice-arena?token=' + rawToken;
+              const scatterUrl = publicBase + '/scatter-spin?token=' + rawToken;
               await axios.post('https://graph.facebook.com/v19.0/me/messages?access_token=' + PAGE_TOKEN, {
                 recipient: { id: psid },
                 message: { attachment: { type: 'template', payload: { template_type: 'button',
-                  text: '🎰 Scatter Spin / 🎲 Dice Arena — play in the browser with your JojoWorld coin balance?',
-                  buttons: [{ type: 'web_url', url: launchUrl, title: '🎰 Open Scatter Spin / Dice Arena' }]
+                  text: '🎮 Choose a live browser game. Both games use your JojoWorld virtual coin balance.',
+                  buttons: [
+                    { type: 'web_url', url: scatterUrl, title: '🎰 Scatter Spin' },
+                    { type: 'web_url', url: launchUrl, title: '🎲 Dice Arena' }
+                  ]
                 }}}
               }, { timeout: 15000 });
             } catch (launchError) {
