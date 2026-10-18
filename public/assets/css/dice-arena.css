@@ -89,3 +89,44 @@ body{display:flex}
 .note{display:none}
 @media(max-height:680px){.app{gap:2px;padding-top:3px;padding-bottom:3px}.dicearea{height:62px}.die{width:52px;padding:8px}.balance{padding:4px 8px}.panel{padding:5px 7px}.rollbtn{padding:7px}.stats .stat{padding:4px}.arena-banner{padding:4px 8px}}
 @media(max-width:390px){.stat small{font-size:7px}.stats{gap:3px}.stat{padding:4px 3px}.game-nav .lobby-link,.game-nav .sound-toggle{min-height:32px;padding:6px 9px;font-size:9px}}
+
+
+/* Mobile viewport fit: compress every section so the arena is not a long page. */
+html,body{overflow:hidden!important;touch-action:pan-x}
+.app{height:100dvh!important;height:100vh!important;height:100dvh!important;max-height:100dvh;overflow:hidden!important;gap:2px!important;padding:3px 7px!important}
+.game-nav{gap:6px!important}
+.lobby-link,.sound-toggle{min-height:29px!important;padding:4px 8px!important;font-size:9px!important}
+.brand{font-size:9px!important;line-height:1}
+.title{font-size:clamp(21px,3.8vh,29px)!important;line-height:1!important}
+.sub{font-size:7px!important;letter-spacing:1px!important}
+.balance{padding:4px 7px!important}
+.balance small{font-size:8px!important}
+.balance strong{font-size:15px!important}
+.demo{font-size:8px!important;padding:4px 6px!important}
+.table{padding:4px 6px!important;border-radius:15px!important}
+.tablelabel{font-size:8px!important;letter-spacing:1px!important}
+.dicearea{height:clamp(42px,7vh,62px)!important}
+.die{width:clamp(38px,7vh,52px)!important;padding:6px!important;gap:2px!important;border-radius:10px!important}
+.result{font-size:11px!important;line-height:1.1!important}
+.result small{font-size:8px!important;margin-top:2px!important}
+.panel{padding:4px 6px!important;border-radius:11px!important}
+.panelhead{margin-bottom:3px!important}
+.panelhead b{font-size:9px!important}
+.panelhead span{font-size:7px!important}
+.chips{gap:3px!important}
+.chip{padding:4px 2px!important;font-size:9px!important}
+.wager{margin:3px 0!important;font-size:8px!important}
+.wager strong{font-size:10px!important}
+.predict{padding:5px 3px!important;font-size:9px!important}
+.rollbtn{margin-top:3px!important;padding:6px!important;font-size:11px!important}
+.arena-banner{padding:3px 6px!important}
+.arena-banner b{font-size:8px!important}
+.arena-banner small{font-size:7px!important}
+.round-pill{padding:3px 5px!important;font-size:7px!important}
+.stats{gap:3px!important}
+.stat{padding:3px!important}
+.stat small{font-size:7px!important}
+.stat strong{font-size:10px!important;margin-top:1px!important}
+.recent-die{min-width:25px!important;padding:3px!important;font-size:8px!important}
+.recent-die small{font-size:7px!important}
+@media(max-height:620px){.sub{display:none}.arena-banner small{display:none}.recent{gap:2px!important}.recent-die{min-width:22px!important;padding:2px!important}}
