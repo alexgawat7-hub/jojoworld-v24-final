@@ -128,6 +128,9 @@ function loadCachedProfilePhotoUrl(url) {
 }
 const app = express();
 
+// Serve versioned-friendly local CSS/JS resources used by browser games.
+app.use('/assets', express.static(path.join(__dirname, 'public', 'assets'), { maxAge: '1h' }));
+
 // Body-parser rawBody configuration para sa PayMongo Webhook HMAC signature
 app.use(bodyParser.json({
   verify: (req, res, buf) => {
