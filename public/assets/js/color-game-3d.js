@@ -13,7 +13,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
   const camera = new THREE.PerspectiveCamera(36, 2.8, 0.1, 100);
   camera.position.set(0, 2.15, 6.3);
   camera.lookAt(0, 0.15, 0);
-  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'high-performance' });
+  let renderer;
+  try { renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'high-performance' }); }
+  catch (error) { mount.dataset.fallback = 'webgl-unavailable'; return; }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -110,7 +112,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     });
     root.position.set([-1.65,0,1.65][index],.42,0);
     root.rotation.set(.12+index*.13,.25+index*.4,.1-index*.1);
-    scene.add(root);dice.push({root,body,index,phase:index*2.1,rolling:false,target:colors[['red','blue','green'][index]]});
+    scene.add(root);dice.push({root,body,index,phase:index*2.1,rolling:false,landed:false,dropHeight:0,verticalVelocity:0,spinX:0,spinY:0,spinZ:0,target:colors[['red','blue','green'][index]]});
   }
   for(let i=0;i<3;i++)makeDie(i);
   // A banker-operated overhead release arm, cable and weighted brass pull.
@@ -138,9 +140,12 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     }
     const dropping=stage.classList.contains('dice-drop');
     const rolling=stage.classList.contains('rolling') || dropping;
-    if(dropping&&!wasDropping){dropStart=now;rollingUntil=now+1.05;}
+    if(dropping&&!wasDropping){
+      dropStart=now;rollingUntil=now+1.05;
+      dice.forEach((d,i)=>{d.landed=false;d.dropHeight=1.35+i*.12;d.verticalVelocity=-1.3-i*.18;d.spinX=7.5+i*1.7;d.spinY=9.2-i*.8;d.spinZ=5.8+i;});
+    }
     if(!rolling&&wasDropping){rollingUntil=0;}
-    dice.forEach(d=>d.rolling=rolling && (!dropping || now-dropStart<920));
+    dice.forEach(d=>d.rolling=rolling && (!dropping || (now-dropStart<1050 && !d.landed)));
     wasDropping=dropping;
     rig.userData.pulled=document.getElementById('cordRig')?.classList.contains('pulled')||false;
   }
@@ -158,16 +163,39 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     syncState(now);
     dice.forEach((d,i)=>{
       if(d.rolling) {
-        d.root.rotation.x+=dt*(6.8+i*1.1);d.root.rotation.y+=dt*(8.1-i*.7);d.root.rotation.z+=dt*(5.2+i);
-        d.root.position.y=.42+Math.abs(Math.sin(now*.012+d.phase))*.24;
-        if(stage.classList.contains('dice-drop')) {
-          const p=Math.min(1,(now-dropStart)/920);
-          d.root.position.y=.42+Math.abs(1-p)*1.7;
-          d.root.position.x=[-1.65,0,1.65][i]+Math.sin(p*13+i)*(.22*(1-p));
-          if(p>=1){d.root.position.y=.42;d.rolling=false;d.root.rotation.x=Math.round(d.root.rotation.x/(Math.PI/2))*(Math.PI/2);}
+        const dropping=stage.classList.contains('dice-drop');
+        if(dropping) {
+          // Small fixed-step-style gravity and damped bounces make the drop read as a physical roll.
+          d.verticalVelocity-=10.8*dt;
+          d.dropHeight+=d.verticalVelocity*dt;
+          if(d.dropHeight<=0) {
+            d.dropHeight=0;
+            if(Math.abs(d.verticalVelocity)>.72) d.verticalVelocity=Math.abs(d.verticalVelocity)*.34;
+            else {d.verticalVelocity=0;d.landed=true;}
+          }
+          d.root.position.y=.42+d.dropHeight;
+          const spread=Math.min(1,d.dropHeight*1.5);
+          d.root.position.x=[-1.65,0,1.65][i]+Math.sin((now-dropStart)*.018+i*1.8)*.12*spread;
+          d.root.position.z=Math.cos((now-dropStart)*.015+i)*.12*spread;
+          const friction=d.landed?Math.min(1,dt*11):1;
+          d.root.rotation.x+=d.spinX*dt*friction;
+          d.root.rotation.y+=d.spinY*dt*friction;
+          d.root.rotation.z+=d.spinZ*dt*friction;
+          const damp=Math.exp(-2.4*dt);
+          d.spinX*=damp;d.spinY*=damp;d.spinZ*=damp;
+          if(d.landed) {
+            d.root.position.y=.42;
+            d.root.rotation.x+=(Math.round(d.root.rotation.x/(Math.PI/2))*(Math.PI/2)-d.root.rotation.x)*Math.min(1,dt*7);
+            d.root.rotation.z+=(Math.round(d.root.rotation.z/(Math.PI/2))*(Math.PI/2)-d.root.rotation.z)*Math.min(1,dt*7);
+          }
+        } else {
+          d.root.rotation.x+=dt*(6.8+i*1.1);d.root.rotation.y+=dt*(8.1-i*.7);d.root.rotation.z+=dt*(5.2+i);
+          d.root.position.y=.42+Math.abs(Math.sin(now*.012+d.phase))*.24;
+          d.root.position.x=[-1.65,0,1.65][i]+Math.sin(now*.004+i)*.08;
         }
       } else {
         d.root.position.set([-1.65,0,1.65][i],.42,0);
+        d.root.position.z=0;
         d.root.rotation.x+=(.06-d.root.rotation.x)*Math.min(1,dt*4);
         d.root.rotation.z+=(0-d.root.rotation.z)*Math.min(1,dt*4);
         d.root.rotation.y+=(.15+i*.28-d.root.rotation.y)*Math.min(1,dt*4);
