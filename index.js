@@ -274,7 +274,7 @@ app.post('/api/color-game/bet', async (req, res) => {
     const psid = String(session.psid);
     const color = String(req.body?.color || '').toUpperCase();
     const bet = Number(req.body?.bet);
-    if (!['RED', 'BLUE', 'GREEN', 'YELLOW', 'PINK'].includes(color)) return res.status(400).json({ ok: false, error: 'Choose RED, BLUE, GREEN, YELLOW, or PINK.' });
+    if (!['RED', 'BLUE', 'GREEN', 'YELLOW', 'PINK', 'WHITE'].includes(color)) return res.status(400).json({ ok: false, error: 'Choose RED, BLUE, GREEN, YELLOW, PINK, or WHITE.' });
     if (!Number.isSafeInteger(bet) || bet < 10 || bet > 100000) return res.status(400).json({ ok: false, error: 'Bet must be a whole number from 10 to 100,000 coins.' });
     return await withDiceUserQueue(psid, async () => {
       const user = await loadUserFromDB(psid);
@@ -892,7 +892,7 @@ const ColorGameBetSchema = new mongoose.Schema({
   betId: { type: String, required: true },
   psid: { type: String, required: true },
   name: { type: String, required: true },
-  color: { type: String, enum: ['RED', 'BLUE', 'GREEN', 'YELLOW', 'PINK'], required: true },
+  color: { type: String, enum: ['RED', 'BLUE', 'GREEN', 'YELLOW', 'PINK', 'WHITE'], required: true },
   amount: { type: Number, required: true },
   payout: { type: Number, default: 0 },
   status: { type: String, enum: ['pending', 'settled'], default: 'pending' },
@@ -905,8 +905,8 @@ const ColorGameStateSchema = new mongoose.Schema({
   bettingEndsAt: { type: Date, required: true },
   finishedAt: { type: Date, default: null },
   status: { type: String, enum: ['betting', 'settling', 'complete'], default: 'betting', index: true },
-  result: { type: [String], enum: ['RED', 'BLUE', 'GREEN', 'YELLOW', 'PINK'], default: null },
-  lastResult: { type: [String], enum: ['RED', 'BLUE', 'GREEN', 'YELLOW', 'PINK'], default: null },
+  result: { type: [String], enum: ['RED', 'BLUE', 'GREEN', 'YELLOW', 'PINK', 'WHITE'], default: null },
+  lastResult: { type: [String], enum: ['RED', 'BLUE', 'GREEN', 'YELLOW', 'PINK', 'WHITE'], default: null },
   lastRoundNumber: { type: Number, default: 0 },
   totalBet: { type: Number, default: 0 },
   bets: { type: [ColorGameBetSchema], default: [] }
@@ -1040,7 +1040,7 @@ async function recordDiceRoundRoll(psid, bet, payout, won) {
 
 // COLOR GAME ROUND ENGINE. All results and wallet changes are server-side.
 function pickColorGameResult() {
-  const faces = ['RED', 'BLUE', 'GREEN', 'YELLOW', 'PINK'];
+  const faces = ['RED', 'BLUE', 'GREEN', 'YELLOW', 'PINK', 'WHITE'];
   return [0, 1, 2].map(() => faces[crypto.randomInt(0, faces.length)]);
 }
 function makeLocalColorRound(previous = null) {
@@ -1157,7 +1157,7 @@ async function getColorGameRound() {
 }
 function colorGamePublicState(round, psid, balance) {
   const bets = Array.isArray(round.bets) ? round.bets : [];
-  const totals = { RED: 0, BLUE: 0, GREEN: 0, YELLOW: 0, PINK: 0 };
+  const totals = { RED: 0, BLUE: 0, GREEN: 0, YELLOW: 0, PINK: 0, WHITE: 0 };
   const players = new Set();
   for (const bet of bets) { totals[bet.color] = (totals[bet.color] || 0) + Number(bet.amount || 0); players.add(String(bet.psid)); }
   const myBet = bets.find(b => String(b.psid) === String(psid));
