@@ -190,6 +190,21 @@ const ProcessedMessengerMessageSchema = new mongoose.Schema({
 });
 const ProcessedMessengerMessageModel = mongoose.models.JProcessedMessengerMessage ||
   mongoose.model('JProcessedMessengerMessage', ProcessedMessengerMessageSchema);
+// Persistent aggregate stats for JojoWorld Dice Arena rounds.
+const DiceRoundSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
+  roundNumber: { type: Number, default: 1 },
+  startedAt: { type: Date, default: Date.now },
+  totalBet: { type: Number, default: 0 },
+  totalPayout: { type: Number, default: 0 },
+  totalRolls: { type: Number, default: 0 },
+  wins: { type: Number, default: 0 },
+  losses: { type: Number, default: 0 },
+  playerIds: { type: [String], default: [] }
+}, { strict: false });
+const DiceRoundModel = mongoose.models.JDiceRound || mongoose.model('JDiceRound', DiceRoundSchema);
+const DICE_ROUND_WINDOW_MS = 5 * 60 * 1000;
+
 const processedMessengerMessages = new Set();
 
 // Serialize commands per Messenger user, while allowing different users to be processed concurrently.
@@ -223,6 +238,63 @@ if (MONGODB_URI) {
       }
     })
     .catch(e => console.log("❌ MongoDB Error:", e.message));
+}
+
+// Read or advance the shared 5-minute round. Wagers are counted when a dice roll resolves.
+async function getDiceRoundStats() {
+  const now = Date.now();
+  if (MONGODB_URI && mongoose.connection.readyState === 1) {
+    let doc = await DiceRoundModel.findOne({ id: "global" });
+    if (!doc) {
+      try {
+        doc = await DiceRoundModel.create({ id: "global", roundNumber: 1, startedAt: new Date(now) });
+      } catch (_) {
+        doc = await DiceRoundModel.findOne({ id: "global" });
+      }
+    }
+    if (!doc) throw new Error("Dice round stats are unavailable.");
+    if (now - new Date(doc.startedAt || now).getTime() >= DICE_ROUND_WINDOW_MS) {
+      doc = await DiceRoundModel.findOneAndUpdate(
+        { id: "global", roundNumber: doc.roundNumber, startedAt: doc.startedAt },
+        { $set: { roundNumber: Number(doc.roundNumber || 1) + 1, startedAt: new Date(now), totalBet: 0, totalPayout: 0, totalRolls: 0, wins: 0, losses: 0, playerIds: [] } },
+        { new: true }
+      ) || await DiceRoundModel.findOne({ id: "global" });
+    }
+    return {
+      roundNumber: Number(doc.roundNumber || 1),
+      startedAt: new Date(doc.startedAt || now),
+      totalBet: Number(doc.totalBet || 0),
+      totalPayout: Number(doc.totalPayout || 0),
+      totalRolls: Number(doc.totalRolls || 0),
+      wins: Number(doc.wins || 0),
+      losses: Number(doc.losses || 0),
+      playerCount: Array.isArray(doc.playerIds) ? doc.playerIds.length : 0
+    };
+  }
+  // Keep a local fallback for development when MongoDB is not configured.
+  if (!globalThis.__jojoworldDiceRound) globalThis.__jojoworldDiceRound = { roundNumber: 1, startedAt: now, totalBet: 0, totalPayout: 0, totalRolls: 0, wins: 0, losses: 0, playerIds: [] };
+  let local = globalThis.__jojoworldDiceRound;
+  if (now - local.startedAt >= DICE_ROUND_WINDOW_MS) {
+    local = globalThis.__jojoworldDiceRound = { roundNumber: local.roundNumber + 1, startedAt: now, totalBet: 0, totalPayout: 0, totalRolls: 0, wins: 0, losses: 0, playerIds: [] };
+  }
+  return { roundNumber: local.roundNumber, startedAt: new Date(local.startedAt), totalBet: local.totalBet, totalPayout: local.totalPayout, totalRolls: local.totalRolls, wins: local.wins, losses: local.losses, playerCount: local.playerIds.length };
+}
+async function recordDiceRoundRoll(psid, bet, payout, won) {
+  const now = Date.now();
+  if (MONGODB_URI && mongoose.connection.readyState === 1) {
+    let stats = await getDiceRoundStats();
+    const update = { $inc: { totalBet: bet, totalPayout: payout, totalRolls: 1, [won ? "wins" : "losses"]: 1 }, $addToSet: { playerIds: String(psid) } };
+    await DiceRoundModel.updateOne({ id: "global", roundNumber: stats.roundNumber }, update);
+    return await getDiceRoundStats();
+  }
+  const stats = await getDiceRoundStats();
+  const local = globalThis.__jojoworldDiceRound;
+  local.totalBet += bet;
+  local.totalPayout += payout;
+  local.totalRolls += 1;
+  local[won ? "wins" : "losses"] += 1;
+  if (!local.playerIds.includes(String(psid))) local.playerIds.push(String(psid));
+  return { roundNumber: local.roundNumber, startedAt: new Date(local.startedAt), totalBet: local.totalBet, totalPayout: local.totalPayout, totalRolls: local.totalRolls, wins: local.wins, losses: local.losses, playerCount: local.playerIds.length };
 }
 
 // ================= DB PERSISTENCE HELPERS =================
