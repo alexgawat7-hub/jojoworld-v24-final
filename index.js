@@ -913,7 +913,7 @@ const ColorGameStateSchema = new mongoose.Schema({
 }, { strict: true });
 const ColorGameStateModel = mongoose.models.JColorGameState || mongoose.model('JColorGameState', ColorGameStateSchema);
 const COLOR_GAME_BETTING_MS = 25000;
-const COLOR_GAME_REVEAL_MS = 5000;
+const COLOR_GAME_REVEAL_MS = 9000;
 
 const DICE_ROUND_WINDOW_MS = 5 * 60 * 1000;
 
