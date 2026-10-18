@@ -2,9 +2,10 @@ const faces={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
 function drawDie(id,n){const el=document.getElementById(id);el.innerHTML='';for(let i=0;i<9;i++){const p=document.createElement('i');p.className='pip'+(faces[n].includes(i)?' on':'');el.appendChild(p)}}
 drawDie('die1',3);drawDie('die2',5);
 let bet=100,pred='ODD',rolling=false,accountConnected=false,accountLoading=false,resultUnconfirmed=false;
-let soundOn=true,audioCtx=null,rollTick=0;
+const soundKey='jojoworldArcadeSound';
+let soundOn=localStorage.getItem(soundKey)!=='false',audioCtx=null,rollTick=0;
 function playSound(kind){
- if(!soundOn)return;
+ soundOn=localStorage.getItem(soundKey)!=='false';if(!soundOn)return;
  try{
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
   if(!audioCtx)audioCtx=new AC();if(audioCtx.state==='suspended')audioCtx.resume();
@@ -13,8 +14,6 @@ function playSound(kind){
   notes.forEach((freq,i)=>{const osc=audioCtx.createOscillator(),gain=audioCtx.createGain(),start=now+i*.105;osc.type=kind==='tick'?'triangle':'sine';osc.frequency.setValueAtTime(freq,start);gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(kind==='tick'?.025:.075,start+.012);gain.gain.exponentialRampToValueAtTime(.0001,start+(kind==='tick'?.045:.18));osc.connect(gain);gain.connect(audioCtx.destination);osc.start(start);osc.stop(start+(kind==='tick'?.05:.2));});
  }catch(_){}
 }
-const soundButton=document.getElementById('soundToggle');
-soundButton?.addEventListener('click',()=>{soundOn=!soundOn;soundButton.textContent=soundOn?'🔊 SOUND ON':'🔇 SOUND OFF';soundButton.setAttribute('aria-pressed',String(soundOn));if(soundOn)playSound('tap')});
 const recentRolls=[];
 const money=n=>Number(n).toLocaleString('en-US');
 function addRecent(total,won){
