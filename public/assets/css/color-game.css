@@ -59,3 +59,32 @@ body:before{opacity:.09;background-image:radial-gradient(#ffe7a3 1px,transparent
 @keyframes casinoGlow{to{background-position:200% 0}}
 @media(max-width:390px){.dice-stage{min-height:135px;padding:8px 4px;gap:7px}.die-slot{height:112px}.color-die{width:min(24vw,78px);height:min(24vw,78px)}.pip{width:11px;height:11px}.pip-0{left:14px;top:14px}.pip-1{right:14px;top:14px}.pip-3{left:14px;bottom:14px}.pip-4{right:14px;bottom:14px}}
 @media(prefers-reduced-motion:reduce){.casino-lights{animation:none}}
+
+/* Physical pull-cord reveal mechanic */
+.cord-rig{position:relative;display:flex;flex-direction:column;align-items:center;min-height:91px;margin:8px auto 0;z-index:3}
+.cord-guide{position:absolute;top:0;width:64px;height:15px;border:2px solid #d6b66a;border-radius:5px 5px 9px 9px;background:linear-gradient(180deg,#fff0b7,#8a6126);box-shadow:0 3px 7px #0008}
+.cord-guide:before,.cord-guide:after{content:"";position:absolute;top:3px;width:5px;height:5px;border-radius:50%;background:#473116;box-shadow:inset 0 1px 1px #fff8}
+.cord-guide:before{left:8px}.cord-guide:after{right:8px}
+.pull-cord{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:61px;width:82px;padding:0;border:0;background:transparent;cursor:grab;touch-action:none;user-select:none}
+.cord-string{display:block;width:4px;height:31px;background:linear-gradient(90deg,#644019,#f4d28b 45%,#6f481d);border-radius:4px;box-shadow:0 0 2px #0009;transform-origin:top center;transition:height .18s ease}
+.cord-handle{display:grid;place-items:center;width:45px;height:28px;margin-top:-1px;border:2px solid #ffe8a4;border-radius:8px 8px 13px 13px;background:linear-gradient(115deg,#fff0ad,#c18a35 42%,#7c4d18);color:#2b1b09;font-size:9px;font-weight:1000;letter-spacing:1px;box-shadow:inset 0 2px 3px #fff9,0 4px 0 #543816,0 7px 10px #0008;transition:transform .18s,filter .18s}
+.cord-handle:after{content:"";position:absolute;top:35px;width:19px;height:3px;border-radius:3px;background:#ffedb2;box-shadow:0 0 8px #ffdf8a}
+.cord-hint{margin-top:1px;color:#e9d19a;font-size:8px;font-weight:900;letter-spacing:1.1px;text-align:center}
+.pull-cord.ready{animation:cordPrompt 1.1s ease-in-out infinite}
+.pull-cord:focus-visible{outline:2px solid #fff0a8;outline-offset:3px;border-radius:10px}
+.pull-cord:active{cursor:grabbing}
+.pull-cord.pulled .cord-string{height:51px}
+.pull-cord.pulled .cord-handle{transform:translateY(19px) scaleY(.96);filter:brightness(1.25)}
+.cord-rig.pulled .cord-guide{box-shadow:0 0 18px #ffe4a0}
+.dice-stage.dice-drop .die-slot{animation:dropSlot .82s cubic-bezier(.12,.76,.25,1) both}
+.dice-stage.dice-drop .die-slot:nth-child(2){animation-delay:.1s}
+.dice-stage.dice-drop .die-slot:nth-child(3){animation-delay:.2s}
+.dice-stage.dice-drop .color-die{animation:dropDie .82s cubic-bezier(.12,.76,.25,1) both}
+.dice-stage.dice-drop .die-slot:nth-child(2) .color-die{animation-delay:.1s}
+.dice-stage.dice-drop .die-slot:nth-child(3) .color-die{animation-delay:.2s}
+.dice-stage.dice-drop .die-slot:after{animation:impactShadow .82s ease both}
+@keyframes dropSlot{0%{transform:translateY(-130px) rotate(-9deg);opacity:.25}50%{opacity:1}78%{transform:translateY(9px) rotate(3deg)}90%{transform:translateY(-5px) rotate(-1deg)}100%{transform:translateY(0) rotate(0)}}
+@keyframes dropDie{0%{transform:translateY(-115px) rotateX(360deg) rotateY(180deg) rotateZ(18deg) scale(.72)}65%{transform:translateY(7px) rotateX(55deg) rotateY(120deg) rotateZ(-10deg) scale(1.04)}82%{transform:translateY(-8px) rotateX(-18deg) rotateY(18deg) rotateZ(5deg)}100%{transform:translateY(0) rotateX(0) rotateY(0) rotateZ(0) scale(1)}}
+@keyframes impactShadow{0%{transform:scale(.45);opacity:.2}70%{transform:scale(1.4);opacity:.9}100%{transform:scale(1);opacity:.65}}
+@keyframes cordPrompt{0%,100%{filter:drop-shadow(0 0 0 #ffe8a400)}50%{filter:drop-shadow(0 0 9px #ffe8aacc)}}
+@media(max-width:390px){.cord-rig{min-height:82px}.cord-hint{font-size:7px}.pull-cord{min-height:55px}.cord-string{height:27px}}
