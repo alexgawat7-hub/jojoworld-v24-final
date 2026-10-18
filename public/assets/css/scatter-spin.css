@@ -50,3 +50,34 @@ body{display:flex}
 .links a{padding:clamp(7px,1vh,10px) 5px;font-size:10px}
 .note{display:none}
 @media(max-height:650px){.game-nav{margin-bottom:0}.balance{padding:5px 9px}.machine{padding:5px 8px}.reel{height:54px}.jackpot{padding:5px 9px}.prizeboard{padding:4px 8px}.prizerow{padding:2px 0}.links a{padding:6px 4px}}
+
+
+/* Mobile viewport fit: tighter spacing for short phone screens. */
+html,body{overflow:hidden!important;touch-action:pan-x}
+.app{height:100dvh!important;height:100vh!important;height:100dvh!important;max-height:100dvh;overflow:hidden!important;gap:clamp(2px,.35vh,4px)!important;padding:4px 8px!important}
+.game-nav{gap:6px!important}
+.lobby-link,.sound-toggle{min-height:30px!important;padding:5px 9px!important;font-size:9px!important}
+.brand{font-size:9px!important;letter-spacing:2px!important;line-height:1}
+.title{font-size:clamp(22px,4vh,30px)!important}
+.sub{font-size:8px!important;letter-spacing:1px!important}
+.balance{padding:5px 8px!important}
+.balance small{font-size:8px!important}
+.balance strong{font-size:16px!important}
+.machine{padding:5px 8px!important;border-radius:16px!important}
+.machinehead{font-size:9px!important;letter-spacing:1px!important}
+.reels{margin:4px 0!important;gap:5px!important}
+.reel{height:clamp(42px,8vh,66px)!important;font-size:clamp(27px,5vh,40px)!important;border-radius:10px!important}
+.result{font-size:12px!important;line-height:1.15}
+.result small{font-size:8px!important;line-height:1.2!important;margin-top:2px!important}
+.spin{padding:8px!important;font-size:12px!important}
+.jackpot{padding:5px 8px!important}
+.jackpot small{font-size:8px!important}
+.jackpot strong{font-size:16px!important}
+.crown{font-size:20px!important}
+.prizeboard{padding:4px 8px!important}
+.prizehead{font-size:8px!important;letter-spacing:1px!important;margin-bottom:1px!important}
+.prizerow{padding:2px 0!important;font-size:8px!important;gap:4px!important}
+.prizechance{font-size:7px!important}
+.prizeamount{font-size:8px!important}
+.links a{padding:5px 4px!important;font-size:9px!important}
+@media(max-height:700px){.sub{display:none}.balance{padding:4px 7px!important}.machine{padding:4px 7px!important}.reel{height:clamp(38px,7vh,54px)!important}.jackpot{padding:4px 7px!important}.prizeboard{padding:3px 7px!important}.prizerow{padding:1px 0!important}.links a{padding:4px!important}}
