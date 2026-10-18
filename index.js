@@ -641,22 +641,48 @@ async function generateProfileCanvas(user) {
   const label=(value,x,y,size=18,color='#91a9d3',align='left')=>{ctx.textAlign=align;ctx.fillStyle=color;ctx.font=size+'px Sans';ctx.fillText(value,x,y);};
   const heading=(value,x,y)=>{ctx.textAlign='left';ctx.fillStyle='#f4f7ff';ctx.font='bold 24px Sans';ctx.fillText(value,x,y);};
   const displayName = getPlainDisplayName(user).slice(0, 26);
-  // [JOJOWORLD LOGO UPGRADE] Premium crown + globe emblem with metallic lettering and neon edge light.
-  ctx.save();ctx.textAlign='center';ctx.lineJoin='round';
-  const logoGrad=ctx.createLinearGradient(255,32,545,68);
-  logoGrad.addColorStop(0,'#20e8ff');logoGrad.addColorStop(.24,'#8da8ff');logoGrad.addColorStop(.48,'#ffffff');logoGrad.addColorStop(.68,'#ffd66b');logoGrad.addColorStop(.84,'#ff68d6');logoGrad.addColorStop(1,'#5fffe0');
-  // Fine halo and globe mark above the wordmark.
-  ctx.shadowColor='#32dfff';ctx.shadowBlur=13;ctx.strokeStyle='rgba(58,220,255,.78)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(W/2,27,15,Math.PI*1.08,Math.PI*1.92);ctx.stroke();ctx.shadowBlur=0;
-  const globe=ctx.createRadialGradient(W/2-4,22,1,W/2,27,12);globe.addColorStop(0,'#f4ffff');globe.addColorStop(.28,'#49eaff');globe.addColorStop(.72,'#1764e8');globe.addColorStop(1,'#091b51');
-  ctx.fillStyle=globe;ctx.beginPath();ctx.arc(W/2,27,11,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#ffe7a0';ctx.lineWidth=1.4;ctx.stroke();
-  ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=.8;ctx.beginPath();ctx.ellipse(W/2,27,5,10,0,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.ellipse(W/2,27,10,4,0,0,Math.PI*2);ctx.stroke();
-  // Small royal crown silhouette.
-  ctx.save();ctx.translate(W/2,9);ctx.shadowColor='#ffc857';ctx.shadowBlur=8;ctx.fillStyle='#ffd66b';ctx.strokeStyle='#fff4c5';ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(-11,3);ctx.lineTo(-9,-4);ctx.lineTo(-4,0);ctx.lineTo(0,-7);ctx.lineTo(4,0);ctx.lineTo(9,-4);ctx.lineTo(11,3);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
-  ctx.shadowColor='#171b66';ctx.shadowBlur=5;ctx.font='bold 34px Sans';ctx.lineWidth=2.8;ctx.strokeStyle='#091329';ctx.strokeText('JOJOWORLD',W/2,64);ctx.shadowColor='#ffb85c';ctx.shadowBlur=13;ctx.fillStyle=logoGrad;ctx.fillText('JOJOWORLD',W/2,64);ctx.shadowBlur=0;
-  ctx.strokeStyle='#fff6d2';ctx.globalAlpha=.72;ctx.lineWidth=.7;ctx.strokeText('JOJOWORLD',W/2,63);ctx.globalAlpha=1;
-  const titleLine=ctx.createLinearGradient(170,0,630,0);titleLine.addColorStop(0,'rgba(66,245,255,0)');titleLine.addColorStop(.2,'#42f5ff');titleLine.addColorStop(.5,'#ffe66d');titleLine.addColorStop(.8,'#ff62d2');titleLine.addColorStop(1,'rgba(255,98,210,0)');
-  ctx.shadowColor='#42eaff';ctx.shadowBlur=7;ctx.strokeStyle=titleLine;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(170,75);ctx.lineTo(630,75);ctx.stroke();ctx.shadowBlur=0;
-  ctx.fillStyle='#d4e8ff';ctx.font='bold 12px Sans';ctx.fillText('✦  YOUR WORLD  •  YOUR STYLE  ✦',W/2,96);ctx.restore();
+  // [JOJOWORLD ROYAL LOGO V2] Richer metallic wordmark, jeweled crown, orbit and wing accents.
+  ctx.save(); ctx.textAlign='center'; ctx.lineJoin='round';
+  // Soft cosmic halo behind the emblem.
+  const logoHalo=ctx.createRadialGradient(W/2,45,3,W/2,45,205);
+  logoHalo.addColorStop(0,'rgba(35,170,255,.22)');logoHalo.addColorStop(.52,'rgba(143,65,255,.12)');logoHalo.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=logoHalo;ctx.fillRect(170,0,460,108);
+  // Symmetrical metallic wing strokes framing the name.
+  for(const side of [-1,1]){
+    ctx.save();ctx.translate(W/2,0);ctx.scale(side,1);
+    ctx.shadowColor='#35eaff';ctx.shadowBlur=7;ctx.lineWidth=2.2;
+    const wing=ctx.createLinearGradient(35,0,185,0);wing.addColorStop(0,'#fff0b0');wing.addColorStop(.45,'#3cecff');wing.addColorStop(1,'#8055ff');
+    ctx.strokeStyle=wing;ctx.beginPath();ctx.moveTo(34,51);ctx.quadraticCurveTo(67,24,103,36);ctx.quadraticCurveTo(135,42,166,32);ctx.stroke();
+    ctx.lineWidth=1.1;ctx.strokeStyle='rgba(255,220,130,.9)';ctx.beginPath();ctx.moveTo(48,58);ctx.quadraticCurveTo(94,43,140,48);ctx.stroke();
+    ctx.fillStyle='#ffe68a';ctx.beginPath();ctx.moveTo(160,30);ctx.lineTo(166,23);ctx.lineTo(172,30);ctx.lineTo(166,37);ctx.closePath();ctx.fill();
+    ctx.restore();
+  }
+  // Orbital rings and luminous globe.
+  ctx.strokeStyle='rgba(73,232,255,.9)';ctx.lineWidth=1.5;ctx.shadowColor='#30dcff';ctx.shadowBlur=10;
+  ctx.beginPath();ctx.ellipse(W/2,26,29,8,-.08,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle='rgba(255,205,99,.88)';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(W/2,26,23,5,.14,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;
+  const globe=ctx.createRadialGradient(W/2-5,20,1,W/2,27,13);
+  globe.addColorStop(0,'#ffffff');globe.addColorStop(.22,'#8bf6ff');globe.addColorStop(.58,'#208eff');globe.addColorStop(1,'#171c69');
+  ctx.fillStyle=globe;ctx.beginPath();ctx.arc(W/2,27,11.5,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#ffe9a8';ctx.lineWidth=1.5;ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineWidth=.8;
+  ctx.beginPath();ctx.ellipse(W/2,27,4.5,10,0,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.ellipse(W/2,27,10,3.8,0,0,Math.PI*2);ctx.stroke();
+  // Jeweled crown with metallic outline.
+  ctx.save();ctx.translate(W/2,10);ctx.shadowColor='#ffc857';ctx.shadowBlur=10;
+  const crown=ctx.createLinearGradient(0,-9,0,5);crown.addColorStop(0,'#fff8c9');crown.addColorStop(.42,'#ffd05a');crown.addColorStop(1,'#a84d13');
+  ctx.fillStyle=crown;ctx.strokeStyle='#fff2bb';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-13,4);ctx.lineTo(-11,-5);ctx.lineTo(-5,0);ctx.lineTo(0,-10);ctx.lineTo(5,0);ctx.lineTo(11,-5);ctx.lineTo(13,4);ctx.closePath();ctx.fill();ctx.stroke();ctx.shadowBlur=0;
+  for(const x of [-8,0,8]){ctx.fillStyle=x===0?'#43f3ff':'#ff66d7';ctx.beginPath();ctx.arc(x,1.5,1.5,0,Math.PI*2);ctx.fill();}
+  ctx.restore();
+  const logoGrad=ctx.createLinearGradient(210,32,590,68);
+  logoGrad.addColorStop(0,'#47f4ff');logoGrad.addColorStop(.2,'#8db9ff');logoGrad.addColorStop(.36,'#ffffff');logoGrad.addColorStop(.53,'#ffe27a');logoGrad.addColorStop(.72,'#ff80dc');logoGrad.addColorStop(.88,'#b38aff');logoGrad.addColorStop(1,'#5ffff0');
+  ctx.shadowColor='#02081c';ctx.shadowBlur=8;ctx.font='bold 34px Sans';ctx.lineWidth=4;ctx.strokeStyle='#070d27';ctx.strokeText('JOJOWORLD',W/2,64);
+  ctx.shadowColor='#34dfff';ctx.shadowBlur=12;ctx.lineWidth=1.3;ctx.strokeStyle='#fff1bf';ctx.strokeText('JOJOWORLD',W/2,64);
+  ctx.shadowColor='#ff75dc';ctx.shadowBlur=15;ctx.fillStyle=logoGrad;ctx.fillText('JOJOWORLD',W/2,64);ctx.shadowBlur=0;
+  // Jewel-like glints on both ends of the wordmark.
+  for(const x of [205,595]){ctx.save();ctx.translate(x,54);ctx.shadowColor='#fff0a8';ctx.shadowBlur=8;ctx.fillStyle='#fff0a8';ctx.beginPath();ctx.moveTo(0,-5);ctx.lineTo(2,-1);ctx.lineTo(6,0);ctx.lineTo(2,2);ctx.lineTo(0,6);ctx.lineTo(-2,2);ctx.lineTo(-6,0);ctx.lineTo(-2,-1);ctx.closePath();ctx.fill();ctx.restore();}
+  const titleLine=ctx.createLinearGradient(155,0,645,0);titleLine.addColorStop(0,'rgba(66,245,255,0)');titleLine.addColorStop(.18,'#42f5ff');titleLine.addColorStop(.5,'#ffe66d');titleLine.addColorStop(.82,'#ff62d2');titleLine.addColorStop(1,'rgba(255,98,210,0)');
+  ctx.shadowColor='#42eaff';ctx.shadowBlur=8;ctx.strokeStyle=titleLine;ctx.lineWidth=2.4;ctx.beginPath();ctx.moveTo(155,76);ctx.lineTo(645,76);ctx.stroke();ctx.shadowBlur=0;
+  ctx.fillStyle='#ffffff';ctx.font='bold 11px Sans';ctx.shadowColor='#8c66ff';ctx.shadowBlur=5;ctx.fillText('✦  YOUR WORLD  •  YOUR STYLE  ✦',W/2,96);ctx.shadowBlur=0;ctx.restore();
   // [UPGRADED V28] Main identity card; avatar and text no longer overlap.
   panel(28,118,744,300,'#d9a441');
   // Apply the pre-generated AI artwork behind the equipped name effect when available.
