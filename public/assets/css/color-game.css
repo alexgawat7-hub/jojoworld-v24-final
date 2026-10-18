@@ -23,3 +23,39 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.18;ba
 .color-options{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.color-choice{padding:9px 2px}.color-choice b{font-size:10px}.color-choice small{font-size:8px}.yellow-choice .swatch{background:radial-gradient(circle at 30% 25%,#fff7ad,#ffbf20);color:#ffc629}.pink-choice .swatch{background:radial-gradient(circle at 30% 25%,#ffd4f2,#ff53c7);color:#ff59c9}
 .yellow-total strong{color:#ffdc65}.pink-total strong{color:#ff88d9}.totals{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}.total{padding:8px 4px}.total small{font-size:7px}.total strong{font-size:12px}.bet-color.YELLOW{color:#ffdc65}.bet-color.PINK{color:#ff88d9}
 @media(max-width:370px){.color-choice b{font-size:8px}.color-choice small{font-size:7px}.swatch{width:19px;height:19px}.totals{gap:3px}.total small{font-size:6px}.total strong{font-size:10px}}
+
+/* Luxury casino-table upgrade */
+body{background:radial-gradient(ellipse at 50% -15%,#5a4625 0,#172c29 32%,#090b16 78%);background-attachment:fixed}
+body:before{opacity:.09;background-image:radial-gradient(#ffe7a3 1px,transparent 1px);background-size:38px 38px}
+.brand{color:#f7d98a;text-shadow:0 0 12px #d6a44755}
+.hero h1{background:linear-gradient(180deg,#fff8d9 5%,#e9c878 38%,#a9782e 70%,#fff0bb 100%);color:transparent;background-clip:text;filter:drop-shadow(0 4px 0 #3d2810)}
+.round-panel{position:relative;overflow:hidden;border:1px solid #c49b4b;background:linear-gradient(160deg,#102b25,#071713 80%);box-shadow:inset 0 0 0 4px #ffffff05,inset 0 0 35px #0009,0 15px 40px #0008}
+.round-panel:before{content:"";position:absolute;inset:7px;border:1px solid #c39a4b70;border-radius:13px;pointer-events:none}
+.round-head,.dice-stage,.result,.sound-toggle{position:relative;z-index:1}
+.casino-lights{position:absolute;left:8%;right:8%;top:0;height:4px;background:linear-gradient(90deg,#ff5353,#ffe49b,#67f5b2,#7bb9ff,#ff72d6,#ff5353);background-size:200% 100%;animation:casinoGlow 4s linear infinite;box-shadow:0 0 15px #f2c76b99}
+.dice-stage{max-width:480px;min-height:164px;margin:18px auto 13px;padding:12px 8px;border:1px solid #b9914c;border-radius:18px;background:radial-gradient(ellipse at 50% 30%,#1b7556 0,#0d4938 45%,#06291f 100%);box-shadow:inset 0 0 0 4px #c6a45a20,inset 0 0 32px #020d0a,0 8px 18px #0008}
+.die-slot{height:130px;position:relative}
+.die-slot:after{content:"";position:absolute;bottom:8px;width:66px;height:12px;border-radius:50%;background:#0008;filter:blur(5px)}
+.color-die{z-index:1;width:88px;height:88px;border:2px solid #f7e5b7;border-radius:13px;overflow:hidden;background-image:linear-gradient(145deg,#ffb0b0 0%,#f02e52 24%,#b60c32 66%,#5b1022 100%);box-shadow:inset 3px 3px 5px #ffffffb0,inset -5px -7px 10px #16040c88,0 2px 0 #e8cfa1,0 7px 0 #38291b,0 12px 17px #000b;transform-style:preserve-3d}
+.color-die:before{content:"";position:absolute;inset:4px;border:1px solid #ffffff58;border-radius:8px;pointer-events:none}
+.color-die:after{content:"";position:absolute;left:-40%;top:-70%;width:70%;height:230%;transform:rotate(32deg);background:linear-gradient(90deg,transparent,#ffffff24,transparent);pointer-events:none}
+.color-die.blue{background-image:linear-gradient(145deg,#b5efff 0%,#2b91ff 24%,#1458bf 66%,#102b62 100%)}
+.color-die.green{background-image:linear-gradient(145deg,#c1ffe2 0%,#26d99c 24%,#087e5d 66%,#064331 100%)}
+.color-die.yellow{background-image:linear-gradient(145deg,#fffbd0 0%,#ffd54d 24%,#d58a14 66%,#78420b 100%)}
+.color-die.pink{background-image:linear-gradient(145deg,#ffe4f8 0%,#ff6bd0 24%,#d72c9c 66%,#6f1757 100%)}
+.die-face{position:relative;z-index:2;width:100%;height:100%;font-size:30px;color:#fff}
+.die-face.pips{display:block}
+.pip{position:absolute;width:13px;height:13px;border-radius:50%;background:radial-gradient(circle at 32% 25%,#fff 0,#fff 22%,#e9e9e9 55%,#a8adb8 100%);box-shadow:inset 0 1px 2px #fff,0 1px 2px #0008}
+.pip-0{left:18px;top:18px}.pip-1{right:18px;top:18px}.pip-2{left:calc(50% - 6.5px);top:calc(50% - 6.5px)}.pip-3{left:18px;bottom:18px}.pip-4{right:18px;bottom:18px}
+.color-die.rolling-die{animation:diceTumble .38s cubic-bezier(.2,.8,.2,1) infinite alternate;filter:brightness(1.28) saturate(1.15)}
+.dice-stage.revealed .color-die{animation:dieLand .35s cubic-bezier(.2,.8,.2,1) both}
+.sound-toggle{display:block;margin:0 auto 8px;padding:7px 12px;border:1px solid #b4934d;border-radius:20px;background:linear-gradient(180deg,#263a30,#10251d);color:#ffe8a6;font-size:9px;font-weight:1000;letter-spacing:1px;cursor:pointer}
+.sound-toggle[aria-pressed="true"]{background:linear-gradient(180deg,#7b5b25,#392710);box-shadow:0 0 14px #e5b95144}
+.bet-panel,.live-board{border-color:#625333;background:linear-gradient(145deg,#1b1b27,#10141e);box-shadow:inset 0 1px #ffffff08,0 12px 28px #0005}
+.color-choice{background:linear-gradient(150deg,#252b3b,#141a29);border-color:#4e4c48;box-shadow:inset 0 1px #ffffff0a}
+.color-choice.active{border-color:#f8d785;box-shadow:0 0 0 1px #f8d78566,0 0 20px #f8d78524}
+.place-bet{background:linear-gradient(100deg,#fff0b2,#e3bd62 50%,#fff1bb);color:#2a1c0a;box-shadow:0 5px 0 #72501e,0 0 20px #d4aa4c22}
+.wallet{border-color:#a58545;background:linear-gradient(110deg,#2d281b,#111b1c)}
+@keyframes casinoGlow{to{background-position:200% 0}}
+@media(max-width:390px){.dice-stage{min-height:135px;padding:8px 4px;gap:7px}.die-slot{height:112px}.color-die{width:min(24vw,78px);height:min(24vw,78px)}.pip{width:11px;height:11px}.pip-0{left:14px;top:14px}.pip-1{right:14px;top:14px}.pip-3{left:14px;bottom:14px}.pip-4{right:14px;bottom:14px}}
+@media(prefers-reduced-motion:reduce){.casino-lights{animation:none}}
