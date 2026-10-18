@@ -128,6 +128,13 @@ function loadCachedProfilePhotoUrl(url) {
 }
 const app = express();
 
+// Body-parser rawBody configuration para sa PayMongo Webhook HMAC signature
+app.use(bodyParser.json({
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
+}));
+
 // Serialize web-game actions with Messenger commands for the same account.
 async function withDiceUserQueue(psid, task) {
   const previous = messengerUserQueues.get(psid) || Promise.resolve();
@@ -240,13 +247,6 @@ app.get('/dice-arena', (req, res) => {
     }
   });
 });
-
-// Body-parser rawBody configuration para sa PayMongo Webhook HMAC signature
-app.use(bodyParser.json({
-  verify: (req, res, buf) => {
-    req.rawBody = buf;
-  }
-}));
 
 function configuredValue(value) {
   if (typeof value !== "string" || !value.trim()) return undefined;
