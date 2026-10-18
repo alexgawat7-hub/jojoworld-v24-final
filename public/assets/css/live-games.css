@@ -12,3 +12,5 @@ h1{text-align:center;font-size:clamp(34px,10vw,52px);line-height:1.02;letter-spa
 @media(prefers-reduced-motion:no-preference){.live .dot{animation:pulse 1.5s infinite}@keyframes pulse{50%{opacity:.45;box-shadow:0 0 2px #5effc1}}.machine{animation:float 4s ease-in-out infinite}@keyframes float{50%{transform:translateY(-4px) rotate(-5deg)}}}
 
 
+
+.coin-shop-link{display:flex;align-items:center;justify-content:center;min-height:44px;margin:-5px 0 16px;padding:11px 12px;border:1px solid #b59a54;border-radius:14px;background:linear-gradient(100deg,#3a2d22,#292040);color:#ffe49a;text-decoration:none;text-align:center;font-size:12px;font-weight:1000;letter-spacing:.3px;box-shadow:0 0 22px #ffdf7a12}.coin-shop-link:active{transform:translateY(1px)}
