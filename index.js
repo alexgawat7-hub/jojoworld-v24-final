@@ -714,7 +714,9 @@ async function generateProfileCanvas(user) {
   // carved inner filigree, and a dark enamel center. The glow follows the user's name effect.
   {
     const plateX=278, plateY=190, plateW=444, plateH=76;
-    const plateGlow=effectGlow[effect] || (goldFrame || royalFrame ? '#ffd34f' : (frameStyle.equipped ? frameGlow : '#55dfff'));
+    // [OBSIDIAN TRIBAL V37] Keep the nameplate's material identity consistent for every user.
+    // Name effects still apply to the user's text; the plate itself stays black obsidian with restrained gold accents.
+    const plateGlow='#c6a45c';
     const tribalPath=(inset=0)=>{
       const x=plateX+inset,y=plateY+inset,w=plateW-inset*2,h=plateH-inset*2;
       const p=(px,py)=>[x+w*px,y+h*py];
@@ -732,8 +734,8 @@ async function generateProfileCanvas(user) {
     ctx.save();
     ctx.shadowColor=plateGlow;ctx.shadowBlur=effect==='none'?18:28;
     const enamel=ctx.createLinearGradient(plateX,plateY,plateX+plateW,plateY+plateH);
-    enamel.addColorStop(0,'#050611');enamel.addColorStop(.2,'#1b2340');
-    enamel.addColorStop(.5,'#050916');enamel.addColorStop(.8,'#17213b');enamel.addColorStop(1,'#03040a');
+    enamel.addColorStop(0,'#020306');enamel.addColorStop(.18,'#111216');
+    enamel.addColorStop(.42,'#050608');enamel.addColorStop(.68,'#191712');enamel.addColorStop(.86,'#08090b');enamel.addColorStop(1,'#010203');
     ctx.fillStyle=enamel;tribalPath();ctx.fill();ctx.shadowBlur=0;
     // Layered tribal silhouette: luminous edge, dark cut-in, then fine highlight.
     ctx.strokeStyle=plateGlow;ctx.globalAlpha=.98;ctx.lineWidth=3;tribalPath();ctx.stroke();
