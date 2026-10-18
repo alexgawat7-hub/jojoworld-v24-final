@@ -37,7 +37,28 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
   const fill = new THREE.DirectionalLight(0x8acbff,1.0);fill.position.set(12,10,-30);scene.add(fill);
 
   const mat=(color,roughness=.8,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
-  const asphalt=mat(0x252a31,.96), shoulder=mat(0x626b72,.92), grass=mat(0x263d3a,1), concrete=mat(0x858e96,.8);
+  // Procedural asphalt grain: generated locally so no paid API or extra asset download is needed.
+  function makeRoadTexture(){
+    const canvas=document.createElement('canvas');canvas.width=256;canvas.height=1024;
+    const ctx=canvas.getContext('2d');ctx.fillStyle='#292d32';ctx.fillRect(0,0,256,1024);
+    for(let i=0;i<18000;i++){
+      const v=35+Math.floor(Math.random()*55);
+      ctx.fillStyle='rgba('+v+','+v+','+v+','+(Math.random()*.22)+')';
+      const s=Math.random()*2.1+.3;ctx.fillRect(Math.random()*256,Math.random()*1024,s,s);
+    }
+    // Subtle longitudinal wear and patched areas break up the toy-like flat road surface.
+    for(let i=0;i<22;i++){
+      ctx.fillStyle='rgba(7,10,13,'+(Math.random()*.12)+')';
+      ctx.fillRect(Math.random()*256,0,2+Math.random()*8,1024);
+    }
+    const texture=new THREE.CanvasTexture(canvas);
+    texture.wrapS=THREE.RepeatWrapping;texture.wrapT=THREE.RepeatWrapping;
+    texture.repeat.set(1,5);texture.colorSpace=THREE.SRGBColorSpace;
+    texture.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());
+    return texture;
+  }
+  const asphalt= new THREE.MeshStandardMaterial({color:0xffffff,map:makeRoadTexture(),roughness:.91,metalness:.04});
+  const shoulder=mat(0x626b72,.92), grass=mat(0x263d3a,1), concrete=mat(0x858e96,.8);
   const laneMat=mat(0xe6e0cd,.65), darkGlass=mat(0x182b3a,.28,.25), tireMat=mat(0x111315,1), chrome=mat(0x9da7ad,.32,.75);
   const road = new THREE.Mesh(new THREE.PlaneGeometry(15,260),asphalt);road.rotation.x=-Math.PI/2;road.position.set(0,-.035,-100);road.receiveShadow=true;scene.add(road);
   const leftGround=new THREE.Mesh(new THREE.PlaneGeometry(120,260),grass);leftGround.rotation.x=-Math.PI/2;leftGround.position.set(-67.5,-.09,-100);leftGround.receiveShadow=true;scene.add(leftGround);
