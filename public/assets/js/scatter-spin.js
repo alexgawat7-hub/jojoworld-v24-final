@@ -1,10 +1,8 @@
 const token=new URLSearchParams(location.search).get('token')||'';
 const $=id=>document.getElementById(id), money=n=>Number(n||0).toLocaleString('en-US');
 let spinning=false,balance=0,accountConnected=false,accountLoading=false;
-const soundKey='jojoworldScatterSound';
+const soundKey='jojoworldArcadeSound';
 let soundOn=false,audioCtx=null,tickCount=0;
-const soundButton=$('soundToggle');
-function renderSound(){soundButton.textContent=soundOn?'🔊 SOUND ON':'🔇 SOUND OFF';soundButton.setAttribute('aria-pressed',String(soundOn))}
 function playSound(kind='tap'){
  if(!soundOn)return;
  try{
@@ -21,8 +19,7 @@ function playSound(kind='tap'){
  }catch(_){}
 }
 try{soundOn=localStorage.getItem(soundKey)==='true'}catch(_){}
-renderSound();
-soundButton.addEventListener('click',()=>{soundOn=!soundOn;try{localStorage.setItem(soundKey,String(soundOn))}catch(_){}renderSound();if(soundOn)playSound('tap')});
+window.addEventListener('storage',e=>{if(e.key===soundKey)soundOn=e.newValue==='true'});
 const lobbyLink=$('lobbyLink'),coinShopLink=$('coinShopLink');
 if(token){lobbyLink.href='/live-games?token='+encodeURIComponent(token);if(coinShopLink)coinShopLink.href='/coin-shop?token='+encodeURIComponent(token)}
 const symbols=['💣','❌','🪙','🎁','💎','👑','🍀','⭐'];
