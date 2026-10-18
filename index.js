@@ -710,12 +710,13 @@ async function generateProfileCanvas(user) {
   // [EMOJI-MARKED HEADER PLACEMENT] VIP name sits at the user's heart marker, to the right of the verified plate; non-VIP layout stays unchanged.
   // [HEADER FINAL LAYOUT] Center every user's display name so purchased text effects stay fully visible; VIP plates stack beneath it.
   const nameX=500, nameY=237, nameAlign='center', nameMaxWidth=390;
-  // [PREMIUM LUXURY NAMEPLATE V39] Clean non-tribal design: polished onyx, champagne-gold trim, and restrained art-deco corner details.
+  // [ROYAL OBSIDIAN NAMEPLATE V40] Elegant luxury plaque: smooth silhouette, layered gold bevels, jewel-like side accents, and restrained ornamental lines.
   {
     const plateX=278, plateY=190, plateW=444, plateH=76;
-    const gold='#d8bd7b', goldLight='#fff0c4', goldDark='#806333';
-    const roundedPlate=(inset=0)=>{
-      const x=plateX+inset,y=plateY+inset,w=plateW-inset*2,h=plateH-inset*2,r=12;
+    const gold='#d9b96f', goldBright='#fff0bd', goldShadow='#72501e';
+    const plaque=(inset=0)=>{
+      const x=plateX+inset,y=plateY+inset,w=plateW-inset*2,h=plateH-inset*2;
+      const r=10;
       ctx.beginPath();
       ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
       ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
@@ -723,44 +724,62 @@ async function generateProfileCanvas(user) {
       ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
     };
     ctx.save();
-    // Soft, subtle gold aura around a clean silhouette.
-    ctx.shadowColor='rgba(216,189,123,0.35)';ctx.shadowBlur=10;
-    const enamel=ctx.createLinearGradient(plateX,plateY,plateX,plateY+plateH);
-    enamel.addColorStop(0,'#34363b');enamel.addColorStop(.18,'#17191e');
-    enamel.addColorStop(.52,'#080a0e');enamel.addColorStop(.82,'#121419');
-    enamel.addColorStop(1,'#29251d');
-    ctx.fillStyle=enamel;roundedPlate();ctx.fill();ctx.shadowBlur=0;
-    // Thin layered metal edging, deliberately elegant rather than spiky.
-    ctx.strokeStyle=goldDark;ctx.lineWidth=3.2;roundedPlate();ctx.stroke();
-    ctx.strokeStyle=gold;ctx.lineWidth=1.2;roundedPlate(2);ctx.stroke();
-    ctx.strokeStyle='rgba(255,242,204,0.72)';ctx.lineWidth=.7;roundedPlate(5);ctx.stroke();
-    // Restrained glossy reflection across the top edge.
-    ctx.save();roundedPlate(3);ctx.clip();
-    const sheen=ctx.createLinearGradient(0,plateY+3,0,plateY+31);
-    sheen.addColorStop(0,'rgba(255,255,255,0.15)');
-    sheen.addColorStop(1,'rgba(255,255,255,0)');
-    ctx.fillStyle=sheen;ctx.fillRect(plateX+4,plateY+3,plateW-8,29);
+    // Soft ambient gold light around the plate.
+    ctx.shadowColor='rgba(230,190,93,0.42)';ctx.shadowBlur=13;
+    const body=ctx.createLinearGradient(plateX,plateY,plateX+plateW,plateY+plateH);
+    body.addColorStop(0,'#29251d');body.addColorStop(.13,'#17191e');
+    body.addColorStop(.48,'#050609');body.addColorStop(.72,'#11131a');
+    body.addColorStop(.91,'#1d1a14');body.addColorStop(1,'#08090c');
+    ctx.fillStyle=body;plaque();ctx.fill();ctx.shadowBlur=0;
+    // Sculpted metallic outer rim and a fine inner highlight.
+    const rim=ctx.createLinearGradient(0,plateY,0,plateY+plateH);
+    rim.addColorStop(0,goldBright);rim.addColorStop(.22,gold);
+    rim.addColorStop(.56,goldShadow);rim.addColorStop(.82,gold);
+    rim.addColorStop(1,'#f4df9d');
+    ctx.strokeStyle=rim;ctx.lineWidth=3.5;plaque();ctx.stroke();
+    ctx.strokeStyle='rgba(255,245,211,0.85)';ctx.lineWidth=.8;plaque(3);ctx.stroke();
+    ctx.strokeStyle='rgba(0,0,0,0.9)';ctx.lineWidth=1;plaque(5);ctx.stroke();
+    // Soft glossy sheen, clipped to the plaque.
+    ctx.save();plaque(3);ctx.clip();
+    const gloss=ctx.createLinearGradient(0,plateY+3,0,plateY+32);
+    gloss.addColorStop(0,'rgba(255,255,255,0.18)');
+    gloss.addColorStop(.45,'rgba(255,255,255,0.045)');
+    gloss.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=gloss;ctx.fillRect(plateX+3,plateY+3,plateW-6,30);
+    // A subtle dark lower reflection adds depth without reducing text contrast.
+    const shade=ctx.createLinearGradient(0,plateY+43,0,plateY+plateH);
+    shade.addColorStop(0,'rgba(0,0,0,0)');shade.addColorStop(1,'rgba(0,0,0,0.45)');
+    ctx.fillStyle=shade;ctx.fillRect(plateX+3,plateY+42,plateW-6,plateH-45);
     ctx.restore();
-    // Minimal mirrored corner accents; keep the center completely clear for the username.
+    // Refined art-deco corner lines: decorative, smooth, and clearly not tribal.
     for(const side of [0,1]){
       ctx.save();
       if(side===1){ctx.translate(plateX+plateW,0);ctx.scale(-1,1);}
-      ctx.strokeStyle=gold;ctx.lineWidth=1.5;ctx.lineCap='round';ctx.lineJoin='round';
+      ctx.lineCap='round';ctx.lineJoin='round';
+      ctx.strokeStyle=gold;ctx.lineWidth=1.35;
       ctx.beginPath();
-      ctx.moveTo(plateX+17,plateY+25);ctx.lineTo(plateX+17,plateY+17);
-      ctx.lineTo(plateX+39,plateY+17);
-      ctx.moveTo(plateX+17,plateY+51);ctx.lineTo(plateX+17,plateY+59);
-      ctx.lineTo(plateX+39,plateY+59);
+      ctx.moveTo(plateX+17,plateY+26);ctx.quadraticCurveTo(plateX+17,plateY+17,plateX+27,plateY+17);
+      ctx.lineTo(plateX+43,plateY+17);
+      ctx.moveTo(plateX+17,plateY+50);ctx.quadraticCurveTo(plateX+17,plateY+59,plateX+27,plateY+59);
+      ctx.lineTo(plateX+43,plateY+59);
       ctx.stroke();
-      ctx.strokeStyle='rgba(255,240,195,0.8)';ctx.lineWidth=.7;
-      ctx.beginPath();ctx.moveTo(plateX+21,plateY+21);ctx.lineTo(plateX+35,plateY+21);
-      ctx.moveTo(plateX+21,plateY+55);ctx.lineTo(plateX+35,plateY+55);ctx.stroke();
+      ctx.strokeStyle='rgba(255,240,190,0.8)';ctx.lineWidth=.65;
+      ctx.beginPath();
+      ctx.moveTo(plateX+23,plateY+22);ctx.lineTo(plateX+39,plateY+22);
+      ctx.moveTo(plateX+23,plateY+54);ctx.lineTo(plateX+39,plateY+54);
+      ctx.stroke();
       ctx.restore();
     }
-    // Small champagne-gold studs near the ends, not beside the name.
-    ctx.fillStyle=goldLight;
-    for(const sx of [plateX+61,plateX+plateW-61]){
-      ctx.beginPath();ctx.arc(sx,plateY+plateH/2,1.8,0,Math.PI*2);ctx.fill();
+    // Small faceted champagne-gold studs with a warm highlight at both ends.
+    for(const sx of [plateX+62,plateX+plateW-62]){
+      ctx.save();ctx.translate(sx,plateY+plateH/2);
+      ctx.shadowColor='rgba(255,211,111,0.55)';ctx.shadowBlur=5;
+      const gem=ctx.createLinearGradient(-4,-5,4,5);
+      gem.addColorStop(0,'#fff6d3');gem.addColorStop(.48,gold);gem.addColorStop(1,goldShadow);
+      ctx.fillStyle=gem;ctx.beginPath();
+      ctx.moveTo(0,-4.5);ctx.lineTo(3.5,-1.5);ctx.lineTo(3.5,1.5);
+      ctx.lineTo(0,4.5);ctx.lineTo(-3.5,1.5);ctx.lineTo(-3.5,-1.5);ctx.closePath();ctx.fill();
+      ctx.restore();
     }
     ctx.restore();
   }
