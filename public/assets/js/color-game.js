@@ -80,6 +80,16 @@ function playCordPull(){
  tone(180,.13,.035,'sawtooth',.015);tone(125,.18,.05,'triangle',.13);
  tone(72,.24,.065,'sine',.27);
 }
+let lastImpactSound=0;
+window.addEventListener('color-dice-impact',event=>{
+ if(!soundEnabled)return;
+ const now=performance.now();
+ if(now-lastImpactSound<45)return;
+ lastImpactSound=now;
+ const strength=Math.max(.15,Math.min(1,Number(event.detail?.strength)||.3));
+ noiseBurst(.045,.012+strength*.028,0,1250+strength*900);
+ tone(105+strength*95,.065,.012+strength*.028,'triangle');
+});
 $('soundToggle').addEventListener('click',()=>{
  soundEnabled=!soundEnabled;$('soundToggle').textContent=soundEnabled?'🔊 SOUND ON':'🔇 SOUND OFF';$('soundToggle').setAttribute('aria-pressed',String(soundEnabled));
  if(soundEnabled){audio();tone(660,.08,.025,'sine');}
