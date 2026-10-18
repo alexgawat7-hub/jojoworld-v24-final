@@ -42,3 +42,5 @@ button:not(:disabled):active{transform:translateY(2px) scale(.98);filter:brightn
 #result.win-result{color:#a8ffb9;text-shadow:0 0 10px #55ff9b88,0 0 24px #55ff9b44;animation:resultReveal .55s cubic-bezier(.2,.9,.2,1)}
 #result.loss-result{color:#f1c6ff;text-shadow:0 0 12px #c66aff22}
 
+
+.game-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.lobby-link,.sound-toggle{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 13px;border:1px solid #755c42;border-radius:30px;background:#211c25;color:#fff0cf;text-decoration:none;font-size:11px;font-weight:900;letter-spacing:.4px}.sound-toggle{cursor:pointer;color:#ffd76b}.sound-toggle[aria-pressed="true"]{border-color:#3b9b73;background:#12372c;color:#9cffcf}
