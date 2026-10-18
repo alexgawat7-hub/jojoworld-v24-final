@@ -2527,6 +2527,29 @@ A new user successfully registered using your link! 🎁
             { content_type: "text", title: "👑 MAX BET", payload: "DICE_BET_MAX" },
             { content_type: "text", title: "↩️ Main Menu", payload: "MENU" }
           ]);
+          // Create a short-lived account-bound launch link for Messenger's browser game.
+          const publicBase = String(process.env.RENDER_EXTERNAL_URL || '').trim().replace(/\/$/, '');
+          if (MONGODB_URI && mongoose.connection.readyState === 1 && /^https:\/\//i.test(publicBase) && PAGE_TOKEN) {
+            try {
+              const rawToken = crypto.randomBytes(32).toString('hex');
+              const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+              await DiceWebSessionModel.deleteMany({ psid });
+              await DiceWebSessionModel.create({ tokenHash, psid, expiresAt: new Date(Date.now() + 20 * 60 * 1000) });
+              const launchUrl = publicBase + '/dice-arena?token=' + rawToken;
+              await axios.post('https://graph.facebook.com/v19.0/me/messages?access_token=' + PAGE_TOKEN, {
+                recipient: { id: psid },
+                message: { attachment: { type: 'template', payload: { template_type: 'button',
+                  text: '🎲 Ready to play with your JojoWorld coin balance?',
+                  buttons: [{ type: 'web_url', url: launchUrl, title: '🎲 Open Dice Arena' }]
+                }}}
+              }, { timeout: 15000 });
+            } catch (launchError) {
+              console.error('[DICE ARENA] Could not create/send browser launch:', launchError.response?.data?.error?.message || launchError.message);
+              send(psid, '🎲 Hindi naipadala ang game button. I-type ulit ang DICE ARENA para gumawa ng bagong secure link.');
+            }
+          } else {
+            send(psid, 'ℹ️ Browser game account-linking is not ready yet. Maaari mo pa ring gamitin ang Dice Arena dito sa Messenger.');
+          }
           continue;
         }
         if (dicePayload === "DICE_CANCEL") {
