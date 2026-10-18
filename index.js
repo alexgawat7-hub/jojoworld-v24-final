@@ -882,18 +882,38 @@ async function generateProfileCanvas(user) {
   const giftEntries=Object.entries(received).filter(([name,count])=>Number(count)>0);
   const giftTotal=Math.max(Number(user.giftsCount)||0,giftEntries.reduce((sum,[name,count])=>sum+(Number(count)||0),0));
   label('TOTAL GIFTS RECEIVED: '+giftTotal,426,1086,16,'#ffe8a0');
-  if(giftEntries.length){
-    giftEntries.slice(0,5).forEach(([name,count],index)=>{
-      const gift=giftCatalogForProfile[String(name).toUpperCase()]||{name:String(name).replace(/_/g,' ')};
-      const yy=1110+index*24;
+
+  // Keep a small, persistent record of who sent each new gift so their profile names
+  // can appear in the recipient's showcase. Older aggregate-only gifts have no sender history.
+  const giftHistory=Array.isArray(user.giftHistory)?user.giftHistory:[];
+  const recentGiftSummary=giftEntries.slice(0,3).map(([name,count])=>{
+    const gift=giftCatalogForProfile[String(name).toUpperCase()]||{name:String(name).replace(/_/g,' ')};
+    return cleanText(gift.name)+' x'+Number(count);
+  }).join('  |  ');
+  if(recentGiftSummary){
+    label('MOST RECEIVED',426,1113,11,'#a9c7ff');
+    ctx.save();ctx.font='12px Sans';ctx.textAlign='left';ctx.fillStyle='#f4f7ff';
+    canvasText(ctx,recentGiftSummary,426,1134,320,16,2);ctx.restore();
+  }else{
+    label('No gifts yet - be the first!',426,1128,13,'#c6d5f0');
+  }
+
+  label('GIFTED BY',426,1170,13,'#ff9bdf');
+  const recentGifters=giftHistory.slice(-3).reverse();
+  if(recentGifters.length){
+    recentGifters.forEach((entry,index)=>{
+      const yy=1192+index*19;
+      const senderName=cleanText(entry.senderName||'JojoWorld Member').slice(0,22);
+      const giftName=cleanText(entry.giftName||entry.giftKey||'Gift').slice(0,18);
       ctx.fillStyle=index%2===0?'#20264b':'#171d3a';
-      rr(420,yy-16,326,20,7);ctx.fill();
-      label(cleanText(gift.name),430,yy,15,'#f4f7ff');
-      ctx.textAlign='right';ctx.fillStyle='#ffe08a';ctx.font='bold 15px Sans';ctx.fillText('x '+Number(count),735,yy);
+      rr(420,yy-13,326,17,6);ctx.fill();
+      ctx.textAlign='left';ctx.fillStyle='#f4f7ff';ctx.font='12px Sans';
+      ctx.fillText(senderName,428,yy);
+      ctx.textAlign='right';ctx.fillStyle='#ffd1ef';ctx.font='11px Sans';
+      ctx.fillText(giftName,738,yy);
     });
   }else{
-    const showcase=String(user.giftsShowcase||'None yet');
-    label(showcase!=='None yet'?cleanText(showcase):'No gifts yet - be the first!',426,1124,15,'#c6d5f0');
+    label(giftTotal>0?'Sender names appear for new gifts':'Waiting for your first gift',426,1195,12,'#c6d5f0');
   }
   // Gifts Showcase remains the final profile showcase; trophy panel removed as requested.
   ctx.textAlign='center';ctx.fillStyle='#8da8e4';ctx.font='bold 16px Sans';ctx.fillText('JOJOWORLD - PROFILE & STATS',400,1260);
@@ -2845,6 +2865,18 @@ ${renderGiftCatalog()}
           }
 
           // Never report success unless both wallet/profile changes persist together.
+          // Persist sender identity alongside the recipient's aggregate gift counts.
+          // Keep the most recent 30 records to bound profile storage.
+          if (!Array.isArray(partner.giftHistory)) partner.giftHistory = [];
+          partner.giftHistory.push({
+            senderPsid: String(psid),
+            senderName: cleanText(user.name || 'JojoWorld Member').slice(0, 40),
+            giftKey: giftResult.gift.key,
+            giftName: giftResult.gift.name,
+            sentAt: new Date().toISOString()
+          });
+          if (partner.giftHistory.length > 30) partner.giftHistory = partner.giftHistory.slice(-30);
+
           const giftSaved = await saveUserPair(psid, recipientPsid);
           if (!giftSaved) {
             db.users[psid] = senderSnapshot;
