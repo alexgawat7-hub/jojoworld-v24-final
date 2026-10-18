@@ -2,7 +2,7 @@ const $=id=>document.getElementById(id);
 const token=new URLSearchParams(location.search).get('token')||'';
 const money=n=>Math.max(0,Math.floor(Number(n)||0)).toLocaleString('en-US');
 const colors=['RED','BLUE','GREEN','YELLOW','PINK'];
-let selectedColor='',balance=0,roundState=null,working=false,loading=false,lastResultKey='',soundEnabled=false,audioContext=null,lastRollRound='',pendingResultState=null,revealedRoundNumber=0,pullInProgress=false,pullStartY=0,pullStartTime=0,pullTimer=null;
+let selectedColor='',balance=0,roundState=null,working=false,loading=false,lastResultKey='',soundEnabled=false,audioContext=null,lastRollRound='',pendingResultState=null,revealedRoundNumber=0,pullInProgress=false,pullStartY=0,pullStartTime=0,pullTimer=null,autoPullTimer=null;
 const lobby=$('lobby'),shop=$('shop');
 if(token){const q='?token='+encodeURIComponent(token);lobby.href='/live-games'+q;shop.href='/coin-shop'+q;}
 function setMessage(main,sub=''){const el=$('result');el.textContent=main;const small=document.createElement('small');small.textContent=sub;if(sub)el.appendChild(small);}
@@ -62,6 +62,7 @@ $('soundToggle').addEventListener('click',()=>{
 const pullCord=$('pullCord'),cordRig=$('cordRig'),cordHint=$('cordHint');
 function beginCordPull(){
  if(!roundState||roundState.status!=='complete'||!Array.isArray(roundState.result)||revealedRoundNumber===Number(roundState.roundNumber)||pullInProgress)return false;
+ if(autoPullTimer){clearTimeout(autoPullTimer);autoPullTimer=null;}
  pullInProgress=true;pullCord.classList.add('pulled');pullCord.classList.remove('ready');cordRig.classList.add('pulled');cordHint.textContent='DICE DROPPING…';
  const stage=$('colorStage');stage.classList.remove('revealed','rolling');stage.classList.add('dice-drop');renderDice(['RED','BLUE','GREEN'],true);
  playRoll();tone(92,.22,.07,'sine',.55);tone(180,.12,.04,'triangle',.72);
@@ -101,7 +102,7 @@ function renderState(state){
  if(state.status==='complete'&&state.result){
   pendingResultState=state;
   if(revealedRoundNumber!==Number(state.roundNumber)){
-   if(!pullInProgress){renderDice(['RED','BLUE','GREEN'],true);$('colorStage').classList.remove('dice-drop');pullCord.classList.add('ready');cordHint.textContent='ROUND CLOSED · PULL THE CORD';setMessage('🎰 PULL THE CORD','Drag the gold handle down to drop the three dice and reveal the server-confirmed result.');}
+   if(!pullInProgress){renderDice(['RED','BLUE','GREEN'],true);$('colorStage').classList.remove('dice-drop');pullCord.classList.add('ready');cordHint.textContent='ROUND CLOSED · PULL THE CORD';setMessage('🎰 PULL THE CORD','Drag the gold handle down to drop the three dice and reveal the server-confirmed result.');if(!autoPullTimer)autoPullTimer=setTimeout(()=>{autoPullTimer=null;beginCordPull();},6500);}
   }else{
    const key=state.roundNumber+':'+state.result.join(',');const counts={};state.result.forEach(c=>counts[c]=(counts[c]||0)+1);const matches=state.myBet?(counts[state.myBet.color]||0):0;
    setMessage('ROUND #'+state.roundNumber+' · '+state.result.join(' · '),state.myBet?(matches?'Your color appeared '+matches+' time(s): total return '+money(state.myBet.payout)+' coins.':'Your color did not appear on the dice.'):'Three-dice result confirmed by the game server.');
