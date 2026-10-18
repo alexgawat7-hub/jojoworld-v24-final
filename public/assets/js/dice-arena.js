@@ -1,7 +1,7 @@
 const faces={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
 function drawDie(id,n){const el=document.getElementById(id);el.innerHTML='';for(let i=0;i<9;i++){const p=document.createElement('i');p.className='pip'+(faces[n].includes(i)?' on':'');el.appendChild(p)}}
 drawDie('die1',3);drawDie('die2',5);
-let bet=100,pred='ODD',rolling=false,accountConnected=false,accountLoading=false;
+let bet=100,pred='ODD',rolling=false,accountConnected=false,accountLoading=false,resultUnconfirmed=false;
 const recentRolls=[];
 const money=n=>Number(n).toLocaleString('en-US');
 function addRecent(total,won){
@@ -46,14 +46,15 @@ async function loadAccount({quiet=false}={}) {
       }
     }
     if(!data)throw lastError||new Error('Account session unavailable');
-    accountConnected=true;
     document.getElementById('balance').textContent=money(data.balance)+' coins';
-    document.querySelector('.demo').innerHTML='<span class="live-dot"></span>LIVE ACCOUNT';
     applyStats(data.stats);
+    if(resultUnconfirmed){accountConnected=false;document.querySelector('.demo').textContent='CHECK RESULT';return;}
+    accountConnected=true;
+    document.querySelector('.demo').innerHTML='<span class="live-dot"></span>LIVE ACCOUNT';
     if(!quiet&&!rolling)document.getElementById('result').innerHTML='READY TO ROLL<small>Account connected. Choose your bet and prediction.</small>';
   }catch(e){
     accountConnected=false;
-    if(!quiet)document.getElementById('result').innerHTML='ACCOUNT NOT CONNECTED<small>'+String(e.message||'Session unavailable')+'. Reopen Dice Arena from Messenger or tap refresh.</small>';
+    if(!quiet)document.getElementById('result').innerHTML='ACCOUNT NOT CONNECTED<small>'+String(e.message||'Session unavailable')+'. Reopen Dice Arena from JojoWorld Messenger to reconnect.</small>';
     document.querySelector('.demo').textContent='RECONNECT NEEDED';
   }finally{
     accountLoading=false;
@@ -87,6 +88,7 @@ document.getElementById('roll').addEventListener('click',async()=>{
       res.classList.remove('win-result');res.classList.add('loss-result');res.innerHTML='ROLL NOT COMPLETED<small>'+String(data.error||'Please try again.')+'</small>';
       return;
     }
+    resultUnconfirmed=false;
     drawDie('die1',data.die1);drawDie('die2',data.die2);
     document.getElementById('balance').textContent=money(data.balance)+' coins';
     res.classList.remove('win-result','loss-result');res.classList.add(data.won?'win-result':'loss-result');res.innerHTML=(data.won?'🏆 WIN CONFIRMED':'🎲 TOTAL '+data.total+' • '+data.actual)+'<small>'+(data.won?'You won '+money(data.payout)+' coins · Stake '+money(data.bet):'No win this time · Stake '+money(data.bet)+' coins')+'</small>';res.classList.remove('reveal');void res.offsetWidth;res.classList.add('reveal');addRecent(data.total,data.won);
@@ -95,7 +97,7 @@ document.getElementById('roll').addEventListener('click',async()=>{
   }catch(e){
     if(flicker)clearInterval(flicker);
     area.classList.remove('rolling');
-    res.innerHTML='CONNECTION ERROR<small>Check your connection and try again.</small>';
+    resultUnconfirmed=true;accountConnected=false;res.classList.remove('win-result');res.classList.add('loss-result');res.innerHTML='ROLL RESULT UNCONFIRMED<small>Do not roll again yet. Reopen Dice Arena from JojoWorld Messenger to start a fresh session and check your balance.</small>';document.querySelector('.demo').textContent='CHECK RESULT';
   }finally{
     rolling=false;
     btn.disabled=!token||!accountConnected;
