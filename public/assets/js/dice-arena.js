@@ -22,7 +22,6 @@ renderSound();
 soundButton.addEventListener('click',()=>{soundOn=!soundOn;try{localStorage.setItem(soundKey,String(soundOn))}catch(_){}renderSound();if(soundOn)playSound('tap')});
 const lobbyLink=document.getElementById('lobbyLink');
 if(token)lobbyLink.href='/live-games?token='+encodeURIComponent(token);
- }
 const recentRolls=[];
 const money=n=>Number(n).toLocaleString('en-US');
 function addRecent(total,won){
