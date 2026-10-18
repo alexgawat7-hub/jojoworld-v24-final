@@ -1,7 +1,7 @@
 const $=id=>document.getElementById(id);
 const token=new URLSearchParams(location.search).get('token')||'';
 const money=n=>Math.max(0,Math.floor(Number(n)||0)).toLocaleString('en-US');
-const colors=['RED','BLUE','GREEN','YELLOW','PINK'];
+const colors=['RED','BLUE','GREEN','YELLOW','PINK','WHITE'];
 let previousBetAmount=100;
 let selectedColor='',balance=0,roundState=null,working=false,loading=false,lastResultKey='',soundEnabled=false,audioContext=null,lastRollRound='',pendingResultState=null,revealedRoundNumber=0,pullInProgress=false,pullStartY=0,pullStartTime=0,pullTimer=null,autoPullTimer=null;
 const lobby=$('lobby'),shop=$('shop');
@@ -31,7 +31,7 @@ function renderBets(state){
  $('playerCount').textContent=money(state.playerCount)+' PLAYER'+(state.playerCount===1?'':'S');if($('livePlayerCount'))$('livePlayerCount').textContent=money(state.playerCount)+' PLAYER'+(state.playerCount===1?'':'S');
  $('redTotal').textContent=money(state.totals.RED);
  $('blueTotal').textContent=money(state.totals.BLUE);
- $('greenTotal').textContent=money(state.totals.GREEN);$('yellowTotal').textContent=money(state.totals.YELLOW);$('pinkTotal').textContent=money(state.totals.PINK);
+ $('greenTotal').textContent=money(state.totals.GREEN);$('yellowTotal').textContent=money(state.totals.YELLOW);$('pinkTotal').textContent=money(state.totals.PINK);if($('whiteTotal'))$('whiteTotal').textContent=money(state.totals.WHITE||0);
  const list=$('betsList');list.replaceChildren();
  if(!state.bets?.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='Waiting for the first player to bet…';list.appendChild(empty);return;}
  state.bets.forEach(b=>{
@@ -163,7 +163,7 @@ async function loadState(showErrors=false){
 }
 $('placeBet').addEventListener('click',async()=>{
  if(working||!token||!selectedColor)return;
- if(selectedColor==='WHITE'){setMessage('WHITE IS NOT AVAILABLE YET','This live server currently supports red, blue, green, yellow, and pink only.');return;}
+ 
  const amount=Number($('betAmount').value);
  if(!Number.isSafeInteger(amount)||amount<10||amount>100000||amount>balance){setMessage('CHECK YOUR BET','Enter a whole-number bet within your balance.');return;}
  previousBetAmount=amount;working=true;renderControls();
