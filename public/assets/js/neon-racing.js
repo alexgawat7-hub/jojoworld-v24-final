@@ -14,8 +14,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
   $('best').textContent=best;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x9b8c8a);
-  scene.fog = new THREE.Fog(0x9b8c8a, 45, 190);
+  scene.background = new THREE.Color(0x101a2b);
+  scene.fog = new THREE.Fog(0x101a2b, 48, 190);
   const camera = new THREE.PerspectiveCamera(62, 1, .1, 260);
   camera.position.set(0, 5.2, 10.5);
   const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});
@@ -37,7 +37,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
   const fill = new THREE.DirectionalLight(0x8acbff,1.0);fill.position.set(12,10,-30);scene.add(fill);
 
   const mat=(color,roughness=.8,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
-  const asphalt=mat(0x292d31,.96), shoulder=mat(0x777a78,.92), grass=mat(0x3e5142,1), concrete=mat(0x989c9c,.8);
+  const asphalt=mat(0x252a31,.96), shoulder=mat(0x626b72,.92), grass=mat(0x263d3a,1), concrete=mat(0x858e96,.8);
   const laneMat=mat(0xe6e0cd,.65), darkGlass=mat(0x182b3a,.28,.25), tireMat=mat(0x111315,1), chrome=mat(0x9da7ad,.32,.75);
   const road = new THREE.Mesh(new THREE.PlaneGeometry(15,260),asphalt);road.rotation.x=-Math.PI/2;road.position.set(0,-.035,-100);road.receiveShadow=true;scene.add(road);
   const leftGround=new THREE.Mesh(new THREE.PlaneGeometry(120,260),grass);leftGround.rotation.x=-Math.PI/2;leftGround.position.set(-67.5,-.09,-100);leftGround.receiveShadow=true;scene.add(leftGround);
@@ -60,18 +60,18 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     const hood=new THREE.Mesh(new THREE.BoxGeometry(1.72,.18,1.1),paint);hood.position.set(0,.98,-1.02);hood.castShadow=true;root.add(hood);
     const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.35,.58,1.65),glass);cabin.position.set(0,1.15,-.28);cabin.castShadow=true;root.add(cabin);
     const roof=new THREE.Mesh(new THREE.BoxGeometry(1.15,.09,.92),paint);roof.position.set(0,1.47,-.25);root.add(roof);
-    const frontLip=new THREE.Mesh(new THREE.BoxGeometry(1.82,.13,.25),trim);frontLip.position.set(0,.48,1.83);root.add(frontLip);
-    const spoiler=new THREE.Mesh(new THREE.BoxGeometry(1.4,.1,.25),paint);spoiler.position.set(0,1.14,1.78);root.add(spoiler);
-    root.userData.wheels=[];
+    const frontLip=new THREE.Mesh(new THREE.BoxGeometry(1.82,.13,.25),trim);frontLip.position.set(0,.48,-1.88);root.add(frontLip);
+    const spoiler=new THREE.Mesh(new THREE.BoxGeometry(1.4,.1,.25),paint);spoiler.position.set(0,1.14,1.78);root.add(spoiler);\n    const skirtMat=mat(0x10151c,.48,.25);for(const x of [-.91,.91]){const skirt=new THREE.Mesh(new THREE.BoxGeometry(.12,.18,2.25),skirtMat);skirt.position.set(x,.52,0);root.add(skirt);}\n    for(const x of [-.98,.98]){const mirror=new THREE.Mesh(new THREE.BoxGeometry(.24,.12,.22),paint);mirror.position.set(x,1.05,-.63);root.add(mirror);}
+    root.userData.wheels=[];root.userData.hubs=[];
     for(const x of [-.99,.99])for(const z of [-1.22,1.22]){
       const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.38,.38,.22,18),tireMat);wheel.rotation.z=Math.PI/2;wheel.position.set(x,.43,z);wheel.castShadow=true;root.add(wheel);root.userData.wheels.push(wheel);
-      const hub=new THREE.Mesh(new THREE.CylinderGeometry(.19,.19,.232,12),chrome);hub.rotation.z=Math.PI/2;hub.position.set(x,.43,z);root.add(hub);
+      const hub=new THREE.Mesh(new THREE.CylinderGeometry(.19,.19,.232,12),chrome);hub.rotation.z=Math.PI/2;hub.position.set(x,.43,z);root.add(hub);root.userData.hubs.push(hub);
     }
     for(const x of [-.62,.62]){
-      const lamp=new THREE.Mesh(new THREE.BoxGeometry(.42,.13,.05),light);lamp.position.set(x,.82,1.93);root.add(lamp);
+      const lamp=new THREE.Mesh(new THREE.BoxGeometry(.42,.13,.05),light);lamp.position.set(x,.82,-1.94);root.add(lamp);
     }
     const tailMat=new THREE.MeshStandardMaterial({color:0xff2424,emissive:0xff1010,emissiveIntensity:1.4});
-    for(const x of [-.63,.63]){const tail=new THREE.Mesh(new THREE.BoxGeometry(.36,.12,.05),tailMat);tail.position.set(x,.79,1.93);root.add(tail);}
+    for(const x of [-.63,.63]){const tail=new THREE.Mesh(new THREE.BoxGeometry(.36,.12,.05),tailMat);tail.position.set(x,.79,1.94);root.add(tail);}
     scene.add(root);return root;
   }
   const player=addCar(0x176d9a,0x8ef7ff);player.position.set(0,0,0);
@@ -152,8 +152,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
   }
   function beep(f=500){if(!sound)return;try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();const o=audio.createOscillator(),g=audio.createGain();o.frequency.value=f;g.gain.value=.025;o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+.1)}catch{}}
   function draw(){
-    const playerX=steer*4.1;
-    const slide=driftAmount*(steer<0?1:-1)*.42;
+    const playerX=steer*4.35;
+    const slide=driftAmount*(steer<0?1:-1)*.52;
     player.position.x+=(playerX+slide-player.position.x)*.16;
     player.rotation.z=-steer*.08-driftAmount*steer*.055;
     player.rotation.y=-steer*.12-driftAmount*steer*.09;
@@ -163,7 +163,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     const gap=rivalProgress-progress;
     rival.position.z=-Math.max(9,Math.min(75,18+gap*.12));
     camera.position.x+=(player.position.x*.48-camera.position.x)*.06;
-    camera.position.y=5.2+(nitro>0?.12:0);
+    camera.position.y=5.0+(nitro>0?.12:0);
     camera.lookAt(player.position.x*.35,1.0,-16);
     // Recycle lane marks and roadside models toward the camera for continuous travel.
     const movement=speed*.075;
@@ -180,7 +180,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     running=false;
     if(won&&Math.floor(progress)>best){best=Math.floor(progress);localStorage.setItem('jojoworldNeonRacingBest',String(best));$('best').textContent=best;}
     $('overlay').hidden=false;$('overlayTitle').textContent=won?'🏁 YOU WIN!':'🏁 RACE FINISHED';
-    $('overlayText').textContent=(won?'You crossed the finish line first!':'Your rival reached the finish line first.')+' Race distance: 1,000 m. Finish: '+Math.floor(progress)+' m.';
+    $('overlayText').textContent=(won?'You crossed the finish line first!':'Your rival reached the finish line first.')+' Race distance: 1,000 m. Your distance: '+Math.min(1000,Math.floor(progress))+' m.';
     $('start').textContent='RACE AGAIN';beep(won?880:260);
   }
   function frame(t){
@@ -188,13 +188,13 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     const dt=Math.min(40,t-last||16);last=t;const sec=dt/1000;
     nitroCooldown=Math.max(0,nitroCooldown-sec);if(nitro>0)nitro=Math.max(0,nitro-sec);
     if(keys.nitro&&nitro<=0&&nitroCooldown<=0){nitro=1.5;nitroCooldown=7;beep(980);}
-    const boosting=nitro>0,target=braking?95:(boosting?260:205);
+    const boosting=nitro>0,target=braking?88:(boosting?245:198);
     speed+=(target-speed)*Math.min(1,sec*2.4);
     const hardTurn=Math.abs(steer)>.56&&speed>125&&!braking;
     driftAmount+=((hardTurn?1:0)-driftAmount)*Math.min(1,sec*(hardTurn?4.5:2.2));
     if(hardTurn&&Math.random()<.72)emitSmoke();
     updateSmoke(sec);
-    progress+=speed*sec*.078;
+    progress+=speed*sec*.080;
     rivalBoost=Math.max(0,rivalBoost-sec);if(rivalBoost<=0&&Math.random()<.045)rivalBoost=1.1;
     rivalProgress+=sec*(rivalBoost>0?18.8:16.2);
     if(keys.left)steer=Math.max(-1,steer-sec*1.7);else if(keys.right)steer=Math.min(1,steer+sec*1.7);else steer*=Math.pow(.91,sec*60);
