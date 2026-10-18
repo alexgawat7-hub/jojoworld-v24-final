@@ -8,7 +8,26 @@
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 0,#33204a 0,#10111c 43%,#07080d 100%);font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#fff;min-height:100vh}
 .app{width:min(100%,560px);margin:auto;padding:18px 14px 30px}.brand{text-align:center;letter-spacing:3px;font-weight:900;color:var(--gold);font-size:13px;text-shadow:0 0 18px #ffb62d66}.title{text-align:center;font-size:clamp(27px,8vw,40px);font-weight:1000;margin:5px 0 2px;background:linear-gradient(#fff6cf,#ffd34f 55%,#ff9b28);color:transparent;background-clip:text}.sub{text-align:center;color:#b5b8cc;font-size:12px;letter-spacing:2px}
 .balance{display:flex;justify-content:space-between;align-items:center;background:#171724cc;border:1px solid #52432b;border-radius:15px;padding:13px 16px;margin:20px 0}.balance small{display:block;color:var(--muted);font-size:11px}.balance strong{font-size:21px;color:var(--gold)}.demo{font-size:10px;color:#ffcc77;border:1px solid #75542b;border-radius:30px;padding:6px 8px}
-.table{position:relative;border:1px solid #82602d;border-radius:24px;padding:24px 12px 20px;background:radial-gradient(ellipse,#173d37,#0c201f 63%,#0b1119);box-shadow:inset 0 0 36px #0009,0 10px 35px #0008;overflow:hidden}.table:before{content:"";position:absolute;inset:8px;border:1px solid #d8a84a44;border-radius:17px;pointer-events:none}.tablelabel{text-align:center;color:#b7d5c9;font-size:10px;letter-spacing:3px;position:relative}
+.table{position:relative;border:1px solid #82602d;border-radius:24px;padding:24px 12px 20px;background:radial-gradient(ellipse,#173d37,#0c201f 63%,#0b1119);box-shadow:inset 0 0 36px #0009,0 10px 35px #0008;overflow:hidden}.table:before{content:"";position:absolute;inset:8px;border:1px solid #d8a84a44;border-radius:17px;pointer-events:none}
+.table{isolation:isolate;animation:tableGlow 4s ease-in-out infinite}
+.table:after{content:"";position:absolute;inset:-45% -70%;background:linear-gradient(105deg,transparent 42%,#fff1 49%,#ffe5a044 50%,transparent 57%);transform:translateX(-70%) rotate(12deg);animation:tableShine 7s linear infinite;pointer-events:none;z-index:0}
+.table>*{z-index:1}
+@keyframes tableGlow{0%,100%{box-shadow:inset 0 0 36px #0009,0 10px 35px #0008,0 0 0 #ffcb4a00}50%{box-shadow:inset 0 0 40px #000b,0 10px 35px #0008,0 0 24px #ffcb4a18}}
+@keyframes tableShine{0%{transform:translateX(-70%) rotate(12deg)}100%{transform:translateX(70%) rotate(12deg)}}
+.die{position:relative;transform-style:preserve-3d;will-change:transform;transition:filter .25s,box-shadow .25s}
+.die:after{content:"";position:absolute;inset:0;border-radius:19px;box-shadow:inset 0 0 0 1px #fff9;pointer-events:none}
+.rolling .die{filter:drop-shadow(0 0 22px #ffcf5cbb) saturate(1.25)}
+.result{transition:transform .25s,text-shadow .25s}
+.result.reveal{animation:resultReveal .55s cubic-bezier(.2,.9,.2,1)}
+@keyframes resultReveal{0%{transform:scale(.82);opacity:.3;text-shadow:0 0 0 #ffd76b}65%{transform:scale(1.08);opacity:1;text-shadow:0 0 24px #ffd76b99}100%{transform:scale(1);text-shadow:0 0 8px #ffd76b33}}
+.chip,button{transition:transform .16s,border-color .16s,box-shadow .16s,filter .16s}
+button:not(:disabled):active{transform:translateY(2px) scale(.98);filter:brightness(1.15)}
+.rollbtn:not(:disabled){animation:buttonPulse 2.5s ease-in-out infinite}
+@keyframes buttonPulse{0%,100%{box-shadow:0 6px 20px #ffae2930}50%{box-shadow:0 6px 26px #ffae2970,0 0 0 3px #ffce4a12}}
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#5dffb0;box-shadow:0 0 10px #5dffb0;margin-right:5px;animation:livePulse 1.4s ease-in-out infinite}
+@keyframes livePulse{50%{opacity:.45;box-shadow:0 0 2px #5dffb0}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+.tablelabel{text-align:center;color:#b7d5c9;font-size:10px;letter-spacing:3px;position:relative}
 .dicearea{height:190px;display:flex;align-items:center;justify-content:center;gap:clamp(16px,7vw,36px);perspective:700px;position:relative}.die{width:clamp(84px,24vw,112px);aspect-ratio:1;background:linear-gradient(145deg,#fffdf5,#d8d8d8 70%,#9c9c9c);border-radius:19px;box-shadow:inset 3px 3px 7px #fff, inset -5px -6px 10px #777,0 14px 25px #000a;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:15px;gap:4px;transform:rotate(-7deg);transition:transform .2s}.die:nth-child(2){transform:rotate(8deg)}.pip{border-radius:50%;background:radial-gradient(circle at 30% 25%,#57505a,#16131d 70%);box-shadow:inset 1px 2px 3px #0008;opacity:0}.pip.on{opacity:1}.rolling .die:first-child{animation:rollA .65s cubic-bezier(.2,.8,.3,1) infinite}.rolling .die:nth-child(2){animation:rollB .58s cubic-bezier(.2,.8,.3,1) infinite}.rolling .die{filter:drop-shadow(0 0 15px #ffcf5c77)}@keyframes rollA{0%{transform:rotateX(0) rotateY(0) rotateZ(-10deg) translateY(0)}50%{transform:rotateX(210deg) rotateY(155deg) rotateZ(130deg) translateY(-28px)}100%{transform:rotateX(360deg) rotateY(360deg) rotateZ(350deg) translateY(0)}}@keyframes rollB{0%{transform:rotateX(0) rotateY(0) rotateZ(12deg) translateY(0)}50%{transform:rotateX(-170deg) rotateY(220deg) rotateZ(-150deg) translateY(-32px)}100%{transform:rotateX(-360deg) rotateY(-360deg) rotateZ(-348deg) translateY(0)}}
 .result{text-align:center;min-height:30px;font-weight:800;color:var(--gold);font-size:17px;position:relative}.result small{display:block;color:#b4c7bf;font-size:11px;font-weight:500;margin-top:3px}
 .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin:15px 0}.stat{background:#171723;border:1px solid #302e42;border-radius:13px;padding:12px}.stat small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px}.stat strong{display:block;font-size:19px;margin-top:4px;color:#f5e6bd}
@@ -18,7 +37,7 @@
 </head>
 <body><main class="app">
 <div class="brand">👑 JOJOWORLD</div><h1 class="title">DICE ARENA</h1><div class="sub">ROLL YOUR LUCK • CLAIM YOUR GLORY</div>
-<div class="balance"><div><small>YOUR COIN BALANCE</small><strong id="balance">— coins</strong></div><span class="demo">VISUAL PREVIEW</span></div>
+<div class="balance"><div><small>YOUR COIN BALANCE</small><strong id="balance">— coins</strong></div><span class="demo"><span class="live-dot"></span>CONNECTING LIVE</span></div>
 <section class="table"><div class="tablelabel">✦ GOLDEN TABLE ✦</div><div class="dicearea" id="dicearea"><div class="die" id="die1"></div><div class="die" id="die2"></div></div><div class="result" id="result">READY TO ROLL?<small>Select your bet and prediction below</small></div></section>
 <div class="stats"><div class="stat"><small>Players this round</small><strong id="players">—</strong></div><div class="stat"><small>Completed rolls</small><strong id="rolls">—</strong></div><div class="stat"><small>Total bets</small><strong id="totalbets">— coins</strong></div><div class="stat"><small>Total payouts</small><strong id="payouts">— coins</strong></div></div>
 <section class="panel"><div class="panelhead"><b>🪙 Choose your bet</b><span>VIRTUAL COINS</span></div><div class="chips" id="bets"><button class="chip active" data-bet="100">100</button><button class="chip" data-bet="500">500</button><button class="chip" data-bet="1000">1K</button><button class="chip" data-bet="max">MAX</button></div><div class="wager"><span>Your wager</span><strong id="wager">100 coins</strong></div><div class="panelhead" style="margin-top:15px"><b>🎯 Predict the total</b><span>2 DICE • 2–12</span></div><div class="predictions"><button class="predict active" data-pred="ODD">🔴 ODD</button><button class="predict" data-pred="EVEN">🔵 EVEN</button></div><button class="rollbtn" id="roll">🎲 ROLL THE DICE</button></section>
@@ -45,7 +64,7 @@ async function loadAccount(){
     const data=await r.json();
     if(!r.ok||!data.ok)throw new Error(data.error||'Session expired');
     document.getElementById('balance').textContent=money(data.balance)+' coins';
-    document.querySelector('.demo').textContent='LIVE ACCOUNT';
+    document.querySelector('.demo').innerHTML='<span class="live-dot"></span>LIVE ACCOUNT';
     applyStats(data.stats);
   }catch(e){
     document.getElementById('result').innerHTML='ACCOUNT NOT CONNECTED<small>'+e.message+'</small>';
@@ -66,10 +85,12 @@ document.getElementById('roll').addEventListener('click',async()=>{
   const btn=document.getElementById('roll'),area=document.getElementById('dicearea'),res=document.getElementById('result');
   btn.disabled=true;area.classList.add('rolling');res.innerHTML='ROLLING...<small>Server is rolling your dice</small>';
   try{
+    const flicker=setInterval(()=>{drawDie('die1',1+Math.floor(Math.random()*6));drawDie('die2',1+Math.floor(Math.random()*6))},95);
     const request=fetch('/api/dice-arena/roll',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,bet,prediction:pred})});
-    await new Promise(r=>setTimeout(r,1200));
+    await new Promise(r=>setTimeout(r,1550));
     const response=await request;
     const data=await response.json();
+    clearInterval(flicker);
     area.classList.remove('rolling');
     if(!response.ok||!data.ok){
       if(data.balance!==undefined)document.getElementById('balance').textContent=money(data.balance)+' coins';
@@ -78,10 +99,11 @@ document.getElementById('roll').addEventListener('click',async()=>{
     }
     drawDie('die1',data.die1);drawDie('die2',data.die2);
     document.getElementById('balance').textContent=money(data.balance)+' coins';
-    res.innerHTML='TOTAL '+data.total+' • '+data.actual+'<small>'+(data.won?'🏆 YOU WIN! +'+money(data.payout)+' coins':'No win this time · Bet '+money(data.bet)+' coins')+'</small>';
+    res.innerHTML='TOTAL '+data.total+' • '+data.actual+'<small>'+(data.won?'🏆 YOU WIN! +'+money(data.payout)+' coins':'No win this time · Bet '+money(data.bet)+' coins')+'</small>';res.classList.remove('reveal');void res.offsetWidth;res.classList.add('reveal');
     if(data.stats)applyStats(data.stats);else refreshStats();
     btn.textContent='🎲 ROLL AGAIN';
   }catch(e){
+    if(typeof flicker!=='undefined')clearInterval(flicker);
     area.classList.remove('rolling');
     res.innerHTML='CONNECTION ERROR<small>Check your connection and try again.</small>';
   }finally{
@@ -106,6 +128,6 @@ async function refreshStats(){
 }
 loadAccount();
 refreshStats();
-setInterval(()=>{refreshStats();loadAccount()},5000);
+setInterval(()=>{refreshStats();loadAccount()},2500);
 updateBet();
 </script></body></html>
