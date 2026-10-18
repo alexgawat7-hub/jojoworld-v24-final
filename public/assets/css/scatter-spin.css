@@ -12,3 +12,10 @@ button{font:inherit;cursor:pointer;border-radius:13px;font-weight:900;transition
 .note{text-align:center;color:#9787aa;font-size:10px;line-height:1.6;margin:16px 10px}.links{display:flex;gap:8px;margin-top:12px}.links a{flex:1;text-align:center;text-decoration:none;color:#eadbff;font-size:12px;padding:12px 6px;border:1px solid #4e3c62;border-radius:12px;background:#1a1225}
 @media(max-width:360px){.reel{height:82px}.reels{gap:6px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* Clear result feedback: gold for wins, violet-red for jackpot, muted for misses. */
+.result.win-result{color:#a8ffca;text-shadow:0 0 18px #53ffad77;animation:resultBurst .55s cubic-bezier(.2,.9,.2,1)}
+.result.jackpot-result{color:#fff0a2;text-shadow:0 0 10px #ffdb63,0 0 28px #ff9c37;animation:jackpotBurst .8s cubic-bezier(.15,.9,.25,1)}
+.result.loss-result{color:#e8c9ff;text-shadow:0 0 10px #ad65ff22}
+@keyframes resultBurst{0%{transform:scale(.88);filter:brightness(.7)}65%{transform:scale(1.07);filter:brightness(1.4)}100%{transform:scale(1);filter:brightness(1)}}
+@keyframes jackpotBurst{0%{transform:scale(.72);filter:brightness(.5)}45%{transform:scale(1.12);filter:brightness(1.8)}75%{transform:scale(.98)}100%{transform:scale(1);filter:brightness(1)}}
