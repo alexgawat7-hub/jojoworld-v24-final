@@ -262,3 +262,8 @@ body.crazy-color-page{height:100dvh}
  .crazy-app .crazy-color-grid .color-choice b{font-size:7px}
  .crazy-app .machine-foot strong{font-size:10px}
 }
+
+
+/* [FIXED] Keep the visible CSS dice as a guaranteed foreground fallback while the 3D machine loads; they must be visible resting in the tray before the banker pulls. */
+.dice-stage.three-ready .die-slot{visibility:visible!important;z-index:3}
+.dice-stage.three-ready .die-slot .color-die{visibility:visible!important;opacity:1}
