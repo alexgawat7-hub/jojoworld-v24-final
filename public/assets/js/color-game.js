@@ -70,9 +70,7 @@ function beginCordPull(){
  pullTimer=setTimeout(()=>{pullInProgress=false;revealedRoundNumber=Number(pendingResultState?.roundNumber||roundState.roundNumber);pullCord.classList.remove('pulled');cordRig.classList.remove('pulled');stage.classList.remove('dice-drop');if(pendingResultState)renderState(pendingResultState);},1050);
  return true;
 }
-pullCord.addEventListener('pointerdown',event=>{pullStartY=event.clientY;pullStartTime=Date.now();try{pullCord.setPointerCapture(event.pointerId)}catch(_){}});
-pullCord.addEventListener('pointerup',event=>{if(!roundState||roundState.status!=='complete')return;const distance=event.clientY-pullStartY;if(distance>20||Date.now()-pullStartTime<450)beginCordPull();});
-pullCord.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&beginCordPull())event.preventDefault();});
+
 function renderDice(diceColors,rolling=false){
  const stage=$('colorStage');stage.classList.toggle('rolling',rolling);stage.classList.toggle('revealed',!rolling);
  document.querySelectorAll('.color-die').forEach((die,i)=>{
@@ -102,14 +100,14 @@ function renderState(state){
  if(state.status==='complete'&&state.result){
   pendingResultState=state;
   if(revealedRoundNumber!==Number(state.roundNumber)){
-   if(!pullInProgress){renderDice(['RED','BLUE','GREEN'],true);$('colorStage').classList.remove('dice-drop');pullCord.classList.add('ready');cordHint.textContent='ROUND CLOSED · PULL THE CORD';setMessage('🎰 PULL THE CORD','Drag the gold handle down to drop the three dice and reveal the server-confirmed result.');if(!autoPullTimer)autoPullTimer=setTimeout(()=>{autoPullTimer=null;beginCordPull();},6500);}
+   if(!pullInProgress){renderDice(['RED','BLUE','GREEN'],true);$('colorStage').classList.remove('dice-drop');pullCord.classList.add('ready');cordHint.textContent='BETTING CLOSED · BANKER PULLING THE CORD';setMessage('🎰 BANKER IS PULLING THE CORD','The banker triggers the mechanism. The three dice will drop before the server-confirmed result is revealed.');if(!autoPullTimer)autoPullTimer=setTimeout(()=>{autoPullTimer=null;beginCordPull();},850);}
   }else{
    const key=state.roundNumber+':'+state.result.join(',');const counts={};state.result.forEach(c=>counts[c]=(counts[c]||0)+1);const matches=state.myBet?(counts[state.myBet.color]||0):0;
    setMessage('ROUND #'+state.roundNumber+' · '+state.result.join(' · '),state.myBet?(matches?'Your color appeared '+matches+' time(s): total return '+money(state.myBet.payout)+' coins.':'Your color did not appear on the dice.'):'Three-dice result confirmed by the game server.');
    lastResultKey=key;cordHint.textContent='RESULT REVEALED · NEXT ROUND SOON';pullCord.classList.remove('ready');
   }
  }else if(state.status==='settling'){pullCord.classList.remove('ready');cordHint.textContent='DICE ARE PREPARING…';setMessage('🎲 THE THREE DICE ARE ROLLING','The server is confirming the three color results and payouts.');}
- else if(state.status==='betting'){pullCord.classList.remove('ready');cordHint.textContent='PULL THE CORD WHEN BETTING CLOSES';if(state.lastResult)setMessage('LAST ROUND: '+(Array.isArray(state.lastResult)?state.lastResult.join(' · '):state.lastResult),'Round #'+state.lastRoundNumber+' · Place your bet for this round.');else setMessage('PLACE YOUR BET','Choose one of five colors. More matching dice means a higher total return.');}
+ else if(state.status==='betting'){pullCord.classList.remove('ready');cordHint.textContent='BANKER WILL PULL WHEN BETTING CLOSES';if(state.lastResult)setMessage('LAST ROUND: '+(Array.isArray(state.lastResult)?state.lastResult.join(' · '):state.lastResult),'Round #'+state.lastRoundNumber+' · Place your bet for this round.');else setMessage('PLACE YOUR BET','Choose one of five colors. More matching dice means a higher total return.');}
  renderBets(state);renderControls();
 }
 async function loadState(showErrors=false){
