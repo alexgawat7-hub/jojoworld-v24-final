@@ -128,6 +128,26 @@ function loadCachedProfilePhotoUrl(url) {
 }
 const app = express();
 
+// [JOJOWORLD DICE ARENA PUBLIC STATS] Expose only aggregate round totals; no account data is returned.
+app.get('/api/dice-arena/stats', async (req, res) => {
+  try {
+    const stats = await getDiceRoundStats();
+    res.set('Cache-Control', 'no-store');
+    res.json({
+      ok: true,
+      roundNumber: stats.roundNumber,
+      playerCount: stats.playerCount,
+      totalRolls: stats.totalRolls,
+      totalBet: stats.totalBet,
+      totalPayout: stats.totalPayout,
+      startedAt: stats.startedAt
+    });
+  } catch (err) {
+    console.error('[DICE ARENA] Stats unavailable:', err.message);
+    res.status(503).json({ ok: false, error: 'Dice Arena stats are temporarily unavailable.' });
+  }
+});
+
 // [JOJOWORLD DICE ARENA WEB GAME ROUTE] Serve the animated HTML game interface.
 // This is currently a visual prototype; wager settlement remains in the Messenger backend
 // until the authenticated game-session API is added and tested.
