@@ -20,3 +20,5 @@ button{font:inherit;cursor:pointer;border-radius:13px;font-weight:900;transition
 @keyframes resultBurst{0%{transform:scale(.88);filter:brightness(.7)}65%{transform:scale(1.07);filter:brightness(1.4)}100%{transform:scale(1);filter:brightness(1)}}
 @keyframes jackpotBurst{0%{transform:scale(.72);filter:brightness(.5)}45%{transform:scale(1.12);filter:brightness(1.8)}75%{transform:scale(.98)}100%{transform:scale(1);filter:brightness(1)}}
 
+
+.game-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.lobby-link,.sound-toggle{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 13px;border:1px solid #765c91;border-radius:30px;background:#21152e;color:#f5e5ff;text-decoration:none;font-size:11px;font-weight:900;letter-spacing:.4px}.sound-toggle{cursor:pointer;color:#ffe08a}.sound-toggle[aria-pressed="true"]{border-color:#3b9b73;background:#12372c;color:#9cffcf}.links{flex-wrap:wrap}.links a{min-width:calc(50% - 8px)}
