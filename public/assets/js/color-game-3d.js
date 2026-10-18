@@ -112,7 +112,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     });
     root.position.set([-1.65,0,1.65][index],.42,0);
     root.rotation.set(.12+index*.13,.25+index*.4,.1-index*.1);
-    scene.add(root);dice.push({root,body,index,phase:index*2.1,rolling:false,landed:false,dropHeight:0,verticalVelocity:0,spinX:0,spinY:0,spinZ:0,target:colors[['red','blue','green'][index]]});
+    scene.add(root);dice.push({root,body,index,phase:index*2.1,rolling:false,landed:false,dropHeight:0,verticalVelocity:0,spinX:0,spinY:0,spinZ:0,vx:0,vz:0,target:colors[['red','blue','green'][index]]});
   }
   for(let i=0;i<3;i++)makeDie(i);
   // A banker-operated overhead release arm, cable and weighted brass pull.
@@ -142,7 +142,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     const rolling=stage.classList.contains('rolling') || dropping;
     if(dropping&&!wasDropping){
       dropStart=now;rollingUntil=now+1.05;
-      dice.forEach((d,i)=>{d.landed=false;d.dropHeight=1.35+i*.12;d.verticalVelocity=-1.3-i*.18;d.spinX=7.5+i*1.7;d.spinY=9.2-i*.8;d.spinZ=5.8+i;});
+      dice.forEach((d,i)=>{d.landed=false;d.dropHeight=1.35+i*.12;d.verticalVelocity=-1.3-i*.18;d.spinX=7.5+i*1.7;d.spinY=9.2-i*.8;d.spinZ=5.8+i;d.vx=[1.45,-.25,-1.2][i];d.vz=[.85,-1.05,.72][i];});
     }
     if(!rolling&&wasDropping){rollingUntil=0;}
     dice.forEach(d=>d.rolling=rolling && (!dropping || (now-dropStart<1050 && !d.landed)));
@@ -161,6 +161,24 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     requestAnimationFrame(animate);
     const now=performance.now(),dt=Math.min(.04,(now-lastTime)/1000||.016);lastTime=now;
     syncState(now);
+    const activeDrop=stage.classList.contains('dice-drop');
+    if(activeDrop){
+      for(let a=0;a<dice.length;a++)for(let b=a+1;b<dice.length;b++){
+        const da=dice[a],db=dice[b];
+        if(da.landed&&db.landed)continue;
+        const dx=db.root.position.x-da.root.position.x,dz=db.root.position.z-da.root.position.z;
+        const dist=Math.hypot(dx,dz),minDist=.79;
+        if(dist>0&&dist<minDist&&Math.abs(da.root.position.y-db.root.position.y)<.68){
+          const nx=dx/dist,nz=dz/dist,overlap=(minDist-dist)*.5;
+          da.root.position.x-=nx*overlap;da.root.position.z-=nz*overlap;
+          db.root.position.x+=nx*overlap;db.root.position.z+=nz*overlap;
+          const av=da.vx*nx+da.vz*nz,bv=db.vx*nx+db.vz*nz;
+          da.vx+=(bv-av)*nx*.62;da.vz+=(bv-av)*nz*.62;
+          db.vx+=(av-bv)*nx*.62;db.vz+=(av-bv)*nz*.62;
+          da.spinY+=nz*1.5;db.spinY-=nz*1.5;
+        }
+      }
+    }
     dice.forEach((d,i)=>{
       if(d.rolling) {
         const dropping=stage.classList.contains('dice-drop');
@@ -174,9 +192,17 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
             else {d.verticalVelocity=0;d.landed=true;}
           }
           d.root.position.y=.42+d.dropHeight;
-          const spread=Math.min(1,d.dropHeight*1.5);
-          d.root.position.x=[-1.65,0,1.65][i]+Math.sin((now-dropStart)*.018+i*1.8)*.12*spread;
-          d.root.position.z=Math.cos((now-dropStart)*.015+i)*.12*spread;
+          // Lateral momentum, felt-tray boundaries, and pairwise impacts keep the dice from floating through each other.
+          if(!d.landed){
+            d.root.position.x+=d.vx*dt;
+            d.root.position.z+=d.vz*dt;
+            d.vx*=Math.exp(-.42*dt);d.vz*=Math.exp(-.55*dt);
+            const limitX=2.22,limitZ=.37;
+            if(d.root.position.x < -limitX){d.root.position.x=-limitX;d.vx=Math.abs(d.vx)*.48;d.spinY+=1.4;}
+            if(d.root.position.x > limitX){d.root.position.x=limitX;d.vx=-Math.abs(d.vx)*.48;d.spinY-=1.4;}
+            if(d.root.position.z < -limitZ){d.root.position.z=-limitZ;d.vz=Math.abs(d.vz)*.42;d.spinX+=1.1;}
+            if(d.root.position.z > limitZ){d.root.position.z=limitZ;d.vz=-Math.abs(d.vz)*.42;d.spinX-=1.1;}
+          }
           const friction=d.landed?Math.min(1,dt*11):1;
           d.root.rotation.x+=d.spinX*dt*friction;
           d.root.rotation.y+=d.spinY*dt*friction;
