@@ -2657,6 +2657,7 @@ A new user successfully registered using your link! 🎁
 🎁 Tap a gift sender button below to open their profile.
 ⚡ Use the buttons below to customize your profile.`, [
               { content_type: "text", title: "✏️ Edit Profile", payload: "EDIT_PROFILE_MENU" },
+              { content_type: "text", title: "📸 Change Photo", payload: "SET_PROFILE_PHOTO" },
               { content_type: "text", title: "↩️ Main Menu", payload: "MENU" },
               ...giftSenderButtons
             ]);
@@ -2693,7 +2694,6 @@ A new user successfully registered using your link! 🎁
             { content_type: "text", title: "💬 Bio", payload: "REQ_EDIT_BIO" },
             { content_type: "text", title: "🎯 Set Goal", payload: "SET_GOAL_MENU" },
             { content_type: "text", title: "♈ Set Zodiac", payload: "SET_ZODIAC_MENU" },
-            { content_type: "text", title: "📸 Change Photo", payload: "SET_PROFILE_PHOTO" },
             { content_type: "text", title: "↩️ Back to Profile", payload: "PROFILE" }
           ]);
           continue;
