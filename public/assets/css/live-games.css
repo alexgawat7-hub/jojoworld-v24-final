@@ -14,3 +14,14 @@ h1{text-align:center;font-size:clamp(34px,10vw,52px);line-height:1.02;letter-spa
 
 
 .coin-shop-link{display:flex;align-items:center;justify-content:center;min-height:44px;margin:-5px 0 16px;padding:11px 12px;border:1px solid #b59a54;border-radius:14px;background:linear-gradient(100deg,#3a2d22,#292040);color:#ffe49a;text-decoration:none;text-align:center;font-size:12px;font-weight:1000;letter-spacing:.3px;box-shadow:0 0 22px #ffdf7a12}.coin-shop-link:active{transform:translateY(1px)}
+
+/* Lobby category navigation */
+.lobby-categories{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:0 0 9px}
+.category-btn{min-height:54px;padding:10px 8px;border:1px solid #46456c;border-radius:15px;background:linear-gradient(145deg,#1a2038,#121629);color:#d7d9f2;font-size:11px;font-weight:1000;letter-spacing:.25px;line-height:1.35;box-shadow:0 5px 0 #080b18;cursor:pointer}
+.category-btn.active{border-color:#ffe29a;background:linear-gradient(110deg,#ffe49a,#ff9bdd);color:#24152f;box-shadow:0 4px 0 #8b5b91,0 0 22px #ffdc8a22}
+.category-btn:active{transform:translateY(2px);box-shadow:none}
+.category-note{text-align:center;color:#aeb8d3;font-size:11px;line-height:1.5;margin:0 0 13px}
+.game[hidden]{display:none!important}
+.coming-soon .coming-icon{height:158px;display:grid;place-items:center;font-size:66px;background:radial-gradient(ellipse at 50% 110%,#4d367e,#1b254b 60%,#14182c);text-shadow:0 0 32px #9b8bff88}
+.coming-soon{border-style:dashed;border-color:#5b5688}
+@media(min-width:560px){.coming-soon .coming-icon{height:170px}}
