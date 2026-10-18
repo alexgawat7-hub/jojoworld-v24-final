@@ -265,3 +265,10 @@ body.crazy-color-page{height:100dvh}
 
 
 /* [FIXED] Hide CSS fallback dice once WebGL is ready so they cannot cover the real 3D drop-and-roll animation. */
+
+
+/* [FIXED] Keep the full 3D dice tray visible instead of compressing it into a short strip on mobile. */
+.crazy-app .dice-stage{height:clamp(220px,54vw,285px);min-height:220px;padding:0;overflow:hidden;}
+.crazy-app #machine3d{position:absolute;inset:0;width:100%;height:100%;overflow:hidden;z-index:2;}
+.crazy-app #machine3d canvas{display:block;width:100%;height:100%;}
+.crazy-app .dice-stage.three-ready .die-slot{visibility:hidden;}
