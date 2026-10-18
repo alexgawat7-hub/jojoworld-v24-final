@@ -298,12 +298,12 @@ app.post('/api/color-game/bet', async (req, res) => {
             const e = new Error('Not enough coins for that bet.'); e.colorGameCode = 400; throw e;
           }
           const placed = await ColorGameStateModel.updateOne(
-            { id: 'global', roundNumber: round.roundNumber, status: 'betting', bettingEndsAt: { $gt: new Date() }, bets: { $not: { $elemMatch: { psid } } } },
+            { id: 'global', roundNumber: round.roundNumber, status: 'betting', bettingEndsAt: { $gt: new Date() }, bets: { $not: { $elemMatch: { psid, color } } } },
             { $push: { bets: betEntry }, $inc: { totalBet: bet } },
             { session: mongoSession }
           );
           if (!placed.modifiedCount) {
-            const e = new Error('You already placed a bet this round, or betting just closed.'); e.colorGameCode = 409; throw e;
+            const e = new Error('You already bet on this color, or betting just closed.'); e.colorGameCode = 409; throw e;
           }
         });
       } catch (err) {
@@ -1186,6 +1186,7 @@ function colorGamePublicState(round, psid, balance) {
     result: Array.isArray(round.result) ? round.result : (round.result ? [round.result] : null), lastResult: Array.isArray(round.lastResult) ? round.lastResult : (round.lastResult ? [round.lastResult] : null), lastRoundNumber: Number(round.lastRoundNumber || 0),
     totalBet, playerCount: players.size, totals,
     myBet: myBet ? { color: myBet.color, amount: myBet.amount, status: myBet.status, payout: myBet.payout } : null,
+    myBets: bets.filter(b => String(b.psid) === String(psid)).map(b => ({ color: String(b.color).toUpperCase(), amount: Number(b.amount), status: b.status, payout: Number(b.payout || 0) })),
     bets: bets.slice().sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()).slice(0, 40).map(b => ({
       name: String(b.name || 'Jojo Player').slice(0, 24), color: String(b.color).toUpperCase(), amount: Number(b.amount),
       payout: Number(b.payout || 0), status: b.status
