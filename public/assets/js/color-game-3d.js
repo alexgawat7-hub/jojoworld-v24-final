@@ -194,7 +194,15 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
     const rolling=stage.classList.contains('rolling') || dropping;
     if(dropping&&!wasDropping){
       dropStart=now;rollingUntil=now+1.05;
-      dice.forEach((d,i)=>{d.landed=false;d.dropHeight=1.35+i*.12;d.verticalVelocity=-1.3-i*.18;d.spinX=7.5+i*1.7;d.spinY=9.2-i*.8;d.spinZ=5.8+i;d.vx=[1.45,-.25,-1.2][i];d.vz=[.85,-1.05,.72][i];});
+      dice.forEach((d,i)=>{
+        d.landed=false;
+        // Begin just above the felt, inside the recessed tray. Avoid teleporting
+        // upward on pull: gravity carries each die down into the tray immediately.
+        d.dropHeight=.16+i*.035;
+        d.verticalVelocity=-.35-i*.12;
+        d.spinX=5.2+i*1.1;d.spinY=7.2-i*.65;d.spinZ=4.4+i*.8;
+        d.vx=[.72,-.18,-.66][i];d.vz=[.28,-.34,.22][i];
+      });
     }
     if(!rolling&&wasDropping){rollingUntil=0;}
     dice.forEach(d=>d.rolling=rolling && (!dropping || now-dropStart<1050));
