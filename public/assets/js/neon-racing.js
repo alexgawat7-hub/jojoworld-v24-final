@@ -57,7 +57,7 @@
   function frame(t){if(!running){draw();return;}const dt=Math.min(40,t-last||16);last=t;
     const boosting=(keys.nitro||nitro>0);if(nitro>0)nitro=Math.max(0,nitro-dt*.00065);
     const target=braking?95:(boosting?275:205);speed+=(target-speed)*Math.min(1,dt*.0024);
-    progress+=speed*dt*.00105;rivalProgress+=((progress>rivalProgress+100)?speed*.00093:speed*.00112)*dt;
+    progress+=speed*dt*.00105;rivalProgress+=speed*dt*(progress>rivalProgress+100?.00091:.00099);
     if(keys.left)steer=Math.max(-1,steer-dt*.0028);else if(keys.right)steer=Math.min(1,steer+dt*.0028);else steer*=Math.pow(.94,dt/16);
     $('score').textContent=Math.min(100,Math.floor(progress/12))+'%';$('speed').textContent=Math.round(speed)+' km/h';
     draw();if(progress>=1200){finish(progress>=rivalProgress);return;}if(rivalProgress>=1200){finish(false);return;}requestAnimationFrame(frame);
