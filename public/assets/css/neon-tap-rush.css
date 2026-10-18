@@ -66,3 +66,5 @@ h1{font-size:clamp(22px,4vh,30px)!important;margin:0!important;line-height:1!imp
 .actions{gap:5px!important}
 .actions button{padding:5px 4px!important;font-size:9px!important}
 @media(max-height:620px){.intro,.hint{display:none!important}.app{gap:2px!important;padding:3px 6px!important}.arenahead{margin-bottom:2px!important}.actions button{padding:4px!important}}
+
+.top-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}.shop-back{border-color:#b59a54;color:#ffe49a;background:#292040}
