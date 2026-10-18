@@ -1,7 +1,7 @@
 const $=id=>document.getElementById(id);
 const token=new URLSearchParams(location.search).get('token')||'';
 const money=n=>Math.max(0,Math.floor(Number(n)||0)).toLocaleString('en-US');
-const colors=['RED','BLUE','GREEN'];
+const colors=['RED','BLUE','GREEN','YELLOW','PINK'];
 let selectedColor='',balance=0,roundState=null,working=false,loading=false,lastResultKey='';
 const lobby=$('lobby'),shop=$('shop');
 if(token){const q='?token='+encodeURIComponent(token);lobby.href='/live-games'+q;shop.href='/coin-shop'+q;}
@@ -26,7 +26,7 @@ function renderBets(state){
  $('playerCount').textContent=money(state.playerCount)+' PLAYER'+(state.playerCount===1?'':'S');
  $('redTotal').textContent=money(state.totals.RED);
  $('blueTotal').textContent=money(state.totals.BLUE);
- $('greenTotal').textContent=money(state.totals.GREEN);
+ $('greenTotal').textContent=money(state.totals.GREEN);$('yellowTotal').textContent=money(state.totals.YELLOW);$('pinkTotal').textContent=money(state.totals.PINK);
  const list=$('betsList');list.replaceChildren();
  if(!state.bets?.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='Waiting for the first player to bet…';list.appendChild(empty);return;}
  state.bets.forEach(b=>{
@@ -38,23 +38,33 @@ function renderBets(state){
   row.append(name,color,amount,status);list.appendChild(row);
  });
 }
+function renderDice(colors,rolling=false){
+ const stage=$('colorStage');stage.classList.toggle('rolling',rolling);stage.classList.toggle('revealed',!rolling);
+ document.querySelectorAll('.color-die').forEach((die,i)=>{
+  die.className='color-die '+String(colors[i]||'RED').toLowerCase();
+  if(rolling)die.classList.add('rolling-die');
+  const face=die.querySelector('.die-face');face.textContent=rolling?'✦':'●';
+ });
+}
 function renderState(state){
  roundState=state;balance=Number(state.balance)||0;
- $('balance').textContent=money(balance)+' COINS';
- $('round').textContent='#'+state.roundNumber;
+ $('balance').textContent=money(balance)+' COINS';$('round').textContent='#'+state.roundNumber;
  const time=Math.max(0,Number(state.timeLeftMs)||0);
- $('timer').textContent=state.status==='betting'?(time/1000).toFixed(1)+'s':state.status==='settling'?'DRAWING…':'RESULT';
- $('roundStatus').textContent=state.status==='betting'?'BETTING OPEN':state.status==='settling'?'SETTLING ROUND':'ROUND RESULT';
+ $('timer').textContent=state.status==='betting'?(time/1000).toFixed(1)+'s':state.status==='settling'?'ROLLING…':'RESULT';
+ $('roundStatus').textContent=state.status==='betting'?'BETTING OPEN':state.status==='settling'?'DICE ROLLING':'ROUND RESULT';
  $('timer').parentElement.classList.toggle('closed',state.status!=='betting');
- $('colorStage').classList.remove('winner');document.querySelectorAll('.orb').forEach(el=>el.classList.remove('winning'));
+ if(state.status==='betting')renderDice(['RED','BLUE','GREEN'],time<=3500);
+ else if(Array.isArray(state.result))renderDice(state.result,false);
+ else renderDice(['RED','BLUE','GREEN'],true);
  if(state.status==='complete'&&state.result){
-  const key=state.roundNumber+':'+state.result;
-  $('colorStage').classList.add('winner');const winner=document.querySelector('.'+state.result.toLowerCase()+'-orb');if(winner)winner.classList.add('winning');
-  setMessage('ROUND #'+state.roundNumber+' · '+state.result+' WINS',state.myBet?(state.myBet.color===state.result?'Your bet won '+money(state.myBet.payout)+' coins.':'Your bet did not win this round.'):'The result is confirmed by the game server.');
+  const key=state.roundNumber+':'+state.result.join(',');
+  const counts={};state.result.forEach(c=>counts[c]=(counts[c]||0)+1);
+  const matches=state.myBet?(counts[state.myBet.color]||0):0;
+  setMessage('ROUND #'+state.roundNumber+' · '+state.result.join(' · '),state.myBet?(matches?'Your color appeared '+matches+' time(s): total return '+money(state.myBet.payout)+' coins.':'Your color did not appear on the dice.'):'Three-dice result confirmed by the game server.');
   lastResultKey=key;
- }else if(state.status==='settling'){setMessage('RESULT CONFIRMED · SETTLING COINS','Please wait while the server updates winning balances.');}
- else if(state.lastResult){setMessage('LAST ROUND: '+state.lastResult,'Round #'+state.lastRoundNumber+' · Bets are open for the current round.');}
- else {setMessage('PLACE YOUR BET', 'Choose RED, BLUE, or GREEN before the timer reaches zero.');}
+ }else if(state.status==='settling')setMessage('🎲 THE THREE DICE ARE ROLLING','The server is confirming the three color results and payouts.');
+ else if(state.lastResult)setMessage('LAST ROUND: '+(Array.isArray(state.lastResult)?state.lastResult.join(' · '):state.lastResult),'Round #'+state.lastRoundNumber+' · Place your bet for this round.');
+ else setMessage('PLACE YOUR BET','Choose one of five colors. More matching dice means a higher total return.');
  renderBets(state);renderControls();
 }
 async function loadState(showErrors=false){
