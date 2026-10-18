@@ -2083,7 +2083,7 @@ function sendMenu(id) {
 [2] 💘 Find Match (10c)
 [3] 💰 Top-Up Center
 [4] 🎁 Daily Bonus
-[5] 🎡 Scatter Wheel & Jackpot
+[5] 🎮 Live Games
 [6] 🛍️ Profile Shop & Themes
 [7] 🏆 Leaderboards
 [8] 🔗 Referral Invite
@@ -2093,7 +2093,7 @@ function sendMenu(id) {
     { content_type: "text", title: "💘 Match (2)", payload: "FIND MATCH" },
     { content_type: "text", title: "💰 Top Up (3)", payload: "TOP UP" },
     { content_type: "text", title: "🎁 Daily (4)", payload: "DAILY" },
-    { content_type: "text", title: "🎮 Live Games (5)", payload: "SPIN" },
+    { content_type: "text", title: "🎮 Live Games (5)", payload: "LIVE_GAMES" },
     { content_type: "text", title: "🛍️ Shop (6)", payload: "SHOP" },
     { content_type: "text", title: "🏆 Rank (7)", payload: "LEADERBOARD" },
     { content_type: "text", title: "🔗 Referral (8)", payload: "INVITE" }
@@ -2547,7 +2547,7 @@ A new user successfully registered using your link! 🎁
         // [JOJOWORLD BROWSER-ONLY DICE ARENA] Dice Arena is launched from the existing Scatter Spin menu.
         // Text-based Scatter Spin and Dice betting are disabled; SPIN/SCATTER open the browser game.
         const dicePayload = upperRaw.trim();
-        if (["DICE", "DICE GAME", "DICE ARENA", "SPIN", "SCATTER", "SCATTER SPIN"].includes(dicePayload) || dicePayload.startsWith("SCATTER ")) {
+        if (["LIVE_GAMES", "LIVE GAMES", "GAMES", "DICE", "DICE GAME", "DICE ARENA", "SPIN", "SCATTER", "SCATTER SPIN"].includes(dicePayload) || dicePayload.startsWith("SCATTER ")) {
           const publicBase = String(process.env.RENDER_EXTERNAL_URL || '').trim().replace(/\/$/, '');
           if (MONGODB_URI && mongoose.connection.readyState === 1 && /^https:\/\//i.test(publicBase) && PAGE_TOKEN) {
             try {
@@ -2560,7 +2560,7 @@ A new user successfully registered using your link! 🎁
               await axios.post('https://graph.facebook.com/v19.0/me/messages?access_token=' + PAGE_TOKEN, {
                 recipient: { id: psid },
                 message: { attachment: { type: 'template', payload: { template_type: 'button',
-                  text: '🎮 Choose a live game. Both games use your JojoWorld virtual coin balance.',
+                  text: '🎮 JOJOWORLD LIVE GAMES\nPumili ng laro sa buttons sa ibaba. Parehong gumagamit ng JojoWorld virtual coins.\n\n🎰 Scatter Spin — reels at jackpot\n🎲 Dice Arena — roll dice at piliin ang ODD o EVEN.',
                   buttons: [
                     { type: 'web_url', url: scatterUrl, title: '🎰 Scatter Spin' },
                     { type: 'web_url', url: launchUrl, title: '🎲 Dice Arena' }
