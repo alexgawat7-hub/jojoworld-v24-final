@@ -710,35 +710,55 @@ async function generateProfileCanvas(user) {
   // [EMOJI-MARKED HEADER PLACEMENT] VIP name sits at the user's heart marker, to the right of the verified plate; non-VIP layout stays unchanged.
   // [HEADER FINAL LAYOUT] Center every user's display name so purchased text effects stay fully visible; VIP plates stack beneath it.
   const nameX=500, nameY=237, nameAlign='center', nameMaxWidth=390;
-  // [GLOBAL GLOWING NAMEPLATE] A premium neon-metal plaque sits behind EVERY user's display name.
-  // Its glow follows the equipped name effect, while the text effect itself remains unchanged.
+  // [UPGRADED V35 ROYAL NAMEPLATE] Beveled obsidian-and-metal plaque with layered trim,
+  // jewel-cut corners, illuminated rails, and a restrained center crest. Shared by every profile.
   {
-    const plateX=278, plateY=190, plateW=444, plateH=76, plateR=17;
+    const plateX=278, plateY=190, plateW=444, plateH=76, plateR=16;
     const plateGlow=effectGlow[effect] || (goldFrame || royalFrame ? '#ffd34f' : (frameStyle.equipped ? frameGlow : '#55dfff'));
-    const platePath=()=>{
-      ctx.beginPath();ctx.moveTo(plateX+plateR,plateY);ctx.lineTo(plateX+plateW-plateR,plateY);
-      ctx.lineTo(plateX+plateW,plateY+plateR);ctx.lineTo(plateX+plateW,plateY+plateH-plateR);
-      ctx.lineTo(plateX+plateW-plateR,plateY+plateH);ctx.lineTo(plateX+plateR,plateY+plateH);
-      ctx.lineTo(plateX,plateY+plateH-plateR);ctx.lineTo(plateX,plateY+plateR);ctx.closePath();
+    const platePath=(inset=0)=>{
+      const x=plateX+inset,y=plateY+inset,w=plateW-inset*2,h=plateH-inset*2,r=Math.max(4,plateR-inset*.4);
+      ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.lineTo(x+w,y+r);
+      ctx.lineTo(x+w,y+h-r);ctx.lineTo(x+w-r,y+h);ctx.lineTo(x+r,y+h);
+      ctx.lineTo(x,y+h-r);ctx.lineTo(x,y+r);ctx.closePath();
     };
     ctx.save();
-    ctx.shadowColor=plateGlow;ctx.shadowBlur=effect==='none'?17:25;
-    const plateFill=ctx.createLinearGradient(plateX,plateY,plateX+plateW,plateY+plateH);
-    plateFill.addColorStop(0,'#07101f');plateFill.addColorStop(.24,'#172744');plateFill.addColorStop(.5,'#080e20');plateFill.addColorStop(.78,'#18213c');plateFill.addColorStop(1,'#060b18');
-    ctx.fillStyle=plateFill;platePath();ctx.fill();ctx.shadowBlur=0;
-    ctx.strokeStyle=plateGlow;ctx.globalAlpha=.95;ctx.lineWidth=2.5;platePath();ctx.stroke();
-    ctx.strokeStyle='#fff2c0';ctx.globalAlpha=.72;ctx.lineWidth=1;ctx.beginPath();
-    ctx.moveTo(plateX+22,plateY+8);ctx.lineTo(plateX+plateW-22,plateY+8);
-    ctx.moveTo(plateX+22,plateY+plateH-8);ctx.lineTo(plateX+plateW-22,plateY+plateH-8);ctx.stroke();
-    // Glowing corner cuts and jewel studs make it read as a designed plate, not a plain box.
-    ctx.globalAlpha=1;ctx.strokeStyle=plateGlow;ctx.lineWidth=3;
-    ctx.beginPath();ctx.moveTo(plateX+12,plateY+25);ctx.lineTo(plateX+12,plateY+12);ctx.lineTo(plateX+30,plateY+12);
-    ctx.moveTo(plateX+plateW-30,plateY+12);ctx.lineTo(plateX+plateW-12,plateY+12);ctx.lineTo(plateX+plateW-12,plateY+25);
-    ctx.moveTo(plateX+12,plateY+plateH-25);ctx.lineTo(plateX+12,plateY+plateH-12);ctx.lineTo(plateX+30,plateY+plateH-12);
-    ctx.moveTo(plateX+plateW-30,plateY+plateH-12);ctx.lineTo(plateX+plateW-12,plateY+plateH-12);ctx.lineTo(plateX+plateW-12,plateY+plateH-25);ctx.stroke();
-    for(const sx of [plateX+21,plateX+plateW-21]){
-      ctx.shadowColor=plateGlow;ctx.shadowBlur=9;ctx.fillStyle='#fff2b0';ctx.beginPath();ctx.arc(sx,plateY+plateH/2,3.2,0,Math.PI*2);ctx.fill();
+    // Soft aura and deep enamel base.
+    ctx.shadowColor=plateGlow;ctx.shadowBlur=effect==='none'?18:27;
+    const enamel=ctx.createLinearGradient(plateX,plateY,plateX+plateW,plateY+plateH);
+    enamel.addColorStop(0,'#050916');enamel.addColorStop(.18,'#1b2d49');enamel.addColorStop(.48,'#080e20');
+    enamel.addColorStop(.78,'#172944');enamel.addColorStop(1,'#030713');
+    ctx.fillStyle=enamel;platePath();ctx.fill();ctx.shadowBlur=0;
+    // Layered bevels: luminous outer rim, dark inset, and fine champagne highlight.
+    ctx.strokeStyle=plateGlow;ctx.globalAlpha=.98;ctx.lineWidth=3;platePath();ctx.stroke();
+    ctx.strokeStyle='#020611';ctx.globalAlpha=1;ctx.lineWidth=3;platePath(5);ctx.stroke();
+    ctx.strokeStyle='#fff0bf';ctx.globalAlpha=.78;ctx.lineWidth=1;platePath(7);ctx.stroke();
+    // Metallic rails across the top and bottom catch light without crossing the name.
+    const rail=ctx.createLinearGradient(plateX,0,plateX+plateW,0);
+    rail.addColorStop(0,'#6b4918');rail.addColorStop(.22,'#fff2b5');rail.addColorStop(.5,'#a7f6ff');
+    rail.addColorStop(.78,'#fff0b0');rail.addColorStop(1,'#6b4918');
+    ctx.strokeStyle=rail;ctx.globalAlpha=.9;ctx.lineWidth=1.4;
+    ctx.beginPath();ctx.moveTo(plateX+34,plateY+8);ctx.lineTo(plateX+plateW-34,plateY+8);
+    ctx.moveTo(plateX+34,plateY+plateH-8);ctx.lineTo(plateX+plateW-34,plateY+plateH-8);ctx.stroke();
+    // Cut-gem corners and tiny illuminated rivets.
+    function gem(cx,cy,size){
+      ctx.beginPath();ctx.moveTo(cx,cy-size);ctx.lineTo(cx+size*.72,cy);
+      ctx.lineTo(cx,cy+size);ctx.lineTo(cx-size*.72,cy);ctx.closePath();ctx.fill();ctx.stroke();
     }
+    ctx.globalAlpha=1;ctx.lineWidth=1.2;ctx.strokeStyle='#fff4c8';ctx.fillStyle=plateGlow;
+    for(const side of [plateX+18,plateX+plateW-18]){
+      ctx.save();ctx.shadowColor=plateGlow;ctx.shadowBlur=10;gem(side,plateY+plateH/2,6);ctx.restore();
+      ctx.fillStyle='#fff4c8';ctx.beginPath();ctx.arc(side+(side<plateX+plateW/2?10:-10),plateY+plateH/2,1.8,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=plateGlow;
+    }
+    // Small centered crest above the text baseline, kept clear of the name itself.
+    ctx.save();ctx.translate(plateX+plateW/2,plateY+9);ctx.shadowColor=plateGlow;ctx.shadowBlur=8;
+    ctx.fillStyle='#fff0b0';ctx.strokeStyle=plateGlow;ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(-7,0);ctx.lineTo(-5,-5);ctx.lineTo(0,-2);ctx.lineTo(5,-5);ctx.lineTo(7,0);ctx.lineTo(4,3);ctx.lineTo(-4,3);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.restore();
+    // Fine side etching makes the plaque look machined rather than like a plain box.
+    ctx.globalAlpha=.75;ctx.strokeStyle=plateGlow;ctx.lineWidth=1.2;
+    ctx.beginPath();ctx.moveTo(plateX+31,plateY+24);ctx.lineTo(plateX+38,plateY+31);ctx.lineTo(plateX+31,plateY+38);
+    ctx.moveTo(plateX+plateW-31,plateY+24);ctx.lineTo(plateX+plateW-38,plateY+31);ctx.lineTo(plateX+plateW-31,plateY+38);ctx.stroke();
     ctx.restore();
   }
   if (!drawPremiumNameEffect(ctx, displayName, nameX, nameY, nameMaxWidth, effect, nameAlign)) {
