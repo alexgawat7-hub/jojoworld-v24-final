@@ -11,9 +11,10 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
     yellow: 0xf5b900, pink: 0xe936a9, white: 0xf4f5f6
   };
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(36, 2.8, 0.1, 100);
-  camera.position.set(0, 2.15, 6.3);
-  camera.lookAt(0, 0.15, 0);
+  const camera = new THREE.PerspectiveCamera(43, 2.8, 0.1, 100);
+  // [FIXED] Pull the camera back and aim lower so the entire recessed dice tray is visible on mobile.
+  camera.position.set(0, 2.45, 7.7);
+  camera.lookAt(0, -0.18, 0);
   let renderer;
   try { renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'high-performance' }); }
   catch (error) { mount.dataset.fallback = 'webgl-unavailable'; return; }
