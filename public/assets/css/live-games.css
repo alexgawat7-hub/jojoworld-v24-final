@@ -27,3 +27,13 @@ h1{text-align:center;font-size:clamp(34px,10vw,52px);line-height:1.02;letter-spa
 @media(min-width:560px){.coming-soon .coming-icon{height:170px}}
 \n.battle .art{background:radial-gradient(ellipse at 50% 110%,#8b3678,#30204f 55%,#17172e)}.battle .art:before{width:190px;height:190px;border:1px solid #ff9bdd66;box-shadow:0 0 0 18px #ff9bdd0d,0 0 0 38px #ff9bdd0a}.battle-emblem{position:relative;z-index:1;width:84px;height:84px;display:grid;place-items:center;border-radius:24px;border:1px solid #ffb4ed66;background:linear-gradient(145deg,#ffdcf5,#ff9bdd 35%,#6549a1);font-size:42px;box-shadow:0 9px 0 #522f76,0 15px 30px #0008;transform:rotate(-8deg)}.battle .play{background:linear-gradient(100deg,#ff9bdd,#b8a2ff);box-shadow:0 5px 0 #71458e;color:#25132e}\n
 .racing .art{background:radial-gradient(ellipse at 50% 110%,#1e7787,#18234b 55%,#14172d)}.racing .art:before{width:190px;height:190px;border:1px solid #73fff066;box-shadow:0 0 0 18px #73fff00d,0 0 0 38px #73fff00a}.racing-emblem{position:relative;z-index:1;font-size:62px;filter:drop-shadow(0 0 15px #73fff0);animation:racingFloat 2s ease-in-out infinite}.racing .play{background:linear-gradient(100deg,#73fff0,#9ca7ff);box-shadow:0 5px 0 #365c91;color:#091523}@keyframes racingFloat{50%{transform:translateY(-6px) rotate(-5deg)}}
+
+/* Color Rush Live lobby card */
+.color-game .art{background:radial-gradient(ellipse at 50% 110%,#4d3c9b,#182448 57%,#121629)}
+.color-game .art:before{width:190px;height:190px;border:1px solid #b7b5ff55;box-shadow:0 0 0 18px #b7b5ff0d,0 0 0 38px #b7b5ff0a}
+.color-orbs{display:flex;align-items:center;gap:10px;position:relative;z-index:1;transform:rotate(-7deg)}
+.color-orbs i{display:grid;place-items:center;width:64px;height:72px;border-radius:18px;border:2px solid #ffffff80;color:#fff;font-size:22px;font-style:normal;font-weight:1000;box-shadow:0 8px 0 #10152d,0 12px 25px #0009,inset 0 0 18px #ffffff40;text-shadow:0 2px 8px #0008}
+.color-orbs i:nth-child(1){background:linear-gradient(145deg,#ff9caa,#f02e59 60%,#6f1430);transform:translateY(5px)}
+.color-orbs i:nth-child(2){background:linear-gradient(145deg,#a5eaff,#2586ff 60%,#173d92);transform:translateY(-8px)}
+.color-orbs i:nth-child(3){background:linear-gradient(145deg,#aaffd3,#14c98a 60%,#075947);transform:translateY(4px)}
+.color-game .play{background:linear-gradient(100deg,#c8d1ff,#9dffda);box-shadow:0 5px 0 #484783}
