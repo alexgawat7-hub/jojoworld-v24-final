@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#090b1b"><title>JojoWorld • Neon Battle</title>
+<link rel="stylesheet" href="/assets/css/neon-battle.css?v=20261018a">
+</head>
+<body><main class="app">
+<header class="top"><div class="brand">✦ JOJOWORLD ARENA</div><a id="lobby" href="/live-games" class="back">← Game Lobby</a></header>
+<section class="hero"><div class="eyebrow">FREE SKILL-BASED 1 VS 1</div><h1>NEON <span>BATTLE</span></h1><p>Read your rival. Choose your move. Win rounds with timing and strategy.</p></section>
+<div class="wallet"><span>YOUR COINS <strong id="balance">—</strong></span><span class="reward">WIN +20 · PLAY +5</span></div>
+<section class="panel" id="matchPanel">
+<div class="statusline"><span class="dot"></span><strong id="status">READY TO FIGHT</strong></div>
+<div class="arena">
+<div class="fighter"><div class="avatar blue">⚡</div><strong id="youName">YOU</strong><div class="hp"><i id="youHp"></i></div><small>HP <b id="youHpText">100</b></small></div>
+<div class="vs">VS</div>
+<div class="fighter"><div class="avatar pink">🔥</div><strong id="opponentName">RIVAL</strong><div class="hp"><i id="opponentHp"></i></div><small>HP <b id="opponentHpText">100</b></small></div>
+</div>
+<div class="roundlabel" id="roundLabel">ROUND — / 5</div>
+<div id="notice" class="notice">Find an opponent to begin.</div>
+<div class="moves" id="moves" hidden>
+<button data-move="attack"><span>⚔️</span><b>ATTACK</b><small>Strike hard</small></button>
+<button data-move="guard"><span>🛡️</span><b>GUARD</b><small>Reduce damage</small></button>
+<button data-move="dash"><span>💨</span><b>DASH</b><small>Dodge / counter</small></button>
+</div>
+<div id="roundResult" class="round-result" aria-live="polite"></div>
+<div class="controls"><button id="join" class="primary">⚡ FIND A RIVAL</button><button id="cancel" class="secondary" hidden>Cancel Search</button><button id="again" class="primary" hidden>⚔️ FIND NEXT MATCH</button></div>
+<p class="fineprint">No entry fee. No coins are wagered or taken from the losing player. Match results are resolved by the server; winner earns 20 coins and the other player earns 5 participation coins. A draw gives each player 10 coins.</p>
+</section>
+<section class="rules"><h2>HOW TO WIN</h2><p><b>⚔️ Attack</b> pressures Guard, but Dash can evade it.</p><p><b>🛡️ Guard</b> reduces an incoming Attack, but can be countered by Dash.</p><p><b>💨 Dash</b> avoids Attack and counters Guard. Choose wisely across five rounds.</p></section>
+</main>
+<script src="/assets/js/neon-battle.js?v=20261018a" defer></script></body></html>
