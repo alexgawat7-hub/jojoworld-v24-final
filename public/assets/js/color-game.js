@@ -1,6 +1,7 @@
 const $=id=>document.getElementById(id);
 const token=new URLSearchParams(location.search).get('token')||'';
 const money=n=>Math.max(0,Math.floor(Number(n)||0)).toLocaleString('en-US');
+const compactMoney=n=>{const v=Math.max(0,Number(n)||0);return v>=1000000?(v/1000000).toFixed(v%1000000===0?0:1)+'M':v>=1000?(v/1000).toFixed(v%1000===0?0:1)+'K':String(Math.floor(v));};
 const colors=['RED','BLUE','GREEN','YELLOW','PINK','WHITE'];
 let previousBetAmount=100,lastBetAnnouncementRound='',lastCountdownSecond='';
 let selectedColor='',balance=0,roundState=null,working=false,loading=false,lastResultKey='',soundEnabled=false,audioContext=null,lastRollRound='',pendingResultState=null,revealedRoundNumber=0,pullInProgress=false,pullStartY=0,pullStartTime=0,pullTimer=null,autoPullTimer=null;
@@ -32,6 +33,19 @@ function renderBets(state){
  $('redTotal').textContent=money(state.totals.RED);
  $('blueTotal').textContent=money(state.totals.BLUE);
  $('greenTotal').textContent=money(state.totals.GREEN);$('yellowTotal').textContent=money(state.totals.YELLOW);$('pinkTotal').textContent=money(state.totals.PINK);if($('whiteTotal'))$('whiteTotal').textContent=money(state.totals.WHITE||0);
+ // Each on-color chip comes only from a bet returned by the live server.
+ for(const color of colors){
+  const choice=document.querySelector('.color-choice[data-color="'+color+'"]');
+  if(!choice)continue;
+  choice.dataset.total=compactMoney(state.totals?.[color]||0);
+  const chip=choice.querySelector('.chip-stack');
+  if(!chip)continue;
+  const actual=(Array.isArray(state.bets)?state.bets:[]).filter(b=>String(b.color||'').toUpperCase()===color);
+  chip.textContent=actual.slice(0,3).map(b=>compactMoney(b.amount)).join(' · ');
+  chip.style.display=actual.length?'grid':'none';
+  chip.title=actual.length?actual.length+' actual bet(s) on '+color:'No bets on '+color;
+  chip.classList.toggle('chip-triple',actual.length>1);
+ }
  const list=$('betsList');list.replaceChildren();
  if(!state.bets?.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='Waiting for the first player to bet…';list.appendChild(empty);return;}
  state.bets.forEach(b=>{
@@ -83,13 +97,14 @@ function speakPlaceYourBet(roundNumber){
  if(!soundEnabled||!('speechSynthesis' in window)||typeof SpeechSynthesisUtterance==='undefined')return;
  const round=String(roundNumber??roundState?.roundNumber??'');
  if(!round||lastBetAnnouncementRound===round)return;
- lastBetAnnouncementRound=round;
  try{
   const utterance=new SpeechSynthesisUtterance('Place your bet!');
   utterance.lang='en-US';utterance.rate=.92;utterance.pitch=.95;utterance.volume=1;
+  utterance.onstart=()=>{lastBetAnnouncementRound=round;};
+  utterance.onerror=()=>{if(lastBetAnnouncementRound===round)lastBetAnnouncementRound='';};
   window.speechSynthesis.cancel();window.speechSynthesis.resume();
-  window.setTimeout(()=>{try{window.speechSynthesis.speak(utterance);}catch(_){}},120);
- }catch(_){}
+  window.setTimeout(()=>{try{if(lastBetAnnouncementRound!==round)window.speechSynthesis.speak(utterance);}catch(_){lastBetAnnouncementRound='';}},120);
+ }catch(_){lastBetAnnouncementRound='';}
 }
 function playCountdown(second){
  if(!soundEnabled)return;
