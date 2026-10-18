@@ -2485,7 +2485,7 @@ A new user successfully registered using your link! 🎁
         // [JOJOWORLD BROWSER-ONLY DICE ARENA] Dice Arena is launched from the existing Scatter Spin menu.
         // Text-based Scatter Spin and Dice betting are disabled; SPIN/SCATTER open the browser game.
         const dicePayload = upperRaw.trim();
-        if (["DICE", "DICE GAME", "DICE ARENA", "SPIN", "SCATTER", "SCATTER SPIN"].includes(dicePayload)) {
+        if (["DICE", "DICE GAME", "DICE ARENA", "SPIN", "SCATTER", "SCATTER SPIN"].includes(dicePayload) || dicePayload.startsWith("SCATTER ")) {
           const publicBase = String(process.env.RENDER_EXTERNAL_URL || '').trim().replace(/\/$/, '');
           if (MONGODB_URI && mongoose.connection.readyState === 1 && /^https:\/\//i.test(publicBase) && PAGE_TOKEN) {
             try {
