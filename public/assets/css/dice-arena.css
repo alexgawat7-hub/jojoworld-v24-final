@@ -44,3 +44,48 @@ button:not(:disabled):active{transform:translateY(2px) scale(.98);filter:brightn
 
 
 .game-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.lobby-link,.sound-toggle{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 13px;border:1px solid #755c42;border-radius:30px;background:#211c25;color:#fff0cf;text-decoration:none;font-size:11px;font-weight:900;letter-spacing:.4px}.sound-toggle{cursor:pointer;color:#ffd76b}.sound-toggle[aria-pressed="true"]{border-color:#3b9b73;background:#12372c;color:#9cffcf}
+
+
+/* Full-screen arcade layout: compact all controls into the viewport. */
+html,body{width:100%;height:100%;height:100dvh;min-height:0;overflow:hidden;overscroll-behavior:none}
+body{display:flex}
+.app{width:100%;max-width:760px;height:100%;height:100dvh;min-height:0;overflow:hidden;margin:0 auto;padding:clamp(4px,1vh,9px) clamp(7px,1.6vw,12px);display:flex;flex-direction:column;gap:clamp(3px,.55vh,6px)}
+.game-nav{flex:0 0 auto;margin:0}
+.brand{flex:0 0 auto;font-size:10px}
+.title{font-size:clamp(23px,4.5vh,34px);line-height:1;margin:0}
+.sub{font-size:9px;line-height:1.1}
+.balance{flex:0 0 auto;margin:0;padding:6px 10px}
+.balance strong{font-size:18px}
+.table{flex:1 1 auto;min-height:0;padding:6px 8px;display:flex;flex-direction:column;justify-content:center}
+.tablelabel{font-size:9px}
+.dicearea{height:clamp(70px,13vh,115px);flex:0 0 auto}
+.die{width:clamp(55px,10vh,82px);padding:10px;border-radius:14px;gap:3px}
+.result{font-size:14px;min-height:0}
+.result small{font-size:9px}
+.panel{flex:0 0 auto;margin:0;padding:7px 9px;border-radius:13px}
+.panelhead{margin-bottom:5px}
+.panelhead b{font-size:11px}
+.panelhead span{font-size:8px}
+.chips{gap:5px}
+.chip{padding:6px 3px;font-size:11px}
+.wager{margin:5px 0;font-size:10px}
+.wager strong{font-size:12px}
+.panelhead[style]{margin-top:5px!important}
+.predict{padding:7px 5px;font-size:11px}
+.rollbtn{margin-top:5px;padding:9px;font-size:13px}
+.arena-banner{flex:0 0 auto;margin:0;padding:6px 9px}
+.arena-banner b{font-size:9px}
+.arena-banner small{font-size:8px;margin-top:1px}
+.round-pill{padding:4px 7px;font-size:8px}
+.stats{flex:0 0 auto;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:0}
+.stat{padding:5px 6px;border-radius:9px}
+.stat small{font-size:8px;letter-spacing:0;text-transform:none}
+.stat strong{font-size:clamp(11px,1.8vh,16px);margin-top:2px}
+.app>.panel:last-of-type{padding:5px 8px}
+.app>.panel:last-of-type .panelhead{margin-bottom:2px}
+.recent{padding:2px 0;gap:4px}
+.recent-die{min-width:32px;padding:4px;font-size:9px}
+.recent-die small{font-size:8px}
+.note{display:none}
+@media(max-height:680px){.app{gap:2px;padding-top:3px;padding-bottom:3px}.dicearea{height:62px}.die{width:52px;padding:8px}.balance{padding:4px 8px}.panel{padding:5px 7px}.rollbtn{padding:7px}.stats .stat{padding:4px}.arena-banner{padding:4px 8px}}
+@media(max-width:390px){.stat small{font-size:7px}.stats{gap:3px}.stat{padding:4px 3px}.game-nav .lobby-link,.game-nav .sound-toggle{min-height:32px;padding:6px 9px;font-size:9px}}
