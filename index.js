@@ -264,9 +264,11 @@ app.post('/api/scatter-spin/spin', async (req, res) => {
       db.jackpotPool = Math.max(0, Math.floor(Number(db.jackpotPool) || 1500)) + 5;
       const roll = crypto.randomInt(0, 10000) / 10000;
       let result = { visual: ['💥','💣','❌','💣'], win: 0, text: 'ZONK! Better luck next spin.', jackpot: false };
-      if (roll < 0.025) result = { visual: ['👑','👑','👑'], win: db.jackpotPool, text: 'GRAND JACKPOT!', jackpot: true };
-      else if (roll < 0.22) result = { visual: ['💎','💎','💎'], win: 75, text: 'BIG WIN! +75 coins', jackpot: false };
-      else if (roll < 0.58) result = { visual: ['🪙','🪙','🎁'], win: 20, text: 'SMALL WIN! +20 coins', jackpot: false };
+      // Lower, transparent win rates: jackpot 0.1%, big win 3%, small win 12%.
+      // All outcomes are selected server-side using a cryptographically secure random roll.
+      if (roll < 0.001) result = { visual: ['👑','👑','👑'], win: db.jackpotPool, text: 'GRAND JACKPOT!', jackpot: true };
+      else if (roll < 0.031) result = { visual: ['💎','💎','💎'], win: 75, text: 'BIG WIN! +75 coins', jackpot: false };
+      else if (roll < 0.151) result = { visual: ['🪙','🪙','🎁'], win: 20, text: 'SMALL WIN! +20 coins', jackpot: false };
       if (result.jackpot) {
         user.coins += result.win;
         db.jackpotPool = 1500;
