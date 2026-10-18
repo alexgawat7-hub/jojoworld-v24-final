@@ -710,65 +710,57 @@ async function generateProfileCanvas(user) {
   // [EMOJI-MARKED HEADER PLACEMENT] VIP name sits at the user's heart marker, to the right of the verified plate; non-VIP layout stays unchanged.
   // [HEADER FINAL LAYOUT] Center every user's display name so purchased text effects stay fully visible; VIP plates stack beneath it.
   const nameX=500, nameY=237, nameAlign='center', nameMaxWidth=390;
-  // [OBSIDIAN TRIBAL NAMEPLATE V38] Cleaner premium silhouette: fewer spikes, balanced wings,
-  // restrained gold bevels, polished obsidian center, and no center crest competing with the username.
+  // [PREMIUM LUXURY NAMEPLATE V39] Clean non-tribal design: polished onyx, champagne-gold trim, and restrained art-deco corner details.
   {
     const plateX=278, plateY=190, plateW=444, plateH=76;
-    const gold='#c6a45c', goldHi='#f6e6b3', goldDeep='#6e5122';
-    const platePath=(inset=0)=>{
-      const x=plateX+inset,y=plateY+inset,w=plateW-inset*2,h=plateH-inset*2;
-      const pts=[
-        [.055,.50],[.015,.31],[.105,.36],[.075,.17],[.205,.29],[.265,.20],
-        [.325,.31],[.405,.25],[.455,.34],[.50,.29],[.545,.34],[.595,.25],
-        [.675,.31],[.735,.20],[.795,.29],[.925,.17],[.895,.36],[.985,.31],
-        [.945,.50],[.985,.69],[.895,.64],[.925,.83],[.795,.71],[.735,.80],
-        [.675,.69],[.595,.75],[.545,.66],[.50,.71],[.455,.66],[.405,.75],
-        [.325,.69],[.265,.80],[.205,.71],[.075,.83],[.105,.64],[.015,.69]
-      ];
+    const gold='#d8bd7b', goldLight='#fff0c4', goldDark='#806333';
+    const roundedPlate=(inset=0)=>{
+      const x=plateX+inset,y=plateY+inset,w=plateW-inset*2,h=plateH-inset*2,r=12;
       ctx.beginPath();
-      pts.forEach((pt,i)=>{const px=x+w*pt[0],py=y+h*pt[1];if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);});
-      ctx.closePath();
+      ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+      ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+      ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+      ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
     };
     ctx.save();
-    // Soft, controlled gold halo rather than a heavy neon outline.
-    ctx.shadowColor='rgba(198,164,92,0.62)';ctx.shadowBlur=12;
-    const enamel=ctx.createLinearGradient(plateX,plateY,plateX+plateW,plateY+plateH);
-    enamel.addColorStop(0,'#07090d');enamel.addColorStop(.20,'#202126');
-    enamel.addColorStop(.43,'#08090c');enamel.addColorStop(.62,'#171511');
-    enamel.addColorStop(.82,'#090a0d');enamel.addColorStop(1,'#020304');
-    ctx.fillStyle=enamel;platePath();ctx.fill();ctx.shadowBlur=0;
-    // Outer metal rim, inner dark bevel, and fine warm highlight.
-    ctx.strokeStyle=goldDeep;ctx.globalAlpha=.95;ctx.lineWidth=5;platePath();ctx.stroke();
-    ctx.strokeStyle=gold;ctx.globalAlpha=1;ctx.lineWidth=1.8;platePath(2);ctx.stroke();
-    ctx.strokeStyle='rgba(255,241,198,0.72)';ctx.lineWidth=.8;platePath(5);ctx.stroke();
-    // Subtle horizontal reflection gives the center a polished stone finish.
-    const sheen=ctx.createLinearGradient(0,plateY+8,0,plateY+30);
-    sheen.addColorStop(0,'rgba(255,255,255,0.13)');sheen.addColorStop(1,'rgba(255,255,255,0)');
-    ctx.fillStyle=sheen;ctx.fillRect(plateX+104,plateY+8,plateW-208,20);
-    // Engraved mirrored tribal blades remain at the ends, leaving the name area clean.
+    // Soft, subtle gold aura around a clean silhouette.
+    ctx.shadowColor='rgba(216,189,123,0.35)';ctx.shadowBlur=10;
+    const enamel=ctx.createLinearGradient(plateX,plateY,plateX,plateY+plateH);
+    enamel.addColorStop(0,'#34363b');enamel.addColorStop(.18,'#17191e');
+    enamel.addColorStop(.52,'#080a0e');enamel.addColorStop(.82,'#121419');
+    enamel.addColorStop(1,'#29251d');
+    ctx.fillStyle=enamel;roundedPlate();ctx.fill();ctx.shadowBlur=0;
+    // Thin layered metal edging, deliberately elegant rather than spiky.
+    ctx.strokeStyle=goldDark;ctx.lineWidth=3.2;roundedPlate();ctx.stroke();
+    ctx.strokeStyle=gold;ctx.lineWidth=1.2;roundedPlate(2);ctx.stroke();
+    ctx.strokeStyle='rgba(255,242,204,0.72)';ctx.lineWidth=.7;roundedPlate(5);ctx.stroke();
+    // Restrained glossy reflection across the top edge.
+    ctx.save();roundedPlate(3);ctx.clip();
+    const sheen=ctx.createLinearGradient(0,plateY+3,0,plateY+31);
+    sheen.addColorStop(0,'rgba(255,255,255,0.15)');
+    sheen.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=sheen;ctx.fillRect(plateX+4,plateY+3,plateW-8,29);
+    ctx.restore();
+    // Minimal mirrored corner accents; keep the center completely clear for the username.
     for(const side of [0,1]){
       ctx.save();
       if(side===1){ctx.translate(plateX+plateW,0);ctx.scale(-1,1);}
-      ctx.lineCap='round';ctx.lineJoin='round';
-      ctx.strokeStyle=gold;ctx.globalAlpha=.92;ctx.lineWidth=1.8;
+      ctx.strokeStyle=gold;ctx.lineWidth=1.5;ctx.lineCap='round';ctx.lineJoin='round';
       ctx.beginPath();
-      ctx.moveTo(plateX+18,plateY+38);ctx.lineTo(plateX+39,plateY+28);
-      ctx.lineTo(plateX+29,plateY+17);ctx.lineTo(plateX+57,plateY+27);
-      ctx.moveTo(plateX+30,plateY+51);ctx.lineTo(plateX+49,plateY+43);
-      ctx.lineTo(plateX+43,plateY+57);ctx.lineTo(plateX+68,plateY+48);
-      ctx.moveTo(plateX+55,plateY+17);ctx.lineTo(plateX+72,plateY+25);
+      ctx.moveTo(plateX+17,plateY+25);ctx.lineTo(plateX+17,plateY+17);
+      ctx.lineTo(plateX+39,plateY+17);
+      ctx.moveTo(plateX+17,plateY+51);ctx.lineTo(plateX+17,plateY+59);
+      ctx.lineTo(plateX+39,plateY+59);
       ctx.stroke();
-      ctx.strokeStyle='rgba(255,239,188,0.7)';ctx.lineWidth=.7;
-      ctx.beginPath();ctx.moveTo(plateX+20,plateY+37);ctx.lineTo(plateX+38,plateY+29);
-      ctx.moveTo(plateX+31,plateY+50);ctx.lineTo(plateX+48,plateY+43);ctx.stroke();
+      ctx.strokeStyle='rgba(255,240,195,0.8)';ctx.lineWidth=.7;
+      ctx.beginPath();ctx.moveTo(plateX+21,plateY+21);ctx.lineTo(plateX+35,plateY+21);
+      ctx.moveTo(plateX+21,plateY+55);ctx.lineTo(plateX+35,plateY+55);ctx.stroke();
       ctx.restore();
     }
-    // Small side diamonds, not a central crest, so the username stays the focal point.
-    for(const sx of [plateX+91,plateX+plateW-91]){
-      ctx.save();ctx.translate(sx,plateY+plateH/2);
-      ctx.fillStyle=gold;ctx.globalAlpha=.9;ctx.beginPath();
-      ctx.moveTo(0,-4);ctx.lineTo(3,0);ctx.lineTo(0,4);ctx.lineTo(-3,0);ctx.closePath();ctx.fill();
-      ctx.restore();
+    // Small champagne-gold studs near the ends, not beside the name.
+    ctx.fillStyle=goldLight;
+    for(const sx of [plateX+61,plateX+plateW-61]){
+      ctx.beginPath();ctx.arc(sx,plateY+plateH/2,1.8,0,Math.PI*2);ctx.fill();
     }
     ctx.restore();
   }
