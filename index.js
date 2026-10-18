@@ -710,55 +710,67 @@ async function generateProfileCanvas(user) {
   // [EMOJI-MARKED HEADER PLACEMENT] VIP name sits at the user's heart marker, to the right of the verified plate; non-VIP layout stays unchanged.
   // [HEADER FINAL LAYOUT] Center every user's display name so purchased text effects stay fully visible; VIP plates stack beneath it.
   const nameX=500, nameY=237, nameAlign='center', nameMaxWidth=390;
-  // [UPGRADED V35 ROYAL NAMEPLATE] Beveled obsidian-and-metal plaque with layered trim,
-  // jewel-cut corners, illuminated rails, and a restrained center crest. Shared by every profile.
+  // [UPGRADED V36 TRIBAL NAMEPLATE] Symmetrical sharp tribal wings, horn-like tips,
+  // carved inner filigree, and a dark enamel center. The glow follows the user's name effect.
   {
-    const plateX=278, plateY=190, plateW=444, plateH=76, plateR=16;
+    const plateX=278, plateY=190, plateW=444, plateH=76;
     const plateGlow=effectGlow[effect] || (goldFrame || royalFrame ? '#ffd34f' : (frameStyle.equipped ? frameGlow : '#55dfff'));
-    const platePath=(inset=0)=>{
-      const x=plateX+inset,y=plateY+inset,w=plateW-inset*2,h=plateH-inset*2,r=Math.max(4,plateR-inset*.4);
-      ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.lineTo(x+w,y+r);
-      ctx.lineTo(x+w,y+h-r);ctx.lineTo(x+w-r,y+h);ctx.lineTo(x+r,y+h);
-      ctx.lineTo(x,y+h-r);ctx.lineTo(x,y+r);ctx.closePath();
+    const tribalPath=(inset=0)=>{
+      const x=plateX+inset,y=plateY+inset,w=plateW-inset*2,h=plateH-inset*2;
+      const p=(px,py)=>[x+w*px,y+h*py];
+      const points=[
+        [.04,.50],[.00,.25],[.12,.34],[.08,.10],[.25,.25],[.31,.12],[.40,.25],
+        [.46,.08],[.50,.24],[.54,.08],[.60,.25],[.69,.12],[.75,.25],[.92,.10],
+        [.88,.34],[1,.25],[.96,.50],[1,.75],[.88,.66],[.92,.90],[.75,.75],
+        [.69,.88],[.60,.75],[.54,.92],[.50,.76],[.46,.92],[.40,.75],[.31,.88],
+        [.25,.75],[.08,.90],[.12,.66],[.00,.75]
+      ];
+      ctx.beginPath();
+      points.forEach((pt,i)=>{const [px,py]=p(pt[0],pt[1]);if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);});
+      ctx.closePath();
     };
     ctx.save();
-    // Soft aura and deep enamel base.
-    ctx.shadowColor=plateGlow;ctx.shadowBlur=effect==='none'?18:27;
+    ctx.shadowColor=plateGlow;ctx.shadowBlur=effect==='none'?18:28;
     const enamel=ctx.createLinearGradient(plateX,plateY,plateX+plateW,plateY+plateH);
-    enamel.addColorStop(0,'#050916');enamel.addColorStop(.18,'#1b2d49');enamel.addColorStop(.48,'#080e20');
-    enamel.addColorStop(.78,'#172944');enamel.addColorStop(1,'#030713');
-    ctx.fillStyle=enamel;platePath();ctx.fill();ctx.shadowBlur=0;
-    // Layered bevels: luminous outer rim, dark inset, and fine champagne highlight.
-    ctx.strokeStyle=plateGlow;ctx.globalAlpha=.98;ctx.lineWidth=3;platePath();ctx.stroke();
-    ctx.strokeStyle='#020611';ctx.globalAlpha=1;ctx.lineWidth=3;platePath(5);ctx.stroke();
-    ctx.strokeStyle='#fff0bf';ctx.globalAlpha=.78;ctx.lineWidth=1;platePath(7);ctx.stroke();
-    // Metallic rails across the top and bottom catch light without crossing the name.
-    const rail=ctx.createLinearGradient(plateX,0,plateX+plateW,0);
-    rail.addColorStop(0,'#6b4918');rail.addColorStop(.22,'#fff2b5');rail.addColorStop(.5,'#a7f6ff');
-    rail.addColorStop(.78,'#fff0b0');rail.addColorStop(1,'#6b4918');
-    ctx.strokeStyle=rail;ctx.globalAlpha=.9;ctx.lineWidth=1.4;
-    ctx.beginPath();ctx.moveTo(plateX+34,plateY+8);ctx.lineTo(plateX+plateW-34,plateY+8);
-    ctx.moveTo(plateX+34,plateY+plateH-8);ctx.lineTo(plateX+plateW-34,plateY+plateH-8);ctx.stroke();
-    // Cut-gem corners and tiny illuminated rivets.
-    function gem(cx,cy,size){
-      ctx.beginPath();ctx.moveTo(cx,cy-size);ctx.lineTo(cx+size*.72,cy);
-      ctx.lineTo(cx,cy+size);ctx.lineTo(cx-size*.72,cy);ctx.closePath();ctx.fill();ctx.stroke();
+    enamel.addColorStop(0,'#050611');enamel.addColorStop(.2,'#1b2340');
+    enamel.addColorStop(.5,'#050916');enamel.addColorStop(.8,'#17213b');enamel.addColorStop(1,'#03040a');
+    ctx.fillStyle=enamel;tribalPath();ctx.fill();ctx.shadowBlur=0;
+    // Layered tribal silhouette: luminous edge, dark cut-in, then fine highlight.
+    ctx.strokeStyle=plateGlow;ctx.globalAlpha=.98;ctx.lineWidth=3;tribalPath();ctx.stroke();
+    ctx.strokeStyle='#02040b';ctx.globalAlpha=1;ctx.lineWidth=3;tribalPath(4);ctx.stroke();
+    ctx.strokeStyle='#fff0bd';ctx.globalAlpha=.78;ctx.lineWidth=1;tribalPath(6);ctx.stroke();
+    // Angular tribal blades and etched chevrons on both wings, clear of the name.
+    ctx.lineCap='round';ctx.lineJoin='round';ctx.lineWidth=2;
+    ctx.strokeStyle=plateGlow;ctx.globalAlpha=.95;
+    for(const side of [0,1]){
+      ctx.save();
+      if(side===1){ctx.translate(plateX+plateW,0);ctx.scale(-1,1);}
+      const x=plateX,y=plateY,w=plateW,h=plateH;
+      ctx.beginPath();
+      ctx.moveTo(x+18,y+38);ctx.lineTo(x+39,y+29);ctx.lineTo(x+28,y+18);ctx.lineTo(x+61,y+28);
+      ctx.moveTo(x+34,y+51);ctx.lineTo(x+55,y+43);ctx.lineTo(x+48,y+57);ctx.lineTo(x+76,y+48);
+      ctx.moveTo(x+70,y+21);ctx.lineTo(x+91,y+30);ctx.lineTo(x+83,y+37);
+      ctx.stroke();
+      ctx.strokeStyle='#fff0bd';ctx.globalAlpha=.78;ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(x+19,y+38);ctx.lineTo(x+38,y+30);ctx.moveTo(x+35,y+51);ctx.lineTo(x+54,y+44);ctx.stroke();
+      ctx.restore();
+      ctx.strokeStyle=plateGlow;ctx.globalAlpha=.95;ctx.lineWidth=2;
     }
-    ctx.globalAlpha=1;ctx.lineWidth=1.2;ctx.strokeStyle='#fff4c8';ctx.fillStyle=plateGlow;
-    for(const side of [plateX+18,plateX+plateW-18]){
-      ctx.save();ctx.shadowColor=plateGlow;ctx.shadowBlur=10;gem(side,plateY+plateH/2,6);ctx.restore();
-      ctx.fillStyle='#fff4c8';ctx.beginPath();ctx.arc(side+(side<plateX+plateW/2?10:-10),plateY+plateH/2,1.8,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle=plateGlow;
-    }
-    // Small centered crest above the text baseline, kept clear of the name itself.
-    ctx.save();ctx.translate(plateX+plateW/2,plateY+9);ctx.shadowColor=plateGlow;ctx.shadowBlur=8;
-    ctx.fillStyle='#fff0b0';ctx.strokeStyle=plateGlow;ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(-7,0);ctx.lineTo(-5,-5);ctx.lineTo(0,-2);ctx.lineTo(5,-5);ctx.lineTo(7,0);ctx.lineTo(4,3);ctx.lineTo(-4,3);ctx.closePath();ctx.fill();ctx.stroke();
+    // Centered angular crest and jewel, integrated into the top edge.
+    ctx.save();ctx.translate(plateX+plateW/2,plateY+12);ctx.shadowColor=plateGlow;ctx.shadowBlur=9;
+    ctx.fillStyle=plateGlow;ctx.strokeStyle='#fff3c5';ctx.lineWidth=1.1;
+    ctx.beginPath();ctx.moveTo(-17,1);ctx.lineTo(-10,-3);ctx.lineTo(-6,-10);ctx.lineTo(0,-4);
+    ctx.lineTo(6,-10);ctx.lineTo(10,-3);ctx.lineTo(17,1);ctx.lineTo(7,5);ctx.lineTo(0,3);ctx.lineTo(-7,5);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.fillStyle='#fff8d7';ctx.beginPath();ctx.moveTo(0,-2);ctx.lineTo(4,3);ctx.lineTo(0,8);ctx.lineTo(-4,3);ctx.closePath();ctx.fill();
     ctx.restore();
-    // Fine side etching makes the plaque look machined rather than like a plain box.
-    ctx.globalAlpha=.75;ctx.strokeStyle=plateGlow;ctx.lineWidth=1.2;
-    ctx.beginPath();ctx.moveTo(plateX+31,plateY+24);ctx.lineTo(plateX+38,plateY+31);ctx.lineTo(plateX+31,plateY+38);
-    ctx.moveTo(plateX+plateW-31,plateY+24);ctx.lineTo(plateX+plateW-38,plateY+31);ctx.lineTo(plateX+plateW-31,plateY+38);ctx.stroke();
+    // Outer horn highlights emphasize the tribal silhouette.
+    ctx.globalAlpha=.95;ctx.strokeStyle=plateGlow;ctx.lineWidth=2.2;
+    ctx.beginPath();
+    ctx.moveTo(plateX+8,plateY+20);ctx.lineTo(plateX+21,plateY+27);ctx.lineTo(plateX+12,plateY+9);
+    ctx.moveTo(plateX+plateW-8,plateY+20);ctx.lineTo(plateX+plateW-21,plateY+27);ctx.lineTo(plateX+plateW-12,plateY+9);
+    ctx.moveTo(plateX+8,plateY+56);ctx.lineTo(plateX+22,plateY+49);ctx.lineTo(plateX+13,plateY+66);
+    ctx.moveTo(plateX+plateW-8,plateY+56);ctx.lineTo(plateX+plateW-22,plateY+49);ctx.lineTo(plateX+plateW-13,plateY+66);
+    ctx.stroke();
     ctx.restore();
   }
   if (!drawPremiumNameEffect(ctx, displayName, nameX, nameY, nameMaxWidth, effect, nameAlign)) {
