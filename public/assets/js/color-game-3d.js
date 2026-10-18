@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js';
+import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/jsm/geometries/RoundedBoxGeometry.js';
 
 (() => {
   const mount = document.getElementById('machine3d');
@@ -81,7 +82,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
 
   const dice = [];
   const pipMat = new THREE.MeshStandardMaterial({color:0xffffff, roughness:.24, metalness:.04, emissive:0x202020});
-  const diceGeo = new THREE.BoxGeometry(.78,.78,.78);
+  const diceGeo = new RoundedBoxGeometry(.78,.78,.78,4,.075);
   function makeDie(index) {
     const root = new THREE.Group();
     const body = new THREE.Mesh(diceGeo, mat(colors[['red','blue','green'][index]],.28,.24,{clearcoat:1,clearcoatRoughness:.15}));
