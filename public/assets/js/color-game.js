@@ -2,7 +2,7 @@ const $=id=>document.getElementById(id);
 const token=new URLSearchParams(location.search).get('token')||'';
 const money=n=>Math.max(0,Math.floor(Number(n)||0)).toLocaleString('en-US');
 const colors=['RED','BLUE','GREEN','YELLOW','PINK'];
-let selectedColor='',balance=0,roundState=null,working=false,loading=false,lastResultKey='';
+let selectedColor='',balance=0,roundState=null,working=false,loading=false,lastResultKey='',soundEnabled=false,audioContext=null,lastRollRound='';
 const lobby=$('lobby'),shop=$('shop');
 if(token){const q='?token='+encodeURIComponent(token);lobby.href='/live-games'+q;shop.href='/coin-shop'+q;}
 function setMessage(main,sub=''){const el=$('result');el.textContent=main;const small=document.createElement('small');small.textContent=sub;if(sub)el.appendChild(small);}
@@ -38,12 +38,35 @@ function renderBets(state){
   row.append(name,color,amount,status);list.appendChild(row);
  });
 }
-function renderDice(colors,rolling=false){
+function audio(){
+ if(!audioContext){const C=window.AudioContext||window.webkitAudioContext;if(C)audioContext=new C();}
+ if(audioContext?.state==='suspended')audioContext.resume();
+ return audioContext;
+}
+function tone(freq,duration,volume=0.035,type='sine',delay=0){
+ if(!soundEnabled)return;
+ const a=audio();if(!a)return;
+ const osc=a.createOscillator(),gain=a.createGain(),start=a.currentTime+delay;
+ osc.type=type;osc.frequency.setValueAtTime(freq,start);gain.gain.setValueAtTime(volume,start);gain.gain.exponentialRampToValueAtTime(.0001,start+duration);
+ osc.connect(gain);gain.connect(a.destination);osc.start(start);osc.stop(start+duration);
+}
+function playRoll(){
+ if(!soundEnabled)return;
+ for(let i=0;i<8;i++){tone(150+Math.random()*250,.055,.025,'triangle',i*.075);tone(500+Math.random()*700,.025,.012,'square',i*.075+.025);}
+ tone(105,.18,.06,'sine',.68);tone(740,.09,.025,'triangle',.82);
+}
+$('soundToggle').addEventListener('click',()=>{
+ soundEnabled=!soundEnabled;$('soundToggle').textContent=soundEnabled?'🔊 SOUND ON':'🔇 SOUND OFF';$('soundToggle').setAttribute('aria-pressed',String(soundEnabled));
+ if(soundEnabled){audio();tone(660,.08,.025,'sine');}
+});
+function renderDice(diceColors,rolling=false){
  const stage=$('colorStage');stage.classList.toggle('rolling',rolling);stage.classList.toggle('revealed',!rolling);
  document.querySelectorAll('.color-die').forEach((die,i)=>{
-  die.className='color-die '+String(colors[i]||'RED').toLowerCase();
+  die.className='color-die '+String(diceColors[i]||'RED').toLowerCase();
   if(rolling)die.classList.add('rolling-die');
-  const face=die.querySelector('.die-face');face.textContent=rolling?'✦':'●';
+  const face=die.querySelector('.die-face');face.replaceChildren();
+  if(rolling){const glint=document.createElement('span');glint.className='die-glint';glint.textContent='✦';face.appendChild(glint);}
+  else {face.classList.add('pips');[0,1,2,3,4].forEach(n=>{const pip=document.createElement('i');pip.className='pip pip-'+n;face.appendChild(pip);});}
  });
 }
 function renderState(state){
@@ -53,8 +76,13 @@ function renderState(state){
  $('timer').textContent=state.status==='betting'?(time/1000).toFixed(1)+'s':state.status==='settling'?'ROLLING…':'RESULT';
  $('roundStatus').textContent=state.status==='betting'?'BETTING OPEN':state.status==='settling'?'DICE ROLLING':'ROUND RESULT';
  $('timer').parentElement.classList.toggle('closed',state.status!=='betting');
- if(state.status==='betting')renderDice(['RED','BLUE','GREEN'],time<=3500);
- else if(Array.isArray(state.result))renderDice(state.result,false);
+ if(state.status==='betting'){
+  renderDice(['RED','BLUE','GREEN'],time<=3500);
+  if(time<=3500&&time>0&&lastRollRound!==String(state.roundNumber)){lastRollRound=String(state.roundNumber);playRoll();}
+ } else if(state.status==='settling'){
+  if(lastRollRound!==String(state.roundNumber)){lastRollRound=String(state.roundNumber);playRoll();}
+  renderDice(['RED','BLUE','GREEN'],true);
+ } else if(Array.isArray(state.result))renderDice(state.result,false);
  else renderDice(['RED','BLUE','GREEN'],true);
  if(state.status==='complete'&&state.result){
   const key=state.roundNumber+':'+state.result.join(',');
