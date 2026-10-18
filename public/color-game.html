@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#090b17"><title>JojoWorld • Color Rush Live</title>
-<link rel="stylesheet" href="/assets/css/color-game.css?v=20261018a">
+<meta name="theme-color" content="#090b17"><title>JojoWorld • Color Dice Live</title>
+<link rel="stylesheet" href="/assets/css/color-game.css?v=20261018b">
 </head>
 <body>
 <main class="app">
@@ -12,32 +12,34 @@
 <section class="wallet"><div><small>YOUR COIN BALANCE</small><strong id="balance">CONNECTING…</strong></div><span id="connection" class="connection">CONNECTING</span></section>
 <section class="round-panel">
 <div class="round-head"><div><small>CURRENT ROUND</small><strong id="round">#—</strong></div><div class="timer-wrap"><small id="roundStatus">BETTING OPEN</small><strong id="timer">25.0s</strong></div></div>
-<div class="color-stage" id="colorStage"><div class="orb red-orb">RED</div><div class="orb blue-orb">BLUE</div><div class="orb green-orb">GREEN</div></div>
-<div class="result" id="result">Choose a color to place your bet.<small>Round result is generated and confirmed by the server.</small></div>
+<div class="dice-stage" id="colorStage"><div class="die-slot"><div class="color-die red" id="die0"><span class="die-face">●</span></div></div><div class="die-slot"><div class="color-die blue" id="die1"><span class="die-face">●</span></div></div><div class="die-slot"><div class="color-die green" id="die2"><span class="die-face">●</span></div></div></div>
+<div class="result" id="result">Choose a color to place your bet.<small>Three color dice are rolled and settled by the game server.</small></div>
 </section>
 <section class="bet-panel">
 <div class="section-title"><b>🎯 CHOOSE YOUR COLOR</b><span>1 BET / PLAYER / ROUND</span></div>
 <div class="color-options">
-<button type="button" class="color-choice red-choice" data-color="RED"><span class="swatch"></span><b>RED</b><small>2× payout</small></button>
-<button type="button" class="color-choice blue-choice" data-color="BLUE"><span class="swatch"></span><b>BLUE</b><small>2× payout</small></button>
-<button type="button" class="color-choice green-choice" data-color="GREEN"><span class="swatch"></span><b>GREEN</b><small>4× payout</small></button>
+<button type="button" class="color-choice red-choice" data-color="RED"><span class="swatch"></span><b>RED</b><small>Up to 4×</small></button>
+<button type="button" class="color-choice blue-choice" data-color="BLUE"><span class="swatch"></span><b>BLUE</b><small>Up to 4×</small></button>
+<button type="button" class="color-choice green-choice" data-color="GREEN"><span class="swatch"></span><b>GREEN</b><small>Up to 4×</small></button>
+<button type="button" class="color-choice yellow-choice" data-color="YELLOW"><span class="swatch"></span><b>YELLOW</b><small>Up to 4×</small></button>
+<button type="button" class="color-choice pink-choice" data-color="PINK"><span class="swatch"></span><b>PINK</b><small>Up to 4×</small></button>
 </div>
 <div class="bet-row"><label for="betAmount">BET AMOUNT</label><input id="betAmount" type="number" inputmode="numeric" min="10" max="100000" step="10" value="100"><button type="button" class="max" id="maxBet">MAX</button></div>
 <div class="quick-bets"><button type="button" data-amount="10">10</button><button type="button" data-amount="50">50</button><button type="button" data-amount="100">100</button><button type="button" data-amount="500">500</button></div>
 <button type="button" class="place-bet" id="placeBet" disabled>SELECT A COLOR</button>
-<p class="fineprint">Virtual JojoWorld coins only. Bets close automatically when the countdown reaches zero. A winning bet returns the stated total payout, including the stake.</p>
+<p class="fineprint">Virtual JojoWorld coins only. Bets close automatically when the countdown reaches zero. Three dice are rolled independently. 1 matching die returns 2×, 2 matching dice return 3×, and 3 matching dice return 4× (total return includes your stake).</p>
 </section>
 <section class="live-board">
 <div class="section-title"><b>👥 LIVE PLAYER BETS</b><span id="playerCount">0 PLAYERS</span></div>
 <div class="totals">
 <div class="total red-total"><small>🔴 RED POOL</small><strong id="redTotal">0</strong></div>
 <div class="total blue-total"><small>🔵 BLUE POOL</small><strong id="blueTotal">0</strong></div>
-<div class="total green-total"><small>🟢 GREEN POOL</small><strong id="greenTotal">0</strong></div>
+<div class="total green-total"><small>🟢 GREEN</small><strong id="greenTotal">0</strong></div><div class="total yellow-total"><small>🟡 YELLOW</small><strong id="yellowTotal">0</strong></div><div class="total pink-total"><small>💗 PINK</small><strong id="pinkTotal">0</strong></div>
 </div>
 <div class="bets-heading"><span>PLAYER</span><span>COLOR</span><span>BET</span><span>STATUS</span></div>
 <div class="bets-list" id="betsList"><div class="empty">Waiting for the first player to bet…</div></div>
 </section>
-<p class="foot">JOJOWORLD COLOR RUSH · LIVE SERVER-SETTLED ROUNDS · VIRTUAL COINS ONLY</p>
+<p class="foot">JOJOWORLD COLOR DICE · 3 DICE · LIVE SERVER-SETTLED ROUNDS · VIRTUAL COINS ONLY</p>
 </main>
-<script src="/assets/js/color-game.js?v=20261018a" defer></script>
+<script src="/assets/js/color-game.js?v=20261018b" defer></script>
 </body></html>
