@@ -2,7 +2,26 @@ const faces={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
 function drawDie(id,n){const el=document.getElementById(id);el.innerHTML='';for(let i=0;i<9;i++){const p=document.createElement('i');p.className='pip'+(faces[n].includes(i)?' on':'');el.appendChild(p)}}
 drawDie('die1',3);drawDie('die2',5);
 let bet=100,pred='ODD',rolling=false,accountConnected=false,accountLoading=false,resultUnconfirmed=false;
-function playSound(){ /* Sound is intentionally disabled for Dice Arena. */ }
+const soundKey='jojoworldDiceSound';
+let soundOn=false,audioCtx=null,rollTick=0;
+const soundButton=document.getElementById('soundToggle');
+function renderSound(){soundButton.textContent=soundOn?'🔊 SOUND ON':'🔇 SOUND OFF';soundButton.setAttribute('aria-pressed',String(soundOn))}
+function playSound(kind='tap'){
+ if(!soundOn)return;
+ try{
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  if(!audioCtx)audioCtx=new AC();if(audioCtx.state==='suspended')audioCtx.resume();
+  const now=audioCtx.currentTime;
+  const notes=kind==='tick'?[420+Math.random()*260]:kind==='win'?[660,880,1100]:kind==='lose'?[300,220]:[440];
+  notes.forEach((freq,i)=>{const osc=audioCtx.createOscillator(),gain=audioCtx.createGain(),start=now+i*.07;osc.type=kind==='tick'?'triangle':'sine';osc.frequency.setValueAtTime(freq,start);gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(kind==='tick'?.022:.065,start+.012);gain.gain.exponentialRampToValueAtTime(.0001,start+(kind==='tick'?.045:.16));osc.connect(gain);gain.connect(audioCtx.destination);osc.start(start);osc.stop(start+(kind==='tick'?.05:.18));});
+ }catch(_){}
+}
+try{soundOn=localStorage.getItem(soundKey)==='true'}catch(_){}
+renderSound();
+soundButton.addEventListener('click',()=>{soundOn=!soundOn;try{localStorage.setItem(soundKey,String(soundOn))}catch(_){}renderSound();if(soundOn)playSound('tap')});
+const lobbyLink=document.getElementById('lobbyLink');
+if(token)lobbyLink.href='/live-games?token='+encodeURIComponent(token);
+ }
 const recentRolls=[];
 const money=n=>Number(n).toLocaleString('en-US');
 function addRecent(total,won){
