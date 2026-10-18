@@ -2,19 +2,7 @@ const faces={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
 function drawDie(id,n){const el=document.getElementById(id);el.innerHTML='';for(let i=0;i<9;i++){const p=document.createElement('i');p.className='pip'+(faces[n].includes(i)?' on':'');el.appendChild(p)}}
 drawDie('die1',3);drawDie('die2',5);
 let bet=100,pred='ODD',rolling=false,accountConnected=false,accountLoading=false,resultUnconfirmed=false;
-const soundKey='jojoworldArcadeSound';
-function readArcadeSound(){try{return localStorage.getItem(soundKey)!=='false'}catch(_){return true}}
-let soundOn=readArcadeSound(),audioCtx=null,rollTick=0;
-function playSound(kind){
- soundOn=readArcadeSound();if(!soundOn)return;
- try{
-  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
-  if(!audioCtx)audioCtx=new AC();if(audioCtx.state==='suspended')audioCtx.resume();
-  const now=audioCtx.currentTime;
-  const notes=kind==='tick'?[420+Math.random()*260]:kind==='win'?[660,880,1100]:kind==='lose'?[300,220]:[440];
-  notes.forEach((freq,i)=>{const osc=audioCtx.createOscillator(),gain=audioCtx.createGain(),start=now+i*.105;osc.type=kind==='tick'?'triangle':'sine';osc.frequency.setValueAtTime(freq,start);gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(kind==='tick'?.025:.075,start+.012);gain.gain.exponentialRampToValueAtTime(.0001,start+(kind==='tick'?.045:.18));osc.connect(gain);gain.connect(audioCtx.destination);osc.start(start);osc.stop(start+(kind==='tick'?.05:.2));});
- }catch(_){}
-}
+function playSound(){ /* Sound is intentionally disabled for Dice Arena. */ }
 const recentRolls=[];
 const money=n=>Number(n).toLocaleString('en-US');
 function addRecent(total,won){
