@@ -613,23 +613,24 @@ async function generateProfileCanvas(user) {
   const { frameName, frameKey, royal: royalFrame, gold: goldFrame, diamond: diamondFrame, neon: neonFrame, silver: silverFrame, color: frameColor, glow: frameGlow } = frameStyle;
   // [FIXED V31] Show the purchased VIP badge even if an older saved account only has its badge label.
   const vip = !!user.vip || String(user.badge || '').toLowerCase().includes('vip');
-  // [FULL PROFILE CARD V43] Deep obsidian backdrop with restrained aurora lighting and fine star texture.
-  const bg = ctx.createLinearGradient(0,0,W,H); bg.addColorStop(0,'#05070d'); bg.addColorStop(.34,'#10131d'); bg.addColorStop(.68,'#090c15'); bg.addColorStop(1,'#030509');
+  // [COLORFUL PROFILE CARD V44] Vibrant aurora background with jewel-toned light pools and colorful particles.
+  const bg = ctx.createLinearGradient(0,0,W,H); bg.addColorStop(0,'#080b2b'); bg.addColorStop(.22,'#25104b'); bg.addColorStop(.48,'#091d3c'); bg.addColorStop(.72,'#301044'); bg.addColorStop(1,'#061b2c');
   ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
   const aura=(x,y,r,color,alpha)=>{const a=ctx.createRadialGradient(x,y,0,x,y,r);a.addColorStop(0,color);a.addColorStop(1,'rgba(0,0,0,0)');ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle=a;ctx.fillRect(x-r,y-r,r*2,r*2);ctx.restore();};
-  aura(145,250,260,'#b28a3e',.18); aura(650,390,300,'#536ca9',.15); aura(410,900,420,'#8b6b37',.10); aura(400,70,240,'#596f9e',.10);
-  for(let i=0;i<135;i++){ctx.globalAlpha=.07+(i%4)*.025;ctx.fillStyle=[colors[i%colors.length],'#d8c28f','#91a9d3'][i%3];ctx.beginPath();ctx.arc((i*127+19)%W,(i*83+27)%H,i%11===0?1.8:.8,0,Math.PI*2);ctx.fill();}
+  aura(145,250,280,'#ffb52e',.25); aura(650,390,320,'#00dcff',.24); aura(410,900,440,'#ff36c7',.19); aura(400,70,250,'#8b5cff',.22); aura(90,1030,250,'#23f0a8',.14);
+  const particleColors=['#ffe66d','#42f5ff','#ff62d2','#9c7bff','#65ffb8','#ff9b45'];
+  for(let i=0;i<155;i++){ctx.globalAlpha=.10+(i%4)*.035;ctx.fillStyle=particleColors[i%particleColors.length];ctx.beginPath();ctx.arc((i*127+19)%W,(i*83+27)%H,i%11===0?2.2:1,0,Math.PI*2);ctx.fill();}
   ctx.globalAlpha=1;
   const rr=(x,y,w,h,r)=>{ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();};
-  // [FULL PROFILE CARD V43] Unified luxury-glass panels: obsidian fill, muted metal rim, crisp corner details.
-  const panel=(x,y,w,h,accent='#bca16a')=>{
+  // [COLORFUL PROFILE CARD V44] Shared vivid-glass panels with saturated gradient interiors and matching neon-metal rims.
+  const panel=(x,y,w,h,accent='#42eaff')=>{
     ctx.save();
-    const g=ctx.createLinearGradient(x,y,x+w*.75,y+h);g.addColorStop(0,'#20232a');g.addColorStop(.22,'#111319');g.addColorStop(.62,'#090b10');g.addColorStop(1,'#171920');
-    ctx.shadowColor=accent;ctx.shadowBlur=7;ctx.fillStyle=g;rr(x,y,w,h,20);ctx.fill();ctx.shadowBlur=0;
-    ctx.strokeStyle=accent;ctx.globalAlpha=.82;ctx.lineWidth=1.6;rr(x,y,w,h,20);ctx.stroke();
-    ctx.strokeStyle='rgba(255,248,224,0.30)';ctx.globalAlpha=1;ctx.lineWidth=.8;rr(x+4,y+4,w-8,h-8,16);ctx.stroke();
-    // Short champagne corner strokes, deliberately restrained and consistent across all sections.
-    ctx.globalAlpha=.86;ctx.strokeStyle=accent;ctx.lineWidth=2;
+    const g=ctx.createLinearGradient(x,y,x+w*.8,y+h);g.addColorStop(0,'#25245b');g.addColorStop(.22,'#171b45');g.addColorStop(.55,'#10152f');g.addColorStop(.78,'#21133f');g.addColorStop(1,'#092d43');
+    ctx.shadowColor=accent;ctx.shadowBlur=12;ctx.fillStyle=g;rr(x,y,w,h,20);ctx.fill();ctx.shadowBlur=0;
+    ctx.strokeStyle=accent;ctx.globalAlpha=.92;ctx.lineWidth=1.8;rr(x,y,w,h,20);ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,0.34)';ctx.globalAlpha=1;ctx.lineWidth=.9;rr(x+4,y+4,w-8,h-8,16);ctx.stroke();
+    // Bright corner accents unify the sections while leaving room for readable text.
+    ctx.globalAlpha=.95;ctx.strokeStyle=accent;ctx.lineWidth=2.4;
     const c=17;
     ctx.beginPath();ctx.moveTo(x+11,y+c);ctx.lineTo(x+11,y+11);ctx.lineTo(x+c,y+11);
     ctx.moveTo(x+w-c,y+11);ctx.lineTo(x+w-11,y+11);ctx.lineTo(x+w-11,y+c);
@@ -640,10 +641,12 @@ async function generateProfileCanvas(user) {
   const label=(value,x,y,size=18,color='#91a9d3',align='left')=>{ctx.textAlign=align;ctx.fillStyle=color;ctx.font=size+'px Sans';ctx.fillText(value,x,y);};
   const heading=(value,x,y)=>{ctx.textAlign='left';ctx.fillStyle='#f4f7ff';ctx.font='bold 24px Sans';ctx.fillText(value,x,y);};
   const displayName = getPlainDisplayName(user).slice(0, 26);
-  ctx.save();ctx.textAlign='center';ctx.shadowColor='#d9bd7c';ctx.shadowBlur=15;ctx.fillStyle='#f2dfb0';ctx.font='bold 34px Sans';ctx.fillText('JOJOWORLD',W/2,62);ctx.shadowBlur=0;
-  const titleLine=ctx.createLinearGradient(245,0,555,0);titleLine.addColorStop(0,'rgba(217,189,124,0)');titleLine.addColorStop(.5,'rgba(217,189,124,0.8)');titleLine.addColorStop(1,'rgba(217,189,124,0)');
-  ctx.strokeStyle=titleLine;ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(245,74);ctx.lineTo(555,74);ctx.stroke();
-  ctx.fillStyle='#aeb8ca';ctx.font='14px Sans';ctx.fillText('VISUAL PROFILE  •  YOUR WORLD, YOUR STYLE',W/2,96);ctx.restore();
+  ctx.save();ctx.textAlign='center';ctx.shadowColor='#ff5fd2';ctx.shadowBlur=18;
+  const logoGrad=ctx.createLinearGradient(260,35,540,65);logoGrad.addColorStop(0,'#54f4ff');logoGrad.addColorStop(.28,'#a58bff');logoGrad.addColorStop(.55,'#ff77d8');logoGrad.addColorStop(.78,'#ffe66d');logoGrad.addColorStop(1,'#65ffb8');
+  ctx.fillStyle=logoGrad;ctx.font='bold 34px Sans';ctx.fillText('JOJOWORLD',W/2,62);ctx.shadowBlur=0;
+  const titleLine=ctx.createLinearGradient(210,0,590,0);titleLine.addColorStop(0,'rgba(66,245,255,0)');titleLine.addColorStop(.25,'rgba(66,245,255,0.9)');titleLine.addColorStop(.52,'rgba(255,98,210,0.95)');titleLine.addColorStop(.78,'rgba(255,230,109,0.9)');titleLine.addColorStop(1,'rgba(101,255,184,0)');
+  ctx.strokeStyle=titleLine;ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(210,74);ctx.lineTo(590,74);ctx.stroke();
+  ctx.fillStyle='#d4e8ff';ctx.font='14px Sans';ctx.fillText('VISUAL PROFILE  •  YOUR WORLD, YOUR STYLE',W/2,96);ctx.restore();
   // [UPGRADED V28] Main identity card; avatar and text no longer overlap.
   panel(28,118,744,300,'#d9a441');
   // Apply the pre-generated AI artwork behind the equipped name effect when available.
@@ -800,13 +803,13 @@ async function generateProfileCanvas(user) {
   // Location, zodiac, goal and frame details appear only in PROFILE DETAILS below.
   const levelStats = getProfileLevelStats(user.xp);
   const stats=[
-    {x:28,w:174,title:'COINS',value:String(Number(user.coins)||0),color:'#ffd875'},
-    {x:218,w:174,title:'LEVEL / XP',value:'LVL '+levelStats.level,color:'#ffe08a',level:true},
-    {x:408,w:174,title:'NET WORTH',value:String(getNetWorth(user)),color:'#f4d28b'},
-    {x:598,w:174,title:'PROFILE VIEWS',value:String(Number(user.views)||0),color:'#ffe7b0'}
+    {x:28,w:174,title:'COINS',value:String(Number(user.coins)||0),color:'#ffe66d',accent:'#ffb52e'},
+    {x:218,w:174,title:'LEVEL / XP',value:'LVL '+levelStats.level,color:'#73ffbf',accent:'#23f0a8',level:true},
+    {x:408,w:174,title:'NET WORTH',value:String(getNetWorth(user)),color:'#d5a4ff',accent:'#a875ff'},
+    {x:598,w:174,title:'PROFILE VIEWS',value:String(Number(user.views)||0),color:'#64efff',accent:'#42eaff'}
   ];
   stats.forEach(s=>{
-    panel(s.x,438,s.w,94,'#344777');
+    panel(s.x,438,s.w,94,s.accent);
     label(s.title,s.x+13,s.level?460:468,14,'#9fb4d6');
     ctx.textAlign='left';ctx.fillStyle=s.color;ctx.font='bold 25px Sans';ctx.fillText(s.value,s.x+13,s.level?488:507);
     if(s.level){
@@ -817,7 +820,7 @@ async function generateProfileCanvas(user) {
       ctx.restore();
     }
   });
-  const detailAccent = '#d9a441';
+  const detailAccent = '#ff62d2';
   panel(28,550,744,280,'#d9a441');
   // PROFILE DETAILS redesign: six luminous mini-cards instead of a plain text list.
   // Each detail gets its own accent marker and a clear label/value hierarchy.
@@ -834,10 +837,12 @@ async function generateProfileCanvas(user) {
   rows.forEach((r,i)=>{
     const col=i%2,row=Math.floor(i/2),x=48+col*354,y=610+row*68,w=342,h=58;
     ctx.save();
-    const cardGrad=ctx.createLinearGradient(x,y,x+w,y+h);cardGrad.addColorStop(0,'#24262b');cardGrad.addColorStop(.5,'#111318');cardGrad.addColorStop(1,'#090a0d');
+    const cardPalettes=[['#30215b','#101b46'],['#123c58','#101b3d'],['#48204f','#151b42'],['#124c46','#101c3a'],['#493416','#171a3b'],['#26305e','#17163d']];
+    const cardPalette=cardPalettes[i%cardPalettes.length];
+    const cardGrad=ctx.createLinearGradient(x,y,x+w,y+h);cardGrad.addColorStop(0,cardPalette[0]);cardGrad.addColorStop(1,cardPalette[1]);
     ctx.fillStyle=cardGrad;rr(x,y,w,h,13);ctx.fill();
-    ctx.strokeStyle=r.color;ctx.globalAlpha=.68;ctx.lineWidth=1.2;rr(x,y,w,h,13);ctx.stroke();ctx.globalAlpha=1;
-    ctx.strokeStyle='rgba(255,248,224,0.16)';ctx.lineWidth=.7;rr(x+3,y+3,w-6,h-6,10);ctx.stroke();
+    ctx.shadowColor=r.color;ctx.shadowBlur=7;ctx.strokeStyle=r.color;ctx.globalAlpha=.92;ctx.lineWidth=1.5;rr(x,y,w,h,13);ctx.stroke();ctx.shadowBlur=0;ctx.globalAlpha=1;
+    ctx.strokeStyle='rgba(255,255,255,0.20)';ctx.lineWidth=.8;rr(x+3,y+3,w-6,h-6,10);ctx.stroke();
     ctx.shadowColor=r.color;ctx.shadowBlur=10;ctx.fillStyle=r.color;ctx.beginPath();ctx.arc(x+15,y+17,3.5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
     ctx.textAlign='left';ctx.fillStyle=r.color;ctx.font='bold 13px Sans';ctx.fillText(r.label,x+27,y+21);
     ctx.fillStyle='#f5f7ff';ctx.font='bold 16px Sans';
@@ -865,8 +870,8 @@ async function generateProfileCanvas(user) {
     label(hc.label+' - TIER '+getHouseTier(house),445,940,18,hc.color);
     label('OWNED - PROPERTY VALUE '+getHouseValue(house).toLocaleString('en-US')+'c',445,968,13,'#ffe7a0');
   }else{label('No house purchased yet - visit the Shop!',52,940,17,'#b7c8e6');}
-  panel(28,1015,358,220,'#4656a0');heading('ABOUT ME',50,1053);ctx.fillStyle='#dce8ff';ctx.textAlign='left';ctx.font='18px Sans';canvasText(ctx,cleanText(user.bio||'Welcome to my JojoWorld profile!'),50,1085,314,26,4);
-  panel(404,1015,368,220,'#d6a84b');heading('GIFTS SHOWCASE',426,1053);
+  panel(28,1015,358,220,'#a875ff');heading('ABOUT ME',50,1053);ctx.fillStyle='#dce8ff';ctx.textAlign='left';ctx.font='18px Sans';canvasText(ctx,cleanText(user.bio||'Welcome to my JojoWorld profile!'),50,1085,314,26,4);
+  panel(404,1015,368,220,'#ff62d2');heading('GIFTS SHOWCASE',426,1053);
   const received=user.giftsReceived&&typeof user.giftsReceived==='object'?user.giftsReceived:{};
   // Plain ASCII labels only in Gifts Showcase to prevent missing-glyph boxes on every device.
   const giftCatalogForProfile={
