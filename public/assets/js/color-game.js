@@ -2,7 +2,7 @@ const $=id=>document.getElementById(id);
 const token=new URLSearchParams(location.search).get('token')||'';
 const money=n=>Math.max(0,Math.floor(Number(n)||0)).toLocaleString('en-US');
 const colors=['RED','BLUE','GREEN','YELLOW','PINK'];
-let selectedColor='',balance=0,roundState=null,working=false,loading=false,lastResultKey='',soundEnabled=false,audioContext=null,lastRollRound='';
+let selectedColor='',balance=0,roundState=null,working=false,loading=false,lastResultKey='',soundEnabled=false,audioContext=null,lastRollRound='',pendingResultState=null,revealedRoundNumber=0,pullInProgress=false,pullStartY=0,pullStartTime=0,pullTimer=null;
 const lobby=$('lobby'),shop=$('shop');
 if(token){const q='?token='+encodeURIComponent(token);lobby.href='/live-games'+q;shop.href='/coin-shop'+q;}
 function setMessage(main,sub=''){const el=$('result');el.textContent=main;const small=document.createElement('small');small.textContent=sub;if(sub)el.appendChild(small);}
@@ -59,6 +59,19 @@ $('soundToggle').addEventListener('click',()=>{
  soundEnabled=!soundEnabled;$('soundToggle').textContent=soundEnabled?'🔊 SOUND ON':'🔇 SOUND OFF';$('soundToggle').setAttribute('aria-pressed',String(soundEnabled));
  if(soundEnabled){audio();tone(660,.08,.025,'sine');}
 });
+const pullCord=$('pullCord'),cordRig=$('cordRig'),cordHint=$('cordHint');
+function beginCordPull(){
+ if(!roundState||roundState.status!=='complete'||!Array.isArray(roundState.result)||revealedRoundNumber===Number(roundState.roundNumber)||pullInProgress)return false;
+ pullInProgress=true;pullCord.classList.add('pulled');pullCord.classList.remove('ready');cordRig.classList.add('pulled');cordHint.textContent='DICE DROPPING…';
+ const stage=$('colorStage');stage.classList.remove('revealed','rolling');stage.classList.add('dice-drop');renderDice(['RED','BLUE','GREEN'],true);
+ playRoll();tone(92,.22,.07,'sine',.55);tone(180,.12,.04,'triangle',.72);
+ if(pullTimer)clearTimeout(pullTimer);
+ pullTimer=setTimeout(()=>{pullInProgress=false;revealedRoundNumber=Number(pendingResultState?.roundNumber||roundState.roundNumber);pullCord.classList.remove('pulled');cordRig.classList.remove('pulled');stage.classList.remove('dice-drop');if(pendingResultState)renderState(pendingResultState);},1050);
+ return true;
+}
+pullCord.addEventListener('pointerdown',event=>{pullStartY=event.clientY;pullStartTime=Date.now();try{pullCord.setPointerCapture(event.pointerId)}catch(_){}});
+pullCord.addEventListener('pointerup',event=>{if(!roundState||roundState.status!=='complete')return;const distance=event.clientY-pullStartY;if(distance>20||Date.now()-pullStartTime<450)beginCordPull();});
+pullCord.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&beginCordPull())event.preventDefault();});
 function renderDice(diceColors,rolling=false){
  const stage=$('colorStage');stage.classList.toggle('rolling',rolling);stage.classList.toggle('revealed',!rolling);
  document.querySelectorAll('.color-die').forEach((die,i)=>{
@@ -85,14 +98,16 @@ function renderState(state){
  } else if(Array.isArray(state.result))renderDice(state.result,false);
  else renderDice(['RED','BLUE','GREEN'],true);
  if(state.status==='complete'&&state.result){
-  const key=state.roundNumber+':'+state.result.join(',');
-  const counts={};state.result.forEach(c=>counts[c]=(counts[c]||0)+1);
-  const matches=state.myBet?(counts[state.myBet.color]||0):0;
-  setMessage('ROUND #'+state.roundNumber+' · '+state.result.join(' · '),state.myBet?(matches?'Your color appeared '+matches+' time(s): total return '+money(state.myBet.payout)+' coins.':'Your color did not appear on the dice.'):'Three-dice result confirmed by the game server.');
-  lastResultKey=key;
- }else if(state.status==='settling')setMessage('🎲 THE THREE DICE ARE ROLLING','The server is confirming the three color results and payouts.');
- else if(state.lastResult)setMessage('LAST ROUND: '+(Array.isArray(state.lastResult)?state.lastResult.join(' · '):state.lastResult),'Round #'+state.lastRoundNumber+' · Place your bet for this round.');
- else setMessage('PLACE YOUR BET','Choose one of five colors. More matching dice means a higher total return.');
+  pendingResultState=state;
+  if(revealedRoundNumber!==Number(state.roundNumber)){
+   if(!pullInProgress){renderDice(['RED','BLUE','GREEN'],true);$('colorStage').classList.remove('dice-drop');pullCord.classList.add('ready');cordHint.textContent='ROUND CLOSED · PULL THE CORD';setMessage('🎰 PULL THE CORD','Drag the gold handle down to drop the three dice and reveal the server-confirmed result.');}
+  }else{
+   const key=state.roundNumber+':'+state.result.join(',');const counts={};state.result.forEach(c=>counts[c]=(counts[c]||0)+1);const matches=state.myBet?(counts[state.myBet.color]||0):0;
+   setMessage('ROUND #'+state.roundNumber+' · '+state.result.join(' · '),state.myBet?(matches?'Your color appeared '+matches+' time(s): total return '+money(state.myBet.payout)+' coins.':'Your color did not appear on the dice.'):'Three-dice result confirmed by the game server.');
+   lastResultKey=key;cordHint.textContent='RESULT REVEALED · NEXT ROUND SOON';pullCord.classList.remove('ready');
+  }
+ }else if(state.status==='settling'){pullCord.classList.remove('ready');cordHint.textContent='DICE ARE PREPARING…';setMessage('🎲 THE THREE DICE ARE ROLLING','The server is confirming the three color results and payouts.');}
+ else if(state.status==='betting'){pullCord.classList.remove('ready');cordHint.textContent='PULL THE CORD WHEN BETTING CLOSES';if(state.lastResult)setMessage('LAST ROUND: '+(Array.isArray(state.lastResult)?state.lastResult.join(' · '):state.lastResult),'Round #'+state.lastRoundNumber+' · Place your bet for this round.');else setMessage('PLACE YOUR BET','Choose one of five colors. More matching dice means a higher total return.');}
  renderBets(state);renderControls();
 }
 async function loadState(showErrors=false){
