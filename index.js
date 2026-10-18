@@ -433,7 +433,7 @@ app.get('/api/neon-battle/state', async (req, res) => {
     if (queue.status === 'waiting') return res.json({ ok: true, status: 'waiting' });
     if (!queue.matchId) return res.json({ ok: true, status: 'idle' });
     let match = await NeonBattleMatchModel.findOne({ matchId: queue.matchId }).lean();
-    if (!match) return res.json({ ok: true, status: 'idle' });
+    if (!match) return res.json({ ok: true, status: queue.status === 'matched' ? 'waiting' : 'idle' });
     if (match.status === 'active') match = await resolveNeonBattleRound(match.matchId) || match;
     if (match.status === 'settling') {
       await settleNeonBattle(match.matchId);
