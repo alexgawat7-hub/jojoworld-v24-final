@@ -8,7 +8,7 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
 
   const colors = {
     red: 0xd7193f, blue: 0x1679ee, green: 0x08a66c,
-    yellow: 0xf5b900, pink: 0xe936a9
+    yellow: 0xf5b900, pink: 0xe936a9, white: 0xf4f5f6
   };
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(36, 2.8, 0.1, 100);
