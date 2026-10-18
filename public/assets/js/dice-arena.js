@@ -2,6 +2,19 @@ const faces={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
 function drawDie(id,n){const el=document.getElementById(id);el.innerHTML='';for(let i=0;i<9;i++){const p=document.createElement('i');p.className='pip'+(faces[n].includes(i)?' on':'');el.appendChild(p)}}
 drawDie('die1',3);drawDie('die2',5);
 let bet=100,pred='ODD',rolling=false,accountConnected=false,accountLoading=false,resultUnconfirmed=false;
+let soundOn=true,audioCtx=null,rollTick=0;
+function playSound(kind){
+ if(!soundOn)return;
+ try{
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  if(!audioCtx)audioCtx=new AC();if(audioCtx.state==='suspended')audioCtx.resume();
+  const now=audioCtx.currentTime;
+  const notes=kind==='tick'?[420+Math.random()*260]:kind==='win'?[660,880,1100]:kind==='lose'?[300,220]:[440];
+  notes.forEach((freq,i)=>{const osc=audioCtx.createOscillator(),gain=audioCtx.createGain(),start=now+i*.105;osc.type=kind==='tick'?'triangle':'sine';osc.frequency.setValueAtTime(freq,start);gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(kind==='tick'?.025:.075,start+.012);gain.gain.exponentialRampToValueAtTime(.0001,start+(kind==='tick'?.045:.18));osc.connect(gain);gain.connect(audioCtx.destination);osc.start(start);osc.stop(start+(kind==='tick'?.05:.2));});
+ }catch(_){}
+}
+const soundButton=document.getElementById('soundToggle');
+soundButton?.addEventListener('click',()=>{soundOn=!soundOn;soundButton.textContent=soundOn?'🔊 SOUND ON':'🔇 SOUND OFF';soundButton.setAttribute('aria-pressed',String(soundOn));if(soundOn)playSound('tap')});
 const recentRolls=[];
 const money=n=>Number(n).toLocaleString('en-US');
 function addRecent(total,won){
@@ -76,24 +89,27 @@ document.getElementById('roll').addEventListener('click',async()=>{
   let flicker=null;
   btn.disabled=true;area.classList.add('rolling');res.innerHTML='ROLLING...<small>Server is rolling your dice</small>';
   try{
-    flicker=setInterval(()=>{drawDie('die1',1+Math.floor(Math.random()*6));drawDie('die2',1+Math.floor(Math.random()*6))},95);
+    flicker=setInterval(()=>{drawDie('die1',1+Math.floor(Math.random()*6));drawDie('die2',1+Math.floor(Math.random()*6));if(++rollTick%2===0)playSound('tick')},120);
     const request=fetch('/api/dice-arena/roll',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,bet,prediction:pred})});
     const response=await request;
     const data=await response.json();
     clearInterval(flicker);
     area.classList.remove('rolling');
     if(!response.ok||!data.ok){
+      playSound('lose');
       if(data.balance!==undefined)document.getElementById('balance').textContent=money(data.balance)+' coins';
       res.classList.remove('win-result');res.classList.add('loss-result');res.innerHTML='ROLL NOT COMPLETED<small>'+String(data.error||'Please try again.')+'</small>';
       return;
     }
     resultUnconfirmed=false;
+    playSound(data.won?'win':'lose');
     drawDie('die1',data.die1);drawDie('die2',data.die2);
     document.getElementById('balance').textContent=money(data.balance)+' coins';
     res.classList.remove('win-result','loss-result');res.classList.add(data.won?'win-result':'loss-result');res.innerHTML=(data.won?'🏆 WIN CONFIRMED':'🎲 TOTAL '+data.total+' • '+data.actual)+'<small>'+(data.won?'You won '+money(data.payout)+' coins · Stake '+money(data.bet):'No win this time · Stake '+money(data.bet)+' coins')+'</small>';res.classList.remove('reveal');void res.offsetWidth;res.classList.add('reveal');addRecent(data.total,data.won);
     if(data.stats)applyStats(data.stats);else refreshStats();
     btn.textContent='🎲 ROLL AGAIN';
   }catch(e){
+    playSound('lose');
     if(flicker)clearInterval(flicker);
     area.classList.remove('rolling');
     resultUnconfirmed=true;accountConnected=false;res.classList.remove('win-result');res.classList.add('loss-result');res.innerHTML='ROLL RESULT UNCONFIRMED<small>Do not roll again yet. Reopen Dice Arena from JojoWorld Messenger to start a fresh session and check your balance.</small>';document.querySelector('.demo').textContent='CHECK RESULT';
