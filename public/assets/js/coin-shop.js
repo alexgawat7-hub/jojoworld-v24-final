@@ -42,9 +42,9 @@ async function startCheckout(amount,button){
   const response=await fetch('/api/coin-shop/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,amount})});
   const data=await response.json();
   if(!response.ok||!data.ok)throw new Error(data.error||'Could not start checkout.');
-  const opened=window.open(data.checkoutUrl,'_blank','noopener,noreferrer');
-  if(opened){showNotice('Checkout opened in a new tab. Complete payment there, then return here and tap Refresh to update your balance.','good')}
-  else {showNotice('Your secure checkout is ready. Tap the button below to continue.','good');button.textContent='OPEN CHECKOUT';button.disabled=false;button.onclick=()=>window.location.assign(data.checkoutUrl)}
+  const opened=window.open(data.checkoutUrl,'_blank');
+  if(opened){opened.opener=null;showNotice('Checkout opened in a new tab. Complete payment there, then return here and tap Refresh to update your balance.','good')}
+  else {showNotice('Popup blocked. Opening secure checkout in this tab; after payment, use Back to return to your Coin Shop.','good');window.location.assign(data.checkoutUrl)}
  }catch(error){showNotice(error.message||'Checkout could not be created. No coins were charged.','error')}
  finally{if(button.isConnected&&button.textContent!=='OPEN CHECKOUT'){button.disabled=false;button.textContent='BUY COINS'}}
 }
