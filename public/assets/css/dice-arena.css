@@ -8,7 +8,7 @@
 .table>*{z-index:1}
 @keyframes tableGlow{0%,100%{box-shadow:inset 0 0 36px #0009,0 10px 35px #0008,0 0 0 #ffcb4a00}50%{box-shadow:inset 0 0 40px #000b,0 10px 35px #0008,0 0 24px #ffcb4a18}}
 @keyframes tableShine{0%{transform:translateX(-70%) rotate(12deg)}100%{transform:translateX(70%) rotate(12deg)}}
-.die{position:relative;transform-style:preserve-3d;will-change:transform;transition:filter .25s,box-shadow .25s}
+.die{position:relative;transform-style:preserve-3d;will-change:transform;transition:filter .25s,box-shadow .25s;background:linear-gradient(145deg,#fffef8 0,#e8e6df 55%,#b8b7b4 100%);border:1px solid #fff;box-shadow:inset 3px 3px 8px #fff,inset -7px -8px 12px #7778,0 16px 22px #000a;}
 .die:after{content:"";position:absolute;inset:0;border-radius:19px;box-shadow:inset 0 0 0 1px #fff9;pointer-events:none}
 .rolling .die{filter:drop-shadow(0 0 22px #ffcf5cbb) saturate(1.25)}
 .result{transition:transform .25s,text-shadow .25s}
