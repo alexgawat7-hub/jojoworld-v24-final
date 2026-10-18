@@ -237,6 +237,95 @@ app.get('/api/dice-arena/stats', async (req, res) => {
   }
 });
 
+
+// [JOJOWORLD COLOR GAME] Shared live color rounds with server-confirmed virtual-coin bets.
+app.get('/api/color-game/session', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Open Color Game from JojoWorld Messenger to connect your account.' });
+    const user = await loadUserFromDB(String(session.psid));
+    if (!user) return res.status(404).json({ ok: false, error: 'JojoWorld account not found.' });
+    const round = await getColorGameRound();
+    res.set('Cache-Control', 'no-store');
+    return res.json(colorGamePublicState(round, session.psid, user.coins));
+  } catch (err) {
+    console.error('[COLOR GAME] Session read failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Color Game is temporarily unavailable.' });
+  }
+});
+app.get('/api/color-game/state', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Session expired. Reopen Game Lobby from Messenger.' });
+    const user = await loadUserFromDB(String(session.psid));
+    if (!user) return res.status(404).json({ ok: false, error: 'JojoWorld account not found.' });
+    const round = await getColorGameRound();
+    res.set('Cache-Control', 'no-store');
+    return res.json(colorGamePublicState(round, session.psid, user.coins));
+  } catch (err) {
+    console.error('[COLOR GAME] State read failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Could not refresh the live color round.' });
+  }
+});
+app.post('/api/color-game/bet', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Session expired. Reopen Game Lobby from Messenger.' });
+    const psid = String(session.psid);
+    const color = String(req.body?.color || '').toUpperCase();
+    const bet = Number(req.body?.bet);
+    if (!['RED', 'BLUE', 'GREEN'].includes(color)) return res.status(400).json({ ok: false, error: 'Choose RED, BLUE, or GREEN.' });
+    if (!Number.isSafeInteger(bet) || bet < 10 || bet > 100000) return res.status(400).json({ ok: false, error: 'Bet must be a whole number from 10 to 100,000 coins.' });
+    return await withDiceUserQueue(psid, async () => {
+      const user = await loadUserFromDB(psid);
+      if (!user) return res.status(404).json({ ok: false, error: 'JojoWorld account not found.' });
+      const round = await getColorGameRound();
+      if (!round || round.status !== 'betting' || Date.now() >= new Date(round.bettingEndsAt).getTime()) {
+        return res.status(409).json({ ok: false, error: 'Betting is closed for this round. Wait for the next round.' });
+      }
+      const name = String(user.name || user.displayName || 'Jojo Player').replace(/[<>\u0000-\u001f]/g, '').slice(0, 24) || 'Jojo Player';
+      const betEntry = { betId: crypto.randomUUID(), psid, name, color, amount: bet, payout: 0, status: 'pending', createdAt: new Date() };
+      const mongoSession = await mongoose.startSession();
+      let failure = null;
+      try {
+        await mongoSession.withTransaction(async () => {
+          const debit = await UserModel.updateOne(
+            { psid, 'data.coins': { $gte: bet } },
+            { $inc: { 'data.coins': -bet } },
+            { session: mongoSession }
+          );
+          if (!debit.modifiedCount) {
+            const e = new Error('Not enough coins for that bet.'); e.colorGameCode = 400; throw e;
+          }
+          const placed = await ColorGameStateModel.updateOne(
+            { id: 'global', roundNumber: round.roundNumber, status: 'betting', bettingEndsAt: { $gt: new Date() }, bets: { $not: { $elemMatch: { psid } } } },
+            { $push: { bets: betEntry }, $inc: { totalBet: bet } },
+            { session: mongoSession }
+          );
+          if (!placed.modifiedCount) {
+            const e = new Error('You already placed a bet this round, or betting just closed.'); e.colorGameCode = 409; throw e;
+          }
+        });
+      } catch (err) {
+        failure = err;
+      } finally {
+        await mongoSession.endSession();
+      }
+      if (failure) {
+        if (failure.colorGameCode) return res.status(failure.colorGameCode).json({ ok: false, error: failure.message });
+        throw failure;
+      }
+      const freshUser = await loadUserFromDB(psid);
+      const freshRound = await getColorGameRound();
+      res.set('Cache-Control', 'no-store');
+      return res.json({ ...colorGamePublicState(freshRound, psid, freshUser?.coins), message: 'Bet confirmed by the server.' });
+    });
+  } catch (err) {
+    console.error('[COLOR GAME] Bet failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Could not confirm your bet. Refresh the game and check your balance before trying again.' });
+  }
+});
+
 // [JOJOWORLD BROWSER SCATTER SPIN] Secure browser session and server-side virtual-coin settlement.
 app.get('/api/scatter-spin/session', async (req, res) => {
   try {
@@ -702,6 +791,15 @@ app.get('/dice-arena', (req, res) => {
   });
 });
 
+app.get('/color-game', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'color-game.html'), err => {
+    if (err && !res.headersSent) {
+      console.error('[COLOR GAME] Could not serve game page:', err.message);
+      res.status(503).send('Color Game is temporarily unavailable.');
+    }
+  });
+});
+
 app.get('/scatter-spin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'scatter-spin.html'), err => {
     if (err && !res.headersSent) {
@@ -788,6 +886,35 @@ const DiceRoundSchema = new mongoose.Schema({
   playerIds: { type: [String], default: [] }
 }, { strict: false });
 const DiceRoundModel = mongoose.models.JDiceRound || mongoose.model('JDiceRound', DiceRoundSchema);
+
+// JojoWorld Color Game: one shared live round and public player bets.
+const ColorGameBetSchema = new mongoose.Schema({
+  betId: { type: String, required: true },
+  psid: { type: String, required: true },
+  name: { type: String, required: true },
+  color: { type: String, enum: ['RED', 'BLUE', 'GREEN'], required: true },
+  amount: { type: Number, required: true },
+  payout: { type: Number, default: 0 },
+  status: { type: String, enum: ['pending', 'settled'], default: 'pending' },
+  createdAt: { type: Date, default: Date.now }
+}, { _id: false, strict: true });
+const ColorGameStateSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
+  roundNumber: { type: Number, default: 1 },
+  startedAt: { type: Date, default: Date.now },
+  bettingEndsAt: { type: Date, required: true },
+  finishedAt: { type: Date, default: null },
+  status: { type: String, enum: ['betting', 'settling', 'complete'], default: 'betting', index: true },
+  result: { type: String, enum: ['RED', 'BLUE', 'GREEN', null], default: null },
+  lastResult: { type: String, enum: ['RED', 'BLUE', 'GREEN', null], default: null },
+  lastRoundNumber: { type: Number, default: 0 },
+  totalBet: { type: Number, default: 0 },
+  bets: { type: [ColorGameBetSchema], default: [] }
+}, { strict: true });
+const ColorGameStateModel = mongoose.models.JColorGameState || mongoose.model('JColorGameState', ColorGameStateSchema);
+const COLOR_GAME_BETTING_MS = 25000;
+const COLOR_GAME_REVEAL_MS = 5000;
+
 const DICE_ROUND_WINDOW_MS = 5 * 60 * 1000;
 
 // Neon Battle uses MongoDB-backed matchmaking and server-resolved, simultaneous moves.
@@ -908,6 +1035,143 @@ async function recordDiceRoundRoll(psid, bet, payout, won) {
   local[won ? "wins" : "losses"] += 1;
   if (!local.playerIds.includes(String(psid))) local.playerIds.push(String(psid));
   return { roundNumber: local.roundNumber, startedAt: new Date(local.startedAt), totalBet: local.totalBet, totalPayout: local.totalPayout, totalRolls: local.totalRolls, wins: local.wins, losses: local.losses, playerCount: local.playerIds.length };
+}
+
+
+// COLOR GAME ROUND ENGINE. All results and wallet changes are server-side.
+function pickColorGameResult() {
+  const roll = crypto.randomInt(0, 100);
+  return roll < 40 ? 'RED' : roll < 80 ? 'BLUE' : 'GREEN';
+}
+function makeLocalColorRound(previous = null) {
+  const now = Date.now();
+  return {
+    id: 'global',
+    roundNumber: previous ? Number(previous.roundNumber || 0) + 1 : 1,
+    startedAt: new Date(now),
+    bettingEndsAt: new Date(now + COLOR_GAME_BETTING_MS),
+    finishedAt: null,
+    status: 'betting',
+    result: null,
+    lastResult: previous?.result || previous?.lastResult || null,
+    lastRoundNumber: previous?.status === 'complete' ? Number(previous.roundNumber || 0) : Number(previous?.lastRoundNumber || 0),
+    totalBet: 0,
+    bets: []
+  };
+}
+async function settleColorGameRound(round) {
+  if (!round || round.status !== 'settling' || !round.result) return round;
+  const pendingBets = (round.bets || []).filter(b => b.status === 'pending');
+  for (const bet of pendingBets) {
+    const payout = bet.color === round.result ? Number(bet.amount) * (round.result === 'GREEN' ? 4 : 2) : 0;
+    if (MONGODB_URI && mongoose.connection.readyState === 1) {
+      const session = await mongoose.startSession();
+      try {
+        await session.withTransaction(async () => {
+          const claim = await ColorGameStateModel.updateOne(
+            { id: 'global', roundNumber: round.roundNumber, status: 'settling', bets: { $elemMatch: { betId: bet.betId, status: 'pending' } } },
+            { $set: { 'bets.$.status': 'settled', 'bets.$.payout': payout } },
+            { session }
+          );
+          if (!claim.modifiedCount) return;
+          if (payout > 0) {
+            const credit = await UserModel.updateOne({ psid: String(bet.psid) }, { $inc: { 'data.coins': payout } }, { session });
+            if (!credit.matchedCount) throw new Error('Color Game winner account could not be credited.');
+          }
+        });
+      } catch (err) {
+        console.error('[COLOR GAME] Bet settlement will retry:', err.message);
+      } finally {
+        await session.endSession();
+      }
+    } else {
+      // Local development fallback; authenticated game sessions still require MongoDB.
+      const local = globalThis.__jojoworldColorRound;
+      if (local && local.roundNumber === round.roundNumber) {
+        const target = local.bets.find(b => b.betId === bet.betId && b.status === 'pending');
+        if (target) {
+          target.status = 'settled'; target.payout = payout;
+          if (payout > 0 && db.users[target.psid]) db.users[target.psid].coins = (Number(db.users[target.psid].coins) || 0) + payout;
+        }
+      }
+    }
+  }
+  if (MONGODB_URI && mongoose.connection.readyState === 1) {
+    const fresh = await ColorGameStateModel.findOne({ id: 'global', roundNumber: round.roundNumber });
+    if (fresh && fresh.status === 'settling' && fresh.bets.every(b => b.status === 'settled')) {
+      return await ColorGameStateModel.findOneAndUpdate(
+        { id: 'global', roundNumber: round.roundNumber, status: 'settling' },
+        { $set: { status: 'complete', finishedAt: new Date(), lastResult: fresh.result, lastRoundNumber: fresh.roundNumber } },
+        { new: true }
+      ) || fresh;
+    }
+    return fresh || round;
+  }
+  const local = globalThis.__jojoworldColorRound;
+  if (local && local.roundNumber === round.roundNumber && local.bets.every(b => b.status === 'settled')) {
+    local.status = 'complete'; local.finishedAt = new Date(); local.lastResult = local.result; local.lastRoundNumber = local.roundNumber;
+  }
+  return local || round;
+}
+async function getColorGameRound() {
+  const now = Date.now();
+  if (MONGODB_URI && mongoose.connection.readyState === 1) {
+    let doc = await ColorGameStateModel.findOne({ id: 'global' });
+    if (!doc) {
+      try {
+        doc = await ColorGameStateModel.create({ id: 'global', roundNumber: 1, startedAt: new Date(now), bettingEndsAt: new Date(now + COLOR_GAME_BETTING_MS), status: 'betting', bets: [] });
+      } catch (_) {
+        doc = await ColorGameStateModel.findOne({ id: 'global' });
+      }
+    }
+    if (!doc) throw new Error('Color Game round is unavailable.');
+    if (doc.status === 'betting' && now >= new Date(doc.bettingEndsAt).getTime()) {
+      doc = await ColorGameStateModel.findOneAndUpdate(
+        { id: 'global', roundNumber: doc.roundNumber, status: 'betting', bettingEndsAt: { $lte: new Date(now) } },
+        { $set: { status: 'settling', result: pickColorGameResult() } },
+        { new: true }
+      ) || await ColorGameStateModel.findOne({ id: 'global' });
+    }
+    if (doc?.status === 'settling') doc = await settleColorGameRound(doc);
+    if (doc?.status === 'complete' && now - new Date(doc.finishedAt || now).getTime() >= COLOR_GAME_REVEAL_MS) {
+      doc = await ColorGameStateModel.findOneAndUpdate(
+        { id: 'global', roundNumber: doc.roundNumber, status: 'complete', finishedAt: { $lte: new Date(now - COLOR_GAME_REVEAL_MS) } },
+        { $set: { roundNumber: doc.roundNumber + 1, startedAt: new Date(now), bettingEndsAt: new Date(now + COLOR_GAME_BETTING_MS), finishedAt: null, status: 'betting', result: null, totalBet: 0, bets: [] } },
+        { new: true }
+      ) || await ColorGameStateModel.findOne({ id: 'global' });
+    }
+    return doc;
+  }
+  let local = globalThis.__jojoworldColorRound;
+  if (!local) local = globalThis.__jojoworldColorRound = makeLocalColorRound();
+  if (local.status === 'betting' && now >= new Date(local.bettingEndsAt).getTime()) {
+    local.status = 'settling'; local.result = pickColorGameResult();
+    local = await settleColorGameRound(local);
+  }
+  if (local.status === 'complete' && now - new Date(local.finishedAt || now).getTime() >= COLOR_GAME_REVEAL_MS) {
+    local = globalThis.__jojoworldColorRound = makeLocalColorRound(local);
+  }
+  return local;
+}
+function colorGamePublicState(round, psid, balance) {
+  const bets = Array.isArray(round.bets) ? round.bets : [];
+  const totals = { RED: 0, BLUE: 0, GREEN: 0 };
+  const players = new Set();
+  for (const bet of bets) { totals[bet.color] = (totals[bet.color] || 0) + Number(bet.amount || 0); players.add(String(bet.psid)); }
+  const myBet = bets.find(b => String(b.psid) === String(psid));
+  return {
+    ok: true, balance: Math.max(0, Math.floor(Number(balance) || 0)),
+    roundNumber: Number(round.roundNumber || 1), status: round.status,
+    bettingEndsAt: round.bettingEndsAt, startedAt: round.startedAt,
+    timeLeftMs: round.status === 'betting' ? Math.max(0, new Date(round.bettingEndsAt).getTime() - Date.now()) : 0,
+    result: round.result || null, lastResult: round.lastResult || null, lastRoundNumber: Number(round.lastRoundNumber || 0),
+    totalBet: Number(round.totalBet || 0), playerCount: players.size, totals,
+    myBet: myBet ? { color: myBet.color, amount: myBet.amount, status: myBet.status, payout: myBet.payout } : null,
+    bets: bets.slice().sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()).slice(0, 40).map(b => ({
+      name: String(b.name || 'Jojo Player').slice(0, 24), color: b.color, amount: Number(b.amount || 0),
+      payout: Number(b.payout || 0), status: b.status
+    }))
+  };
 }
 
 // ================= DB PERSISTENCE HELPERS =================
