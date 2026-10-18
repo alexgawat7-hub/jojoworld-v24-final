@@ -264,6 +264,4 @@ body.crazy-color-page{height:100dvh}
 }
 
 
-/* [FIXED] Keep the visible CSS dice as a guaranteed foreground fallback while the 3D machine loads; they must be visible resting in the tray before the banker pulls. */
-.dice-stage.three-ready .die-slot{visibility:visible!important;z-index:3}
-.dice-stage.three-ready .die-slot .color-die{visibility:visible!important;opacity:1}
+/* [FIXED] Hide CSS fallback dice once WebGL is ready so they cannot cover the real 3D drop-and-roll animation. */
