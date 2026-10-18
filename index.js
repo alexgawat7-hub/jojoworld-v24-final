@@ -128,6 +128,87 @@ function loadCachedProfilePhotoUrl(url) {
 }
 const app = express();
 
+// Serialize web-game actions with Messenger commands for the same account.
+async function withDiceUserQueue(psid, task) {
+  const previous = messengerUserQueues.get(psid) || Promise.resolve();
+  let release;
+  const current = new Promise(resolve => { release = resolve; });
+  messengerUserQueues.set(psid, current);
+  await previous;
+  try { return await task(); }
+  finally {
+    release();
+    if (messengerUserQueues.get(psid) === current) messengerUserQueues.delete(psid);
+  }
+}
+async function getDiceWebSession(req) {
+  const token = String(req.query.token || req.body?.token || '').trim();
+  if (!/^[a-f0-9]{64}$/i.test(token) || mongoose.connection.readyState !== 1) return null;
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+  return DiceWebSessionModel.findOne({ tokenHash, expiresAt: { $gt: new Date() } }).lean();
+}
+app.get('/api/dice-arena/session', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Open Dice Arena again from Messenger to reconnect your account.' });
+    const user = await loadUserFromDB(session.psid);
+    if (!user) return res.status(404).json({ ok: false, error: 'JojoWorld account not found.' });
+    const stats = await getDiceRoundStats();
+    res.set('Cache-Control', 'no-store');
+    return res.json({ ok: true, balance: Math.max(0, Math.floor(Number(user.coins) || 0)), stats: {
+      roundNumber: stats.roundNumber, playerCount: stats.playerCount, totalRolls: stats.totalRolls,
+      totalBet: stats.totalBet, totalPayout: stats.totalPayout
+    }});
+  } catch (err) {
+    console.error('[DICE ARENA] Session read failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Dice Arena account is temporarily unavailable.' });
+  }
+});
+app.post('/api/dice-arena/roll', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Session expired. Reopen Dice Arena from Messenger.' });
+    const prediction = String(req.body?.prediction || '').toUpperCase();
+    if (!['ODD', 'EVEN'].includes(prediction)) return res.status(400).json({ ok: false, error: 'Choose ODD or EVEN.' });
+    return await withDiceUserQueue(String(session.psid), async () => {
+      const user = await loadUserFromDB(String(session.psid));
+      if (!user) return res.status(404).json({ ok: false, error: 'JojoWorld account not found.' });
+      const balance = Math.max(0, Math.floor(Number(user.coins) || 0));
+      const rawBet = req.body?.bet;
+      const bet = String(rawBet).toUpperCase() === 'MAX' ? balance : Number(rawBet);
+      if (!Number.isSafeInteger(bet) || bet < 10) return res.status(400).json({ ok: false, error: 'Minimum bet is 10 coins.' });
+      if (bet > balance) return res.status(400).json({ ok: false, error: 'Not enough coins.', balance });
+      const waitMs = 3000 - (Date.now() - (Number(user.lastDiceRoll) || 0));
+      if (waitMs > 0) return res.status(429).json({ ok: false, error: 'Please wait before rolling again.', waitMs });
+      const oldState = { coins: user.coins, lastDiceRoll: user.lastDiceRoll, diceWins: user.diceWins, diceLosses: user.diceLosses };
+      const die1 = crypto.randomInt(1, 7), die2 = crypto.randomInt(1, 7);
+      const total = die1 + die2;
+      const actual = total % 2 === 0 ? 'EVEN' : 'ODD';
+      const won = actual === prediction;
+      const payout = won ? bet * 2 : 0;
+      user.coins = balance - bet + payout;
+      user.lastDiceRoll = Date.now();
+      if (won) user.diceWins = (Number(user.diceWins) || 0) + 1;
+      else user.diceLosses = (Number(user.diceLosses) || 0) + 1;
+      if (!await saveUserToDB(String(session.psid), { saveJackpot: false })) {
+        Object.assign(user, oldState);
+        return res.status(503).json({ ok: false, error: 'Could not save the roll. No result was confirmed; please try again.' });
+      }
+      let stats = null;
+      try { stats = await recordDiceRoundRoll(String(session.psid), bet, payout, won); }
+      catch (statsErr) { console.error('[DICE ARENA] Could not update shared stats:', statsErr.message); }
+      res.set('Cache-Control', 'no-store');
+      return res.json({ ok: true, die1, die2, total, actual, prediction, won, bet, payout, balance: Math.max(0, Math.floor(Number(user.coins) || 0)), stats: stats ? {
+        roundNumber: stats.roundNumber, playerCount: stats.playerCount, totalRolls: stats.totalRolls,
+        totalBet: stats.totalBet, totalPayout: stats.totalPayout
+      } : null });
+    });
+  } catch (err) {
+    console.error('[DICE ARENA] Roll failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Dice Arena is temporarily unavailable. Please try again.' });
+  }
+});
+
 // [JOJOWORLD DICE ARENA PUBLIC STATS] Expose only aggregate round totals; no account data is returned.
 app.get('/api/dice-arena/stats', async (req, res) => {
   try {
@@ -188,6 +269,15 @@ const PAGE_USERNAME = "100064525073153";
 
 const UserSchema = new mongoose.Schema({ psid: { type: String, required: true, unique: true }, data: Object }, { strict: false });
 const UserModel = mongoose.models.JUser || mongoose.model('JUser', UserSchema);
+// Short-lived bearer sessions connect Messenger users to the browser game without exposing PSIDs.
+const DiceWebSessionSchema = new mongoose.Schema({
+  tokenHash: { type: String, required: true, unique: true },
+  psid: { type: String, required: true, index: true },
+  expiresAt: { type: Date, required: true, index: { expires: 0 } },
+  createdAt: { type: Date, default: Date.now }
+}, { strict: true });
+const DiceWebSessionModel = mongoose.models.JDiceWebSession || mongoose.model('JDiceWebSession', DiceWebSessionSchema);
+
 
 const JackpotSchema = new mongoose.Schema({ id: { type: String, required: true, unique: true }, amount: Number }, { strict: false });
 const JackpotModel = mongoose.models.JJackpot || mongoose.model('JJackpot', JackpotSchema);
