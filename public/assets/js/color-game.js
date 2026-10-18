@@ -95,7 +95,8 @@ function renderState(state){
  } else if(state.status==='settling'){
   if(lastRollRound!==String(state.roundNumber)){lastRollRound=String(state.roundNumber);playRoll();}
   renderDice(['RED','BLUE','GREEN'],true);
- } else if(Array.isArray(state.result))renderDice(state.result,false);
+ } else if(state.status==='complete'&&Array.isArray(state.result)&&revealedRoundNumber===Number(state.roundNumber))renderDice(state.result,false);
+ else if(state.status==='complete'&&Array.isArray(state.result))renderDice(['RED','BLUE','GREEN'],true);
  else renderDice(['RED','BLUE','GREEN'],true);
  if(state.status==='complete'&&state.result){
   pendingResultState=state;
