@@ -91,11 +91,26 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
       const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.38,.38,.22,18),tireMat);wheel.rotation.z=Math.PI/2;wheel.position.set(x,.43,z);wheel.castShadow=true;root.add(wheel);root.userData.wheels.push(wheel);
       const hub=new THREE.Mesh(new THREE.CylinderGeometry(.19,.19,.232,12),chrome);hub.rotation.z=Math.PI/2;hub.position.set(x,.43,z);root.add(hub);root.userData.hubs.push(hub);
     }
+    root.userData.brakeLights=[];
+    root.userData.headlights=[];
     for(const x of [-.62,.62]){
       const lamp=new THREE.Mesh(new THREE.BoxGeometry(.42,.13,.05),light);lamp.position.set(x,.82,-1.94);root.add(lamp);
+      const beam=new THREE.SpotLight(accent,2.2,34,Math.PI/7,.65,1.4);
+      beam.position.set(x*.86,.82,-1.88);beam.target.position.set(x*1.2,.1,-23);
+      root.add(beam);root.add(beam.target);root.userData.headlights.push(beam);
     }
     const tailMat=new THREE.MeshStandardMaterial({color:0xff2424,emissive:0xff1010,emissiveIntensity:1.4});
-    for(const x of [-.63,.63]){const tail=new THREE.Mesh(new THREE.BoxGeometry(.36,.12,.05),tailMat);tail.position.set(x,.79,1.94);root.add(tail);}
+    for(const x of [-.63,.63]){
+      const tail=new THREE.Mesh(new THREE.BoxGeometry(.36,.12,.05),tailMat.clone());
+      tail.position.set(x,.79,1.94);root.add(tail);root.userData.brakeLights.push(tail);
+    }
+    // Dark lower grille and subtle front air intakes add shape without heavy geometry.
+    const grille=new THREE.Mesh(new THREE.BoxGeometry(.82,.16,.045),mat(0x080d12,.5,.2));
+    grille.position.set(0,.64,-1.94);root.add(grille);
+    for(const x of [-.64,.64]){
+      const intake=new THREE.Mesh(new THREE.BoxGeometry(.28,.12,.045),trim);
+      intake.position.set(x,.57,-1.94);root.add(intake);
+    }
     scene.add(root);return root;
   }
   const player=addCar(0x176d9a,0x8ef7ff);player.position.set(0,0,0);
@@ -228,6 +243,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     player.rotation.y=-steer*.12-driftAmount*steer*.09;
     for(const wheel of player.userData.wheels){wheel.rotation.x+=speed*.00025;if(wheel.position.z<0)wheel.rotation.y=steer*.22;}
     for(const hub of player.userData.hubs){hub.rotation.x+=speed*.00025;if(hub.position.z<0)hub.rotation.y=steer*.22;}
+    for(const tail of player.userData.brakeLights){tail.material.emissiveIntensity=braking?4.2:1.4;tail.material.color.setHex(braking?0xff5555:0xff2424);}
+    for(const beam of player.userData.headlights)beam.intensity=nitro>0?3.0:2.2;
+    for(const tail of rival.userData.brakeLights){tail.material.emissiveIntensity=1.4;}
     for(const wheel of rival.userData.wheels)wheel.rotation.x+=speed*.00018;for(const hub of rival.userData.hubs)hub.rotation.x+=speed*.00018;
     rival.position.x=-2.8+Math.sin(progress*.013)*.8;
     const gap=rivalProgress-progress;
