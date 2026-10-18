@@ -215,9 +215,11 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
             const homeX=[-1.65,0,1.65][i];
             d.root.position.x+=(homeX-d.root.position.x)*Math.min(1,dt*1.8);
             d.root.position.z+=(0-d.root.position.z)*Math.min(1,dt*2.2);
-            const snap=Math.min(1,dt*7);
-            d.root.rotation.x+=(Math.round(d.root.rotation.x/(Math.PI/2))*(Math.PI/2)-d.root.rotation.x)*snap;
-            d.root.rotation.z+=(Math.round(d.root.rotation.z/(Math.PI/2))*(Math.PI/2)-d.root.rotation.z)*snap;
+            const snap=Math.min(1,dt*5.5);
+            // Finish with a stable, readable upright die pose instead of leaving a random tilted Euler angle.
+            d.root.rotation.x+=(0-d.root.rotation.x)*snap;
+            d.root.rotation.y+=(0-d.root.rotation.y)*snap;
+            d.root.rotation.z+=(0-d.root.rotation.z)*snap;
           }
         } else {
           d.root.rotation.x+=dt*(6.8+i*1.1);d.root.rotation.y+=dt*(8.1-i*.7);d.root.rotation.z+=dt*(5.2+i);
