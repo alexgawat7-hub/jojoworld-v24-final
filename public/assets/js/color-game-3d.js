@@ -37,7 +37,22 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
   const brightGold = mat(0xffe4a0, .8, .2);
   const darkMetal = mat(0x20272a, .78, .29);
   const black = mat(0x090f12, .45, .35);
-  const felt = mat(0x07563d, .1, .92);
+  // Procedural felt fibers give the tray a textured casino-table surface without external assets.
+  const feltCanvas=document.createElement('canvas');
+  feltCanvas.width=256;feltCanvas.height=256;
+  const feltCtx=feltCanvas.getContext('2d');
+  feltCtx.fillStyle='#07563d';feltCtx.fillRect(0,0,256,256);
+  for(let i=0;i<2600;i++){
+    const shade=Math.random()>.5?'rgba(132,211,160,.10)':'rgba(0,16,12,.16)';
+    feltCtx.strokeStyle=shade;feltCtx.lineWidth=.5+Math.random()*.7;
+    const x=Math.random()*256,y=Math.random()*256,len=1+Math.random()*4;
+    feltCtx.beginPath();feltCtx.moveTo(x,y);feltCtx.lineTo(x+len,y+(Math.random()-.5)*1.8);feltCtx.stroke();
+  }
+  const feltTexture=new THREE.CanvasTexture(feltCanvas);
+  feltTexture.colorSpace=THREE.SRGBColorSpace;
+  feltTexture.wrapS=feltTexture.wrapT=THREE.RepeatWrapping;
+  feltTexture.repeat.set(4,2);
+  const felt = mat(0x07563d, .08, .98, {map:feltTexture});
   const base = new THREE.Group(); scene.add(base);
 
   function box(w,h,d,material,x,y,z, bevel=false) {
