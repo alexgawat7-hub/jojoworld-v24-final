@@ -41,3 +41,5 @@ button:not(:disabled):active{transform:translateY(2px) scale(.98);filter:brightn
 /* Stronger outcome feedback while keeping the existing casino-table styling. */
 #result.win-result{color:#a8ffb9;text-shadow:0 0 10px #55ff9b88,0 0 24px #55ff9b44;animation:resultReveal .55s cubic-bezier(.2,.9,.2,1)}
 #result.loss-result{color:#f1c6ff;text-shadow:0 0 12px #c66aff22}
+
+.sound-toggle{display:block;margin:8px auto 10px;padding:7px 12px;border:1px solid #8e6b9e;border-radius:30px;background:#20162b;color:#f7d8ff;font-size:11px;font-weight:800;letter-spacing:.5px;cursor:pointer}.sound-toggle[aria-pressed="false"]{color:#a9a2b5;border-color:#51475d}
