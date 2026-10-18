@@ -1,19 +1,7 @@
 const token=new URLSearchParams(location.search).get('token')||'';
 const $=id=>document.getElementById(id), money=n=>Number(n||0).toLocaleString('en-US');
 let spinning=false,balance=0,accountConnected=false,accountLoading=false;
-const soundKey='jojoworldArcadeSound';
-function readArcadeSound(){try{return localStorage.getItem(soundKey)!=='false'}catch(_){return true}}
-let soundOn=readArcadeSound(),audioCtx=null,tickCount=0;
-function playSound(kind){
- soundOn=readArcadeSound();if(!soundOn)return;
- try{
-  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
-  if(!audioCtx)audioCtx=new AC();if(audioCtx.state==='suspended')audioCtx.resume();
-  const now=audioCtx.currentTime;
-  const notes=kind==='tick'?[520]:kind==='win'?[660,880,1100]:kind==='jackpot'?[523,659,784,1047,1318]:kind==='lose'?[330,247]:[440];
-  notes.forEach((freq,i)=>{const osc=audioCtx.createOscillator(),gain=audioCtx.createGain(),start=now+i*(kind==='tick'?.0:.11);osc.type=kind==='tick'?'square':'sine';osc.frequency.setValueAtTime(freq,start);gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(kind==='tick'?.035:.09,start+.015);gain.gain.exponentialRampToValueAtTime(.0001,start+(kind==='tick'?.055:.19));osc.connect(gain);gain.connect(audioCtx.destination);osc.start(start);osc.stop(start+(kind==='tick'?.06:.21));});
- }catch(_){}
-}
+function playSound(){ /* Sound is intentionally disabled for Scatter Spin. */ }
 const symbols=['💣','❌','🪙','🎁','💎','👑','🍀','⭐'];
 function setBalance(n){balance=Number(n)||0;$('balance').textContent=money(balance)+' coins'}
 function setJackpot(n){$('jackpot').textContent=money(n)+' coins'}
