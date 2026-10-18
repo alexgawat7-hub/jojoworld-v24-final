@@ -1,5 +1,12 @@
 const token=new URLSearchParams(location.search).get('token')||'';
 const notice=document.getElementById('notice');
+const arcadeSound=document.getElementById('arcadeSound');
+const arcadeSoundKey='jojoworldArcadeSound';
+let arcadeSoundOn=false;
+try{arcadeSoundOn=localStorage.getItem(arcadeSoundKey)==='true'}catch(_){}
+function renderArcadeSound(){arcadeSound.textContent=arcadeSoundOn?'🔊 SOUND ON':'🔇 SOUND OFF';arcadeSound.setAttribute('aria-pressed',String(arcadeSoundOn))}
+renderArcadeSound();
+arcadeSound.addEventListener('click',()=>{arcadeSoundOn=!arcadeSoundOn;try{localStorage.setItem(arcadeSoundKey,String(arcadeSoundOn))}catch(_){}renderArcadeSound();if(arcadeSoundOn){try{const AC=window.AudioContext||window.webkitAudioContext,ctx=new AC(),o=ctx.createOscillator(),g=ctx.createGain();o.type='triangle';o.frequency.value=720;g.gain.setValueAtTime(.0001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.035,ctx.currentTime+.008);g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.08);o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+.09)}catch(_){}}});
 if(token){
  const q='?token='+encodeURIComponent(token);
  const coinShop=document.getElementById('coinShop');if(coinShop)coinShop.href='/coin-shop'+q;
