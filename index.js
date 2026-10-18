@@ -613,32 +613,37 @@ async function generateProfileCanvas(user) {
   const { frameName, frameKey, royal: royalFrame, gold: goldFrame, diamond: diamondFrame, neon: neonFrame, silver: silverFrame, color: frameColor, glow: frameGlow } = frameStyle;
   // [FIXED V31] Show the purchased VIP badge even if an older saved account only has its badge label.
   const vip = !!user.vip || String(user.badge || '').toLowerCase().includes('vip');
-  const bg = ctx.createLinearGradient(0,0,W,H); bg.addColorStop(0,'#050716'); bg.addColorStop(.5,'#111630'); bg.addColorStop(1,'#030914');
+  // [FULL PROFILE CARD V43] Deep obsidian backdrop with restrained aurora lighting and fine star texture.
+  const bg = ctx.createLinearGradient(0,0,W,H); bg.addColorStop(0,'#05070d'); bg.addColorStop(.34,'#10131d'); bg.addColorStop(.68,'#090c15'); bg.addColorStop(1,'#030509');
   ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
-  for(let i=0;i<115;i++){ctx.globalAlpha=.10+(i%3)*.045;ctx.fillStyle=[colors[i%colors.length],'#4af5ff','#ff49e9'][i%3];ctx.beginPath();ctx.arc((i*127+19)%W,(i*83+27)%H,i%9===0?2:1,0,Math.PI*2);ctx.fill();}
+  const aura=(x,y,r,color,alpha)=>{const a=ctx.createRadialGradient(x,y,0,x,y,r);a.addColorStop(0,color);a.addColorStop(1,'rgba(0,0,0,0)');ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle=a;ctx.fillRect(x-r,y-r,r*2,r*2);ctx.restore();};
+  aura(145,250,260,'#b28a3e',.18); aura(650,390,300,'#536ca9',.15); aura(410,900,420,'#8b6b37',.10); aura(400,70,240,'#596f9e',.10);
+  for(let i=0;i<135;i++){ctx.globalAlpha=.07+(i%4)*.025;ctx.fillStyle=[colors[i%colors.length],'#d8c28f','#91a9d3'][i%3];ctx.beginPath();ctx.arc((i*127+19)%W,(i*83+27)%H,i%11===0?1.8:.8,0,Math.PI*2);ctx.fill();}
   ctx.globalAlpha=1;
   const rr=(x,y,w,h,r)=>{ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();};
-  // [ROYAL PROFILE POLISH] Reusable jewel-tone panels with layered borders, corner filigree, and soft accent glow.
-  const panel=(x,y,w,h,accent='#344777')=>{
+  // [FULL PROFILE CARD V43] Unified luxury-glass panels: obsidian fill, muted metal rim, crisp corner details.
+  const panel=(x,y,w,h,accent='#bca16a')=>{
     ctx.save();
-    const g=ctx.createLinearGradient(x,y,x+w,y+h);g.addColorStop(0,'#172849');g.addColorStop(.42,'#0d1730');g.addColorStop(1,'#070c1c');
-    ctx.shadowColor=accent;ctx.shadowBlur=10;ctx.fillStyle=g;rr(x,y,w,h,22);ctx.fill();ctx.shadowBlur=0;
-    ctx.strokeStyle=accent;ctx.globalAlpha=.95;ctx.lineWidth=2;rr(x,y,w,h,22);ctx.stroke();
-    ctx.strokeStyle='#fff0b0';ctx.globalAlpha=.55;ctx.lineWidth=1;rr(x+5,y+5,w-10,h-10,17);ctx.stroke();
-    // Small metallic corner cuts give each section a premium frame without crowding content.
-    ctx.globalAlpha=.9;ctx.strokeStyle=accent;ctx.lineWidth=3;
-    const c=18;
-    ctx.beginPath();ctx.moveTo(x+12,y+c);ctx.lineTo(x+12,y+12);ctx.lineTo(x+c,y+12);
-    ctx.moveTo(x+w-c,y+12);ctx.lineTo(x+w-12,y+12);ctx.lineTo(x+w-12,y+c);
-    ctx.moveTo(x+12,y+h-c);ctx.lineTo(x+12,y+h-12);ctx.lineTo(x+c,y+h-12);
-    ctx.moveTo(x+w-c,y+h-12);ctx.lineTo(x+w-12,y+h-12);ctx.lineTo(x+w-12,y+h-c);ctx.stroke();
+    const g=ctx.createLinearGradient(x,y,x+w*.75,y+h);g.addColorStop(0,'#20232a');g.addColorStop(.22,'#111319');g.addColorStop(.62,'#090b10');g.addColorStop(1,'#171920');
+    ctx.shadowColor=accent;ctx.shadowBlur=7;ctx.fillStyle=g;rr(x,y,w,h,20);ctx.fill();ctx.shadowBlur=0;
+    ctx.strokeStyle=accent;ctx.globalAlpha=.82;ctx.lineWidth=1.6;rr(x,y,w,h,20);ctx.stroke();
+    ctx.strokeStyle='rgba(255,248,224,0.30)';ctx.globalAlpha=1;ctx.lineWidth=.8;rr(x+4,y+4,w-8,h-8,16);ctx.stroke();
+    // Short champagne corner strokes, deliberately restrained and consistent across all sections.
+    ctx.globalAlpha=.86;ctx.strokeStyle=accent;ctx.lineWidth=2;
+    const c=17;
+    ctx.beginPath();ctx.moveTo(x+11,y+c);ctx.lineTo(x+11,y+11);ctx.lineTo(x+c,y+11);
+    ctx.moveTo(x+w-c,y+11);ctx.lineTo(x+w-11,y+11);ctx.lineTo(x+w-11,y+c);
+    ctx.moveTo(x+11,y+h-c);ctx.lineTo(x+11,y+h-11);ctx.lineTo(x+c,y+h-11);
+    ctx.moveTo(x+w-c,y+h-11);ctx.lineTo(x+w-11,y+h-11);ctx.lineTo(x+w-11,y+h-c);ctx.stroke();
     ctx.restore();
   };
   const label=(value,x,y,size=18,color='#91a9d3',align='left')=>{ctx.textAlign=align;ctx.fillStyle=color;ctx.font=size+'px Sans';ctx.fillText(value,x,y);};
   const heading=(value,x,y)=>{ctx.textAlign='left';ctx.fillStyle='#f4f7ff';ctx.font='bold 24px Sans';ctx.fillText(value,x,y);};
   const displayName = getPlainDisplayName(user).slice(0, 26);
-  ctx.textAlign='center';ctx.fillStyle='#ffd875';ctx.font='bold 34px Sans';ctx.fillText('JOJOWORLD',W/2,62);
-  ctx.fillStyle='#b9c8e8';ctx.font='16px Sans';ctx.fillText('VISUAL PROFILE - YOUR WORLD, YOUR STYLE',W/2,91);
+  ctx.save();ctx.textAlign='center';ctx.shadowColor='#d9bd7c';ctx.shadowBlur=15;ctx.fillStyle='#f2dfb0';ctx.font='bold 34px Sans';ctx.fillText('JOJOWORLD',W/2,62);ctx.shadowBlur=0;
+  const titleLine=ctx.createLinearGradient(245,0,555,0);titleLine.addColorStop(0,'rgba(217,189,124,0)');titleLine.addColorStop(.5,'rgba(217,189,124,0.8)');titleLine.addColorStop(1,'rgba(217,189,124,0)');
+  ctx.strokeStyle=titleLine;ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(245,74);ctx.lineTo(555,74);ctx.stroke();
+  ctx.fillStyle='#aeb8ca';ctx.font='14px Sans';ctx.fillText('VISUAL PROFILE  •  YOUR WORLD, YOUR STYLE',W/2,96);ctx.restore();
   // [UPGRADED V28] Main identity card; avatar and text no longer overlap.
   panel(28,118,744,300,'#d9a441');
   // Apply the pre-generated AI artwork behind the equipped name effect when available.
@@ -829,9 +834,10 @@ async function generateProfileCanvas(user) {
   rows.forEach((r,i)=>{
     const col=i%2,row=Math.floor(i/2),x=48+col*354,y=610+row*68,w=342,h=58;
     ctx.save();
-    const cardGrad=ctx.createLinearGradient(x,y,x+w,y+h);cardGrad.addColorStop(0,'#172748');cardGrad.addColorStop(1,'#090f21');
+    const cardGrad=ctx.createLinearGradient(x,y,x+w,y+h);cardGrad.addColorStop(0,'#24262b');cardGrad.addColorStop(.5,'#111318');cardGrad.addColorStop(1,'#090a0d');
     ctx.fillStyle=cardGrad;rr(x,y,w,h,13);ctx.fill();
-    ctx.strokeStyle=r.color;ctx.globalAlpha=.75;ctx.lineWidth=1.4;rr(x,y,w,h,13);ctx.stroke();ctx.globalAlpha=1;
+    ctx.strokeStyle=r.color;ctx.globalAlpha=.68;ctx.lineWidth=1.2;rr(x,y,w,h,13);ctx.stroke();ctx.globalAlpha=1;
+    ctx.strokeStyle='rgba(255,248,224,0.16)';ctx.lineWidth=.7;rr(x+3,y+3,w-6,h-6,10);ctx.stroke();
     ctx.shadowColor=r.color;ctx.shadowBlur=10;ctx.fillStyle=r.color;ctx.beginPath();ctx.arc(x+15,y+17,3.5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
     ctx.textAlign='left';ctx.fillStyle=r.color;ctx.font='bold 13px Sans';ctx.fillText(r.label,x+27,y+21);
     ctx.fillStyle='#f5f7ff';ctx.font='bold 16px Sans';
