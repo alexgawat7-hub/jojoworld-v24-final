@@ -1,7 +1,26 @@
 const token=new URLSearchParams(location.search).get('token')||'';
 const $=id=>document.getElementById(id), money=n=>Number(n||0).toLocaleString('en-US');
 let spinning=false,balance=0,accountConnected=false,accountLoading=false;
-function playSound(){ /* Sound is intentionally disabled for Scatter Spin. */ }
+const soundKey='jojoworldScatterSound';
+let soundOn=false,audioCtx=null,tickCount=0;
+const soundButton=$('soundToggle');
+function renderSound(){soundButton.textContent=soundOn?'🔊 SOUND ON':'🔇 SOUND OFF';soundButton.setAttribute('aria-pressed',String(soundOn))}
+function playSound(kind='tap'){
+ if(!soundOn)return;
+ try{
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  if(!audioCtx)audioCtx=new AC();if(audioCtx.state==='suspended')audioCtx.resume();
+  const now=audioCtx.currentTime;
+  const notes=kind==='tick'?[520,660]:kind==='win'?[660,880,1100]:kind==='jackpot'?[523,659,784,1047,1318]:kind==='lose'?[330,247]:[440];
+  notes.forEach((freq,i)=>{const osc=audioCtx.createOscillator(),gain=audioCtx.createGain(),start=now+i*(kind==='tick'?.035:.09);osc.type=kind==='tick'?'square':'sine';osc.frequency.setValueAtTime(freq,start);gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(kind==='tick'?.025:.07,start+.012);gain.gain.exponentialRampToValueAtTime(.0001,start+(kind==='tick'?.05:.17));osc.connect(gain);gain.connect(audioCtx.destination);osc.start(start);osc.stop(start+(kind==='tick'?.055:.19));});
+ }catch(_){}
+}
+try{soundOn=localStorage.getItem(soundKey)==='true'}catch(_){}
+renderSound();
+soundButton.addEventListener('click',()=>{soundOn=!soundOn;try{localStorage.setItem(soundKey,String(soundOn))}catch(_){}renderSound();if(soundOn)playSound('tap')});
+const lobbyLink=$('lobbyLink'),lobbyBottom=$('lobbyBottom');
+if(token){const q='?token='+encodeURIComponent(token);lobbyLink.href='/live-games'+q;lobbyBottom.href='/live-games'+q}
+ }
 const symbols=['💣','❌','🪙','🎁','💎','👑','🍀','⭐'];
 function setBalance(n){balance=Number(n)||0;$('balance').textContent=money(balance)+' coins'}
 function setJackpot(n){$('jackpot').textContent=money(n)+' coins'}
