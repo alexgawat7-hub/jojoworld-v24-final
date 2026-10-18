@@ -1404,17 +1404,43 @@ async function generateLeaderboardCanvas(users) {
   ctx.globalAlpha = 1;
   ctx.shadowBlur = 20; ctx.shadowColor = '#31eaff'; ctx.strokeStyle = '#31eaff'; ctx.lineWidth = 4; ctx.strokeRect(16, 16, W - 32, H - 32);
   ctx.shadowColor = '#ff39e8'; ctx.strokeStyle = '#ff39e8'; ctx.lineWidth = 1.5; ctx.strokeRect(26, 26, W - 52, H - 52); ctx.shadowBlur = 0;
-  // [ADDED] JojoWorld branding and oversized title.
-  ctx.textAlign = 'left'; ctx.shadowColor = '#ffd54a'; ctx.shadowBlur = 12;
-  ctx.fillStyle = '#ffe56d'; ctx.font = 'bold 23px Sans'; ctx.fillText('♛ JojoWorld', 42, 62);
-  ctx.shadowBlur = 0; ctx.fillStyle = '#d8faff'; ctx.font = 'bold 11px Sans'; ctx.fillText('PLAY • CHAT • WIN', 45, 81);
-  ctx.textAlign = 'right'; ctx.fillStyle = '#ff8df1'; ctx.font = 'italic bold 17px Sans'; ctx.fillText('Climb The Rank', 755, 48); ctx.fillText('Be The Best!', 755, 71);
-  ctx.textAlign = 'center'; ctx.shadowColor = '#ffc94b'; ctx.shadowBlur = 22;
-  ctx.fillStyle = '#fff4bd'; ctx.font = 'bold 49px Sans'; ctx.fillText('LEADERBOARD', 400, 112);
-  ctx.fillStyle = '#ffc94b'; ctx.font = 'bold 52px Sans'; ctx.fillText('TOP 10', 400, 164); ctx.shadowBlur = 0;
+  // [JOJOWORLD ROYAL LEADERBOARD BRANDING V2] Match the profile card's jeweled crown, globe, metallic type and neon wings.
+  ctx.save();
+  const brandHalo=ctx.createRadialGradient(400,69,8,400,69,310);
+  brandHalo.addColorStop(0,'rgba(40,180,255,.25)');brandHalo.addColorStop(.55,'rgba(151,62,255,.12)');brandHalo.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=brandHalo;ctx.fillRect(55,24,690,155);
+  // Symmetrical neon wing flourishes.
+  for(const side of [-1,1]){
+    ctx.save();ctx.translate(400,0);ctx.scale(side,1);
+    ctx.shadowColor='#36eaff';ctx.shadowBlur=9;ctx.lineWidth=2.5;
+    const wing=ctx.createLinearGradient(35,0,180,0);wing.addColorStop(0,'#fff0b0');wing.addColorStop(.45,'#36eaff');wing.addColorStop(1,'#9b63ff');
+    ctx.strokeStyle=wing;ctx.beginPath();ctx.moveTo(32,73);ctx.quadraticCurveTo(65,39,105,52);ctx.quadraticCurveTo(138,61,171,42);ctx.stroke();
+    ctx.strokeStyle='rgba(255,211,104,.9)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(47,82);ctx.quadraticCurveTo(93,63,145,65);ctx.stroke();
+    ctx.fillStyle='#ffe58b';ctx.beginPath();ctx.moveTo(166,42);ctx.lineTo(172,34);ctx.lineTo(178,42);ctx.lineTo(172,49);ctx.closePath();ctx.fill();
+    ctx.restore();
+  }
+  // Small globe, orbital ring and crown above the wordmark.
+  ctx.textAlign='center';ctx.strokeStyle='#3cecff';ctx.lineWidth=1.5;ctx.shadowColor='#36eaff';ctx.shadowBlur=9;
+  ctx.beginPath();ctx.ellipse(400,39,27,8,-.1,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;
+  const miniGlobe=ctx.createRadialGradient(396,32,1,400,39,12);miniGlobe.addColorStop(0,'#ffffff');miniGlobe.addColorStop(.35,'#62f2ff');miniGlobe.addColorStop(1,'#1748b5');
+  ctx.fillStyle=miniGlobe;ctx.beginPath();ctx.arc(400,39,10.5,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#ffe6a0';ctx.lineWidth=1.2;ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.75)';ctx.lineWidth=.7;ctx.beginPath();ctx.ellipse(400,39,4,9,0,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.ellipse(400,39,9,3.5,0,0,Math.PI*2);ctx.stroke();
+  ctx.save();ctx.translate(400,26);ctx.shadowColor='#ffc94b';ctx.shadowBlur=8;ctx.fillStyle=ctx.createLinearGradient(0,-9,0,5);ctx.fillStyle.addColorStop(0,'#fff7c5');ctx.fillStyle.addColorStop(.5,'#ffd35d');ctx.fillStyle.addColorStop(1,'#a84d13');
+  ctx.strokeStyle='#fff0bd';ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(-12,4);ctx.lineTo(-10,-4);ctx.lineTo(-5,0);ctx.lineTo(0,-9);ctx.lineTo(5,0);ctx.lineTo(10,-4);ctx.lineTo(12,4);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
+  // Brand wordmark uses the same cyan-to-gold-to-magenta gradient as the profile logo.
+  const brandGrad=ctx.createLinearGradient(245,0,555,0);brandGrad.addColorStop(0,'#39edff');brandGrad.addColorStop(.24,'#9ac4ff');brandGrad.addColorStop(.42,'#ffffff');brandGrad.addColorStop(.58,'#ffe078');brandGrad.addColorStop(.78,'#ff78d9');brandGrad.addColorStop(1,'#7b8cff');
+  ctx.font='bold 29px Sans';ctx.lineJoin='round';ctx.lineWidth=3.5;ctx.strokeStyle='#080d27';ctx.shadowColor='#020617';ctx.shadowBlur=8;ctx.strokeText('JOJOWORLD',400,83);
+  ctx.strokeStyle='#fff0bc';ctx.lineWidth=1;ctx.shadowColor='#35eaff';ctx.shadowBlur=10;ctx.strokeText('JOJOWORLD',400,83);
+  ctx.fillStyle=brandGrad;ctx.shadowColor='#ff70df';ctx.shadowBlur=13;ctx.fillText('JOJOWORLD',400,83);ctx.shadowBlur=0;
+  ctx.font='bold 10px Sans';ctx.fillStyle='#d9faff';ctx.fillText('YOUR WORLD  •  YOUR STYLE',400,101);
+  ctx.restore();
+  ctx.textAlign='right';ctx.fillStyle='#ff8df1';ctx.font='italic bold 15px Sans';ctx.fillText('Climb The Rank',755,48);ctx.fillText('Be The Best!',755,70);
+  ctx.textAlign='center';ctx.shadowColor='#ffc94b';ctx.shadowBlur=20;
+  ctx.fillStyle='#fff4bd';ctx.font='bold 46px Sans';ctx.fillText('LEADERBOARD',400,137);
+  ctx.fillStyle='#ffc94b';ctx.font='bold 48px Sans';ctx.fillText('TOP 10',400,180);ctx.shadowBlur=0;
   const divider = ctx.createLinearGradient(40, 0, 760, 0);
   divider.addColorStop(0, '#36efff'); divider.addColorStop(0.32, '#ff4ce7'); divider.addColorStop(0.62, '#ffe16a'); divider.addColorStop(1, '#36efff');
-  ctx.strokeStyle = divider; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(42, 187); ctx.lineTo(758, 187); ctx.stroke();
+  ctx.strokeStyle = divider; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(42, 199); ctx.lineTo(758, 199); ctx.stroke();
 
   const houseNames = { none: 'No House', nohouse: 'No House', kubo: 'Kubo', bahay: 'Bahay', mansion: 'Mansion', building: 'Building' };
   const top = Object.entries(users || {}).map(([id, user]) => ({ id, user, net: getNetWorth(user) }))
