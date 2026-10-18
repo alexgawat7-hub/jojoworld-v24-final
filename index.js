@@ -401,7 +401,7 @@ app.post('/api/neon-battle/join', async (req, res) => {
       }
       const name = String(user.name || user.displayName || 'Jojo Player').replace(/[<>\u0000-\u001f]/g, '').slice(0, 24) || 'Jojo Player';
       own = await NeonBattleQueueModel.findOneAndUpdate({ psid }, { $set: { displayName: name, status: 'waiting', matchId: null, createdAt: new Date(), updatedAt: new Date() } }, { upsert: true, new: true, setDefaultsOnInsert: true });
-      await NeonBattleQueueModel.updateMany({ status: 'waiting', updatedAt: { $lt: new Date(Date.now() - 90000) } }, { $set: { status: 'waiting', updatedAt: new Date() } });
+      await NeonBattleQueueModel.deleteMany({ status: 'waiting', updatedAt: { $lt: new Date(Date.now() - 90000) }, psid: { $ne: psid } });
       const matchId = crypto.randomUUID();
       const rival = await NeonBattleQueueModel.findOneAndUpdate(
         { psid: { $ne: psid }, status: 'waiting', updatedAt: { $gte: new Date(Date.now() - 90000) } },
