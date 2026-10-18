@@ -83,9 +83,10 @@ document.getElementById('roll').addEventListener('click',async()=>{
   if(rolling||!token)return;
   rolling=true;
   const btn=document.getElementById('roll'),area=document.getElementById('dicearea'),res=document.getElementById('result');
+  let flicker=null;
   btn.disabled=true;area.classList.add('rolling');res.innerHTML='ROLLING...<small>Server is rolling your dice</small>';
   try{
-    const flicker=setInterval(()=>{drawDie('die1',1+Math.floor(Math.random()*6));drawDie('die2',1+Math.floor(Math.random()*6))},95);
+    flicker=setInterval(()=>{drawDie('die1',1+Math.floor(Math.random()*6));drawDie('die2',1+Math.floor(Math.random()*6))},95);
     const request=fetch('/api/dice-arena/roll',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,bet,prediction:pred})});
     await new Promise(r=>setTimeout(r,1550));
     const response=await request;
@@ -103,7 +104,7 @@ document.getElementById('roll').addEventListener('click',async()=>{
     if(data.stats)applyStats(data.stats);else refreshStats();
     btn.textContent='🎲 ROLL AGAIN';
   }catch(e){
-    if(typeof flicker!=='undefined')clearInterval(flicker);
+    if(flicker)clearInterval(flicker);
     area.classList.remove('rolling');
     res.innerHTML='CONNECTION ERROR<small>Check your connection and try again.</small>';
   }finally{
