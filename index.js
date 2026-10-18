@@ -1617,7 +1617,8 @@ async function generateLeaderboardCanvas(users) {
       const houseTextWidth = ctx.measureText(podiumHouseLabel).width;
       const iconWidth = 24, iconGap = 7;
       const groupLeft = podiumCenter - (iconWidth + iconGap + houseTextWidth) / 2;
-      drawHouseArt(ctx, podiumHouseKey, groupLeft, y + 250, iconWidth, 21);
+      // Vertically align the house illustration's visual center with the label's text center.
+      drawHouseArt(ctx, podiumHouseKey, groupLeft, y + 244, iconWidth, 21);
       ctx.textAlign = 'left';
       ctx.fillText(podiumHouseLabel, groupLeft + iconWidth + iconGap, y + 261);
     } else {
