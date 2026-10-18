@@ -378,6 +378,11 @@ function neonBattleState(match, psid, balance) {
   }
   return { ok: true, status: match.status, matchId: match.matchId, roundNumber: match.roundNumber, youMoved, opponentMoved, you: { name: me.name, hp: isP1 ? match.hp1 : match.hp2 }, opponent: { name: rival.name, hp: isP1 ? match.hp2 : match.hp1 }, lastRound, winner, reward, balance };
 }
+app.get('/neon-racing', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'neon-racing.html'), err => {
+    if (err && !res.headersSent) { console.error('[NEON RACING] Could not serve game:', err.message); res.status(503).send('Neon Racing is temporarily unavailable.'); }
+  });
+});
 app.get('/neon-battle', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'neon-battle.html'), err => {
     if (err && !res.headersSent) { console.error('[NEON BATTLE] Could not serve game:', err.message); res.status(503).send('Neon Battle is temporarily unavailable.'); }
