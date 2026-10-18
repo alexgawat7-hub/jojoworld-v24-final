@@ -62,8 +62,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     const roof=new THREE.Mesh(new THREE.BoxGeometry(1.15,.09,.92),paint);roof.position.set(0,1.47,-.25);root.add(roof);
     const frontLip=new THREE.Mesh(new THREE.BoxGeometry(1.82,.13,.25),trim);frontLip.position.set(0,.48,1.83);root.add(frontLip);
     const spoiler=new THREE.Mesh(new THREE.BoxGeometry(1.4,.1,.25),paint);spoiler.position.set(0,1.14,1.78);root.add(spoiler);
+    root.userData.wheels=[];
     for(const x of [-.99,.99])for(const z of [-1.22,1.22]){
-      const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.38,.38,.22,18),tireMat);wheel.rotation.z=Math.PI/2;wheel.position.set(x,.43,z);wheel.castShadow=true;root.add(wheel);
+      const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.38,.38,.22,18),tireMat);wheel.rotation.z=Math.PI/2;wheel.position.set(x,.43,z);wheel.castShadow=true;root.add(wheel);root.userData.wheels.push(wheel);
       const hub=new THREE.Mesh(new THREE.CylinderGeometry(.19,.19,.232,12),chrome);hub.rotation.z=Math.PI/2;hub.position.set(x,.43,z);root.add(hub);
     }
     for(const x of [-.62,.62]){
@@ -75,6 +76,29 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
   }
   const player=addCar(0x176d9a,0x8ef7ff);player.position.set(0,0,0);
   const rival=addCar(0xb52f3b,0xffb27d);rival.scale.setScalar(.78);rival.position.set(-2.8,0,-36);
+  // Lightweight tire-smoke particles used during hard steering/drifts.
+  const smokeMaterial=new THREE.MeshStandardMaterial({color:0xc3c8ca,transparent:true,opacity:.22,roughness:1,depthWrite:false});
+  const smoke=[];
+  for(let i=0;i<26;i++){
+    const puff=new THREE.Mesh(new THREE.SphereGeometry(.22,7,6),smokeMaterial.clone());
+    puff.visible=false;scene.add(puff);smoke.push({mesh:puff,life:0});
+  }
+  let smokeCursor=0, driftAmount=0;
+  function emitSmoke(){
+    for(const x of [-.78,.78]){
+      const p=smoke[smokeCursor++%smoke.length];p.life=.55+Math.random()*.35;
+      p.mesh.visible=true;p.mesh.position.set(player.position.x+x,.42,player.position.z+1.35);
+      const s=.35+Math.random()*.3;p.mesh.scale.setScalar(s);p.mesh.material.opacity=.22;
+    }
+  }
+  function updateSmoke(sec){
+    for(const p of smoke){
+      if(p.life<=0)continue;
+      p.life-=sec;p.mesh.position.y+=sec*1.15;p.mesh.position.x+=(p.mesh.position.x-player.position.x)*sec*.25;
+      p.mesh.scale.multiplyScalar(1+sec*1.1);p.mesh.material.opacity=Math.max(0,p.life*.25);
+      if(p.life<=0)p.mesh.visible=false;
+    }
+  }
   // Street furniture: detailed low-rise buildings, trees, lamps, signs and guardrails.
   function building(x,z,side,index){
     const group=new THREE.Group();const width=4+((index*7)%5),height=5+((index*11)%15),depth=4+((index*3)%4);
@@ -129,9 +153,12 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
   function beep(f=500){if(!sound)return;try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();const o=audio.createOscillator(),g=audio.createGain();o.frequency.value=f;g.gain.value=.025;o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+.1)}catch{}}
   function draw(){
     const playerX=steer*4.1;
-    player.position.x+=(playerX-player.position.x)*.16;
-    player.rotation.z=-steer*.08;
-    player.rotation.y=-steer*.12;
+    const slide=driftAmount*(steer<0?1:-1)*.42;
+    player.position.x+=(playerX+slide-player.position.x)*.16;
+    player.rotation.z=-steer*.08-driftAmount*steer*.055;
+    player.rotation.y=-steer*.12-driftAmount*steer*.09;
+    for(const wheel of player.userData.wheels)wheel.rotation.x+=speed*.0015; 
+    for(const wheel of rival.userData.wheels)wheel.rotation.x+=speed*.0008;
     rival.position.x=-2.8+Math.sin(progress*.013)*.8;
     const gap=rivalProgress-progress;
     rival.position.z=-Math.max(9,Math.min(75,18+gap*.12));
@@ -163,6 +190,10 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     if(keys.nitro&&nitro<=0&&nitroCooldown<=0){nitro=1.5;nitroCooldown=7;beep(980);}
     const boosting=nitro>0,target=braking?95:(boosting?260:205);
     speed+=(target-speed)*Math.min(1,sec*2.4);
+    const hardTurn=Math.abs(steer)>.56&&speed>125&&!braking;
+    driftAmount+=(hardTurn?1:0-driftAmount)*Math.min(1,sec*(hardTurn?4.5:2.2));
+    if(hardTurn&&Math.random()<.72)emitSmoke();
+    updateSmoke(sec);
     progress+=speed*sec*.078;
     rivalBoost=Math.max(0,rivalBoost-sec);if(rivalBoost<=0&&Math.random()<.045)rivalBoost=1.1;
     rivalProgress+=sec*(rivalBoost>0?18.8:16.2);
@@ -174,7 +205,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     requestAnimationFrame(frame);
   }
   function start(){
-    running=true;progress=0;rivalProgress=0;speed=0;steer=0;nitro=0;nitroCooldown=0;rivalBoost=0;braking=false;last=0;keys={};
+    running=true;progress=0;rivalProgress=0;speed=0;steer=0;nitro=0;nitroCooldown=0;rivalBoost=0;braking=false;driftAmount=0;last=0;keys={};
+    for(const p of smoke){p.life=0;p.mesh.visible=false;}
     $('score').textContent='0%';$('speed').textContent='0 km/h';$('overlay').hidden=true;beep(720);requestAnimationFrame(frame);
   }
   function hold(id,key){
