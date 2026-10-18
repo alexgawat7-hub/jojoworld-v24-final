@@ -84,12 +84,12 @@ document.getElementById('roll').addEventListener('click',async()=>{
     area.classList.remove('rolling');
     if(!response.ok||!data.ok){
       if(data.balance!==undefined)document.getElementById('balance').textContent=money(data.balance)+' coins';
-      res.innerHTML='ROLL NOT COMPLETED<small>'+String(data.error||'Please try again.')+'</small>';
+      res.classList.remove('win-result');res.classList.add('loss-result');res.innerHTML='ROLL NOT COMPLETED<small>'+String(data.error||'Please try again.')+'</small>';
       return;
     }
     drawDie('die1',data.die1);drawDie('die2',data.die2);
     document.getElementById('balance').textContent=money(data.balance)+' coins';
-    res.innerHTML=(data.won?'🏆 WIN CONFIRMED':'🎲 TOTAL '+data.total+' • '+data.actual)+'<small>'+(data.won?'You won '+money(data.payout)+' coins · Stake '+money(data.bet):'No win this time · Stake '+money(data.bet)+' coins')+'</small>';res.classList.remove('reveal');void res.offsetWidth;res.classList.add('reveal');addRecent(data.total,data.won);
+    res.classList.remove('win-result','loss-result');res.classList.add(data.won?'win-result':'loss-result');res.innerHTML=(data.won?'🏆 WIN CONFIRMED':'🎲 TOTAL '+data.total+' • '+data.actual)+'<small>'+(data.won?'You won '+money(data.payout)+' coins · Stake '+money(data.bet):'No win this time · Stake '+money(data.bet)+' coins')+'</small>';res.classList.remove('reveal');void res.offsetWidth;res.classList.add('reveal');addRecent(data.total,data.won);
     if(data.stats)applyStats(data.stats);else refreshStats();
     btn.textContent='🎲 ROLL AGAIN';
   }catch(e){
