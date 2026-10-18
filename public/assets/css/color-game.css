@@ -109,3 +109,20 @@ body:before{opacity:.09;background-image:radial-gradient(#ffe7a3 1px,transparent
 .banker-booth .pull-cord.pulled .cord-string{height:39px}
 .banker-booth .pull-cord.pulled .cord-handle{transform:translateY(13px) scaleY(.96)}
 @media(max-width:360px){.banker-booth{gap:7px;padding:8px}.banker-avatar{flex-basis:36px;width:36px}.banker-body{width:32px}.banker-copy strong{font-size:9px}.banker-copy small{font-size:7px}.banker-booth .cord-rig{flex-basis:55px;width:55px}}
+
+
+/* Original real-time 3D machine renderer. CSS dice stay as a fallback if WebGL is unavailable. */
+.dice-stage{position:relative;width:min(100%,560px);max-width:560px;min-height:226px;height:clamp(205px,43vw,270px);padding:0;overflow:hidden;border:1px solid #b9914c;border-radius:18px;background:radial-gradient(ellipse at 50% 35%,#26775a 0,#0d4938 54%,#041d17 100%);isolation:isolate}
+#machine3d{position:absolute;inset:0;z-index:2;width:100%;height:100%;pointer-events:none}
+#machine3d canvas{display:block;width:100%;height:100%;outline:none}
+.dice-stage.three-ready .die-slot{visibility:hidden}
+.dice-stage:after{content:"";position:absolute;left:8%;right:8%;bottom:7px;height:8px;border-radius:50%;background:#0007;filter:blur(9px);pointer-events:none;z-index:1}
+.dice-stage .die-slot:after{display:none}
+.round-panel{overflow:hidden}
+.banker-booth{background:linear-gradient(180deg,#34372e 0%,#151d19 46%,#080e0c 100%);border-color:#c9a45c;box-shadow:inset 0 1px #fff3,inset 0 -6px 0 #0005,0 5px 12px #0008}
+.banker-avatar{transform:scale(1.08);transform-origin:center bottom}
+.banker-copy strong{color:#ffe7a3;text-shadow:0 0 9px #d7a84a55}
+.cord-guide{box-shadow:inset 0 1px #fff9,0 2px 4px #0009}
+.cord-string{box-shadow:0 0 2px #000b,1px 0 #fff5}
+@media(max-width:390px){.dice-stage{height:clamp(190px,55vw,230px);min-height:190px}.round-panel{padding:10px}.banker-booth{margin-left:2px;margin-right:2px}}
+@media(prefers-reduced-motion:reduce){#machine3d{animation:none}}
