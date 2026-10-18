@@ -2580,11 +2580,9 @@ A new user successfully registered using your link! 🎁
               await axios.post('https://graph.facebook.com/v19.0/me/messages?access_token=' + PAGE_TOKEN, {
                 recipient: { id: psid },
                 message: { attachment: { type: 'template', payload: { template_type: 'button',
-                  text: '🎮 JOJOWORLD LIVE GAMES\nPumili ng laro sa buttons sa ibaba. Parehong gumagamit ng JojoWorld virtual coins.\n\n🎰 Scatter Spin — reels at jackpot\n🎲 Dice Arena — roll dice at piliin ang ODD o EVEN.',
+                  text: '🎮 JOJOWORLD GAME LOBBY\nPindutin ang Game Lobby para makita ang lahat ng available na laro, kabilang ang Scatter Spin at Dice Arena.',
                   buttons: [
-                    { type: 'web_url', url: lobbyUrl, title: '🎮 Game Lobby' },
-                    { type: 'web_url', url: scatterUrl, title: '🎰 Scatter Spin' },
-                    { type: 'web_url', url: launchUrl, title: '🎲 Dice Arena' }
+                    { type: 'web_url', url: lobbyUrl, title: '🎮 Game Lobby' }
                   ]
                 }}}
               }, { timeout: 15000 });
