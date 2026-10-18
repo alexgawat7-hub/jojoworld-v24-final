@@ -1,9 +1,10 @@
 const token=new URLSearchParams(location.search).get('token')||'';
 const $=id=>document.getElementById(id), money=n=>Number(n||0).toLocaleString('en-US');
 let spinning=false,balance=0,accountConnected=false,accountLoading=false;
-let soundOn=true,audioCtx=null,tickCount=0;
+const soundKey='jojoworldArcadeSound';
+let soundOn=localStorage.getItem(soundKey)!=='false',audioCtx=null,tickCount=0;
 function playSound(kind){
- if(!soundOn)return;
+ soundOn=localStorage.getItem(soundKey)!=='false';if(!soundOn)return;
  try{
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
   if(!audioCtx)audioCtx=new AC();if(audioCtx.state==='suspended')audioCtx.resume();
@@ -12,8 +13,6 @@ function playSound(kind){
   notes.forEach((freq,i)=>{const osc=audioCtx.createOscillator(),gain=audioCtx.createGain(),start=now+i*(kind==='tick'?.0:.11);osc.type=kind==='tick'?'square':'sine';osc.frequency.setValueAtTime(freq,start);gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(kind==='tick'?.035:.09,start+.015);gain.gain.exponentialRampToValueAtTime(.0001,start+(kind==='tick'?.055:.19));osc.connect(gain);gain.connect(audioCtx.destination);osc.start(start);osc.stop(start+(kind==='tick'?.06:.21));});
  }catch(_){}
 }
-const soundButton=$('soundToggle');
-soundButton?.addEventListener('click',()=>{soundOn=!soundOn;soundButton.textContent=soundOn?'🔊 SOUND ON':'🔇 SOUND OFF';soundButton.setAttribute('aria-pressed',String(soundOn));if(soundOn)playSound('tap')});
 const symbols=['💣','❌','🪙','🎁','💎','👑','🍀','⭐'];
 function setBalance(n){balance=Number(n)||0;$('balance').textContent=money(balance)+' coins'}
 function setJackpot(n){$('jackpot').textContent=money(n)+' coins'}
