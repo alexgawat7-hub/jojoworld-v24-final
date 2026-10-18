@@ -130,3 +130,5 @@ html,body{overflow:hidden!important;touch-action:pan-x}
 .recent-die{min-width:25px!important;padding:3px!important;font-size:8px!important}
 .recent-die small{font-size:7px!important}
 @media(max-height:620px){.sub{display:none}.arena-banner small{display:none}.recent{gap:2px!important}.recent-die{min-width:22px!important;padding:2px!important}}
+
+.game-nav .shop-link{border-color:#b59a54;background:linear-gradient(100deg,#3a2d22,#292040);color:#ffe49a;white-space:nowrap}
