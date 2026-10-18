@@ -52,7 +52,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
   for(let z=-245;z<15;z+=12)for(const x of [-2.5,2.5]){
     const mark=new THREE.Mesh(new THREE.BoxGeometry(.13,.026,5),laneMat);mark.position.set(x,.018,z);scene.add(mark);laneMarks.push(mark);
   }
-  const roadside=[];\n  const nitroPickups=[];
+  const roadside=[];
+  const nitroPickups=[];
   function addCar(color,accent){
     const root=new THREE.Group();
     const paint=mat(color,.28,.48), trim=mat(0x111820,.5,.35), glass=mat(0x172d3b,.2,.4), light= new THREE.MeshStandardMaterial({color:accent,emissive:accent,emissiveIntensity:2});
@@ -77,7 +78,17 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     scene.add(root);return root;
   }
   const player=addCar(0x176d9a,0x8ef7ff);player.position.set(0,0,0);
-  const rival=addCar(0xb52f3b,0xffb27d);rival.scale.setScalar(.78);rival.position.set(-2.8,0,-36);\n  // Auto-collected nitro canisters: drive through one to trigger a short boost.\n  const pickupCoreMat=new THREE.MeshStandardMaterial({color:0x8fffff,emissive:0x27dfff,emissiveIntensity:3,metalness:.25,roughness:.22});\n  const pickupRingMat=new THREE.MeshStandardMaterial({color:0xff9f43,emissive:0xff5b20,emissiveIntensity:2.2,metalness:.2,roughness:.3});\n  for(let i=0;i<5;i++){\n    const g=new THREE.Group();\n    const core=new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,.85,12),pickupCoreMat);core.rotation.z=Math.PI/2;g.add(core);\n    const ring=new THREE.Mesh(new THREE.TorusGeometry(.48,.07,8,18),pickupRingMat);g.add(ring);\n    const glow=new THREE.PointLight(0x36ddff,1.7,5);g.add(glow);\n    g.position.set([-3.6,0,3.6,0,-3.6][i],.95,-34-i*43);scene.add(g);nitroPickups.push(g);\n  }
+  const rival=addCar(0xb52f3b,0xffb27d);rival.scale.setScalar(.78);rival.position.set(-2.8,0,-36);
+  // Auto-collected nitro canisters: drive through one to trigger a short boost.
+  const pickupCoreMat=new THREE.MeshStandardMaterial({color:0x8fffff,emissive:0x27dfff,emissiveIntensity:3,metalness:.25,roughness:.22});
+  const pickupRingMat=new THREE.MeshStandardMaterial({color:0xff9f43,emissive:0xff5b20,emissiveIntensity:2.2,metalness:.2,roughness:.3});
+  for(let i=0;i<5;i++){
+    const g=new THREE.Group();
+    const core=new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,.85,12),pickupCoreMat);core.rotation.z=Math.PI/2;g.add(core);
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(.48,.07,8,18),pickupRingMat);g.add(ring);
+    const glow=new THREE.PointLight(0x36ddff,1.7,5);g.add(glow);
+    g.position.set([-3.6,0,3.6,0,-3.6][i],.95,-34-i*43);scene.add(g);nitroPickups.push(g);
+  }
   // Lightweight tire-smoke particles used during hard steering/drifts.
   const smokeMaterial=new THREE.MeshStandardMaterial({color:0xc3c8ca,transparent:true,opacity:.22,roughness:1,depthWrite:false});
   const smoke=[];
@@ -152,7 +163,42 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     const w=Math.max(300,mount.clientWidth),h=Math.max(250,mount.clientHeight);
     renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
   }
-  function ensureAudio(){\n    if(audioRig||!sound)return;\n    try{\n      const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;audio=audio||new AC();\n      const master=audio.createGain();master.gain.value=.58;master.connect(audio.destination);\n      const engineGain=audio.createGain();engineGain.gain.value=.0001;engineGain.connect(master);\n      const engine=audio.createOscillator();engine.type='sawtooth';engine.frequency.value=55;\n      const engineFilter=audio.createBiquadFilter();engineFilter.type='lowpass';engineFilter.frequency.value=260;engine.connect(engineFilter);engineFilter.connect(engineGain);engine.start();\n      const harmonic=audio.createOscillator();harmonic.type='triangle';harmonic.frequency.value=110;const harmonicGain=audio.createGain();harmonicGain.gain.value=.0001;harmonic.connect(harmonicGain);harmonicGain.connect(master);harmonic.start();\n      const buffer=audio.createBuffer(1,audio.sampleRate*2,audio.sampleRate),data=buffer.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*.7;\n      const wind=audio.createBufferSource();wind.buffer=buffer;wind.loop=true;const windFilter=audio.createBiquadFilter();windFilter.type='lowpass';windFilter.frequency.value=500;const windGain=audio.createGain();windGain.gain.value=.0001;wind.connect(windFilter);windFilter.connect(windGain);windGain.connect(master);wind.start();\n      const tire=audio.createBufferSource();tire.buffer=buffer;tire.loop=true;const tireFilter=audio.createBiquadFilter();tireFilter.type='bandpass';tireFilter.frequency.value=1500;const tireGain=audio.createGain();tireGain.gain.value=.0001;tire.connect(tireFilter);tireFilter.connect(tireGain);tireGain.connect(master);tire.start();\n      audioRig={master,engine,engineFilter,engineGain,harmonic,harmonicGain,windGain,windFilter,tireGain,tireFilter};\n      if(audio.state==='suspended')audio.resume();\n    }catch(err){console.warn('Audio unavailable',err);}\n  }\n  function updateAudio(){\n    if(!sound)return;ensureAudio();if(!audioRig||!audio)return;\n    if(audio.state==='suspended')audio.resume().catch(()=>{});\n    const t=audio.currentTime,throttle=running?Math.max(.12,speed/245):0;\n    audioRig.engine.frequency.setTargetAtTime(38+speed*.48+(nitro>0?15:0),t,.06);\n    audioRig.engineGain.gain.setTargetAtTime(running?.025+throttle*.045:.0001,t,.08);\n    audioRig.engineFilter.frequency.setTargetAtTime(180+speed*2.2,t,.08);\n    audioRig.harmonic.frequency.setTargetAtTime(76+speed*.92,t,.07);\n    audioRig.harmonicGain.gain.setTargetAtTime(running?.006+throttle*.018:.0001,t,.08);\n    audioRig.windGain.gain.setTargetAtTime(running?Math.min(.14,speed/245*.14):.0001,t,.12);\n    audioRig.windFilter.frequency.setTargetAtTime(250+speed*5,t,.1);\n    audioRig.tireGain.gain.setTargetAtTime(running&&driftAmount>.35?Math.min(.12,driftAmount*.1):.0001,t,.06);\n    audioRig.tireFilter.frequency.setTargetAtTime(900+Math.abs(steer)*1000,t,.06);\n  }\n  function beep(f=500){if(!sound)return;try{ensureAudio();if(!audio)return;const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.setValueAtTime(f,audio.currentTime);o.frequency.exponentialRampToValueAtTime(Math.max(90,f*.62),audio.currentTime+.18);g.gain.setValueAtTime(.0001,audio.currentTime);g.gain.exponentialRampToValueAtTime(.08,audio.currentTime+.015);g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+.22);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+.23)}catch{}}\n  function collectNitro(pickup){\n    nitro=2.15;pickup.position.z=-245-Math.random()*18;pickup.position.x=[-3.6,0,3.6][Math.floor(Math.random()*3)];\n    pickup.rotation.y=0;beep(760);\n    if(sound&&audio){try{const o=audio.createOscillator(),g=audio.createGain();o.type='sawtooth';o.frequency.setValueAtTime(180,audio.currentTime);o.frequency.exponentialRampToValueAtTime(850,audio.currentTime+.28);g.gain.setValueAtTime(.0001,audio.currentTime);g.gain.exponentialRampToValueAtTime(.11,audio.currentTime+.025);g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+.34);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+.35);}catch{}}\n  }
+  function ensureAudio(){
+    if(audioRig||!sound)return;
+    try{
+      const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;audio=audio||new AC();
+      const master=audio.createGain();master.gain.value=.58;master.connect(audio.destination);
+      const engineGain=audio.createGain();engineGain.gain.value=.0001;engineGain.connect(master);
+      const engine=audio.createOscillator();engine.type='sawtooth';engine.frequency.value=55;
+      const engineFilter=audio.createBiquadFilter();engineFilter.type='lowpass';engineFilter.frequency.value=260;engine.connect(engineFilter);engineFilter.connect(engineGain);engine.start();
+      const harmonic=audio.createOscillator();harmonic.type='triangle';harmonic.frequency.value=110;const harmonicGain=audio.createGain();harmonicGain.gain.value=.0001;harmonic.connect(harmonicGain);harmonicGain.connect(master);harmonic.start();
+      const buffer=audio.createBuffer(1,audio.sampleRate*2,audio.sampleRate),data=buffer.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*.7;
+      const wind=audio.createBufferSource();wind.buffer=buffer;wind.loop=true;const windFilter=audio.createBiquadFilter();windFilter.type='lowpass';windFilter.frequency.value=500;const windGain=audio.createGain();windGain.gain.value=.0001;wind.connect(windFilter);windFilter.connect(windGain);windGain.connect(master);wind.start();
+      const tire=audio.createBufferSource();tire.buffer=buffer;tire.loop=true;const tireFilter=audio.createBiquadFilter();tireFilter.type='bandpass';tireFilter.frequency.value=1500;const tireGain=audio.createGain();tireGain.gain.value=.0001;tire.connect(tireFilter);tireFilter.connect(tireGain);tireGain.connect(master);tire.start();
+      audioRig={master,engine,engineFilter,engineGain,harmonic,harmonicGain,windGain,windFilter,tireGain,tireFilter};
+      if(audio.state==='suspended')audio.resume();
+    }catch(err){console.warn('Audio unavailable',err);}
+  }
+  function updateAudio(){
+    if(!sound)return;ensureAudio();if(!audioRig||!audio)return;
+    if(audio.state==='suspended')audio.resume().catch(()=>{});
+    const t=audio.currentTime,throttle=running?Math.max(.12,speed/245):0;
+    audioRig.engine.frequency.setTargetAtTime(38+speed*.48+(nitro>0?15:0),t,.06);
+    audioRig.engineGain.gain.setTargetAtTime(running?.025+throttle*.045:.0001,t,.08);
+    audioRig.engineFilter.frequency.setTargetAtTime(180+speed*2.2,t,.08);
+    audioRig.harmonic.frequency.setTargetAtTime(76+speed*.92,t,.07);
+    audioRig.harmonicGain.gain.setTargetAtTime(running?.006+throttle*.018:.0001,t,.08);
+    audioRig.windGain.gain.setTargetAtTime(running?Math.min(.14,speed/245*.14):.0001,t,.12);
+    audioRig.windFilter.frequency.setTargetAtTime(250+speed*5,t,.1);
+    audioRig.tireGain.gain.setTargetAtTime(running&&driftAmount>.35?Math.min(.12,driftAmount*.1):.0001,t,.06);
+    audioRig.tireFilter.frequency.setTargetAtTime(900+Math.abs(steer)*1000,t,.06);
+  }
+  function beep(f=500){if(!sound)return;try{ensureAudio();if(!audio)return;const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.setValueAtTime(f,audio.currentTime);o.frequency.exponentialRampToValueAtTime(Math.max(90,f*.62),audio.currentTime+.18);g.gain.setValueAtTime(.0001,audio.currentTime);g.gain.exponentialRampToValueAtTime(.08,audio.currentTime+.015);g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+.22);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+.23)}catch{}}
+  function collectNitro(pickup){
+    nitro=2.15;pickup.position.z=-245-Math.random()*18;pickup.position.x=[-3.6,0,3.6][Math.floor(Math.random()*3)];
+    pickup.rotation.y=0;beep(760);
+    if(sound&&audio){try{const o=audio.createOscillator(),g=audio.createGain();o.type='sawtooth';o.frequency.setValueAtTime(180,audio.currentTime);o.frequency.exponentialRampToValueAtTime(850,audio.currentTime+.28);g.gain.setValueAtTime(.0001,audio.currentTime);g.gain.exponentialRampToValueAtTime(.11,audio.currentTime+.025);g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+.34);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+.35);}catch{}}
+  }
   function draw(){
     const playerX=steer*4.35;
     const slide=driftAmount*(steer<0?1:-1)*.52;
@@ -171,13 +217,15 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     // Recycle lane marks and roadside models toward the camera for continuous travel.
     const movement=speed*.075;
     for(const m of laneMarks){m.position.z+=movement;if(m.position.z>12)m.position.z-=260;}
-    for(const o of roadside){o.group.position.z+=movement;if(o.group.position.z>18){o.group.position.z-=260;o.z=o.group.position.z;}}\n    for(const p of nitroPickups){p.position.z+=movement;p.rotation.y+=.035;p.position.y=.95+Math.sin(performance.now()*.004+p.position.x)*.12;if(p.position.z>2){p.position.z=-245-Math.random()*18;p.position.x=[-3.6,0,3.6][Math.floor(Math.random()*3)];}else if(p.position.z>-.9&&p.position.z<1.5&&Math.abs(p.position.x-player.position.x)<1.65){collectNitro(p);}}
+    for(const o of roadside){o.group.position.z+=movement;if(o.group.position.z>18){o.group.position.z-=260;o.z=o.group.position.z;}}
+    for(const p of nitroPickups){p.position.z+=movement;p.rotation.y+=.035;p.position.y=.95+Math.sin(performance.now()*.004+p.position.x)*.12;if(p.position.z>2){p.position.z=-245-Math.random()*18;p.position.x=[-3.6,0,3.6][Math.floor(Math.random()*3)];}else if(p.position.z>-.9&&p.position.z<1.5&&Math.abs(p.position.x-player.position.x)<1.65){collectNitro(p);}}
     if(nitro>0){
       // Quick FOV kick conveys speed without making the phone camera unstable.
       camera.fov=THREE.MathUtils.lerp(camera.fov,68,.12);
     }else camera.fov=THREE.MathUtils.lerp(camera.fov,62,.08);
     camera.updateProjectionMatrix();
-    renderer.render(scene,camera);\n    updateAudio();
+    renderer.render(scene,camera);
+    updateAudio();
   }
   function finish(won){
     running=false;
@@ -189,8 +237,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
   function frame(t){
     if(!running){draw();return;}
     const dt=Math.min(40,t-last||16);last=t;const sec=dt/1000;
-    nitroCooldown=Math.max(0,nitroCooldown-sec);if(nitro>0)nitro=Math.max(0,nitro-sec);
-    if(keys.nitro&&nitro<=0&&nitroCooldown<=0){nitro=1.5;nitroCooldown=7;beep(980);}
+    if(nitro>0)nitro=Math.max(0,nitro-sec);
     const boosting=nitro>0,target=braking?88:(boosting?245:198);
     speed+=(target-speed)*Math.min(1,sec*2.4);
     const hardTurn=Math.abs(steer)>.56&&speed>125&&!braking;
@@ -208,18 +255,19 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     requestAnimationFrame(frame);
   }
   function start(){
-    running=true;progress=0;rivalProgress=0;speed=0;steer=0;nitro=0;rivalBoost=0;braking=false;driftAmount=0;last=0;keys={};\n    nitroPickups.forEach((p,i)=>{p.position.set([-3.6,0,3.6,0,-3.6][i],.95,-34-i*43);});
+    running=true;progress=0;rivalProgress=0;speed=0;steer=0;nitro=0;rivalBoost=0;braking=false;driftAmount=0;last=0;keys={};
+    nitroPickups.forEach((p,i)=>{p.position.set([-3.6,0,3.6,0,-3.6][i],.95,-34-i*43);});
     for(const p of smoke){p.life=0;p.mesh.visible=false;}
     $('score').textContent='0%';$('speed').textContent='0 km/h';$('overlay').hidden=true;beep(720);requestAnimationFrame(frame);
   }
   function hold(id,key){
     const b=$(id);if(!b)return;
-    b.addEventListener('pointerdown',e=>{e.preventDefault();keys[key]=true;if(key==='nitro'&&nitroCooldown<=0&&nitro<=0){nitro=1.5;nitroCooldown=7;beep(980);}if(key==='brake')braking=true;});
+    b.addEventListener('pointerdown',e=>{e.preventDefault();keys[key]=true;if(key==='brake')braking=true;});
     ['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,()=>{keys[key]=false;if(key==='brake')braking=false;}));
   }
   hold('left','left');hold('right','right');hold('brake','brake');
   window.addEventListener('keydown',e=>{if(['ArrowLeft','a','A'].includes(e.key)){keys.left=true;e.preventDefault();}if(['ArrowRight','d','D'].includes(e.key)){keys.right=true;e.preventDefault();}if(e.code==='Space'){e.preventDefault();}if(['ArrowDown','s','S'].includes(e.key)){braking=true;e.preventDefault();}});
-  window.addEventListener('keyup',e=>{if(['ArrowLeft','a','A'].includes(e.key))keys.left=false;if(['ArrowRight','d','D'].includes(e.key))keys.right=false;if(e.code==='Space')keys.nitro=false;if(['ArrowDown','s','S'].includes(e.key))braking=false;});
+  window.addEventListener('keyup',e=>{if(['ArrowLeft','a','A'].includes(e.key))keys.left=false;if(['ArrowRight','d','D'].includes(e.key))keys.right=false;if(['ArrowDown','s','S'].includes(e.key))braking=false;});
   $('start').addEventListener('click',start);$('restart').addEventListener('click',start);
   $('sound').addEventListener('click',()=>{sound=!sound;$('sound').textContent=sound?'🔊 SOUND: ON':'🔊 SOUND: OFF';if(sound){ensureAudio();beep(600);}else if(audioRig&&audio){audioRig.engineGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.harmonicGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.windGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.tireGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);}});
   window.addEventListener('resize',resize);
