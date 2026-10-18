@@ -1,3 +1,10 @@
+const soundButton=document.getElementById('soundToggle');
+const soundKey='jojoworldArcadeSound';
+let arcadeSoundOn=localStorage.getItem(soundKey)!=='false';
+function renderSoundControl(){if(!soundButton)return;soundButton.textContent=arcadeSoundOn?'🔊 ARCADE SOUND ON':'🔇 ARCADE SOUND OFF';soundButton.setAttribute('aria-pressed',String(arcadeSoundOn));}
+renderSoundControl();
+soundButton?.addEventListener('click',()=>{arcadeSoundOn=!arcadeSoundOn;localStorage.setItem(soundKey,String(arcadeSoundOn));renderSoundControl();});
+
 const token=new URLSearchParams(location.search).get('token')||'';
 const notice=document.getElementById('notice');
 if(token){const q='?token='+encodeURIComponent(token);document.getElementById('scatter').href='/scatter-spin'+q;document.getElementById('dice').href='/dice-arena'+q;
