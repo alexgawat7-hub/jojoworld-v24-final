@@ -99,14 +99,19 @@ function speakPlaceYourBet(roundNumber){
  if(!soundEnabled||!('speechSynthesis' in window)||typeof SpeechSynthesisUtterance==='undefined')return;
  const round=String(roundNumber??roundState?.roundNumber??'');
  if(!round||lastBetAnnouncementRound===round)return;
+ // Reserve the round before speaking: state polls every 1.2s, so waiting for onstart
+ // can enqueue the same announcement multiple times on slower mobile browsers.
+ lastBetAnnouncementRound=round;
  try{
   const utterance=new SpeechSynthesisUtterance('Place your bet!');
-  utterance.lang='en-US';utterance.rate=.92;utterance.pitch=.95;utterance.volume=1;
-  utterance.onstart=()=>{lastBetAnnouncementRound=round;};
+  utterance.lang='en-US';utterance.rate=.9;utterance.pitch=.92;utterance.volume=1;
   utterance.onerror=()=>{if(lastBetAnnouncementRound===round)lastBetAnnouncementRound='';};
-  window.speechSynthesis.cancel();window.speechSynthesis.resume();
-  window.setTimeout(()=>{try{if(lastBetAnnouncementRound!==round)window.speechSynthesis.speak(utterance);}catch(_){lastBetAnnouncementRound='';}},120);
- }catch(_){lastBetAnnouncementRound='';}
+  const synth=window.speechSynthesis;
+  synth.cancel();
+  const speak=()=>{try{if(soundEnabled&&lastBetAnnouncementRound===round)synth.speak(utterance);}catch(_){if(lastBetAnnouncementRound===round)lastBetAnnouncementRound='';}};
+  synth.resume();
+  window.setTimeout(speak,180);
+ }catch(_){if(lastBetAnnouncementRound===round)lastBetAnnouncementRound='';}
 }
 function playCountdown(second){
  if(!soundEnabled)return;
@@ -115,9 +120,18 @@ function playCountdown(second){
 }
 function playCordPull(){
  if(!soundEnabled)return;
- noiseBurst(.24,.045,0,1000);
- tone(180,.13,.035,'sawtooth',.015);tone(125,.18,.05,'triangle',.13);
- tone(72,.24,.065,'sine',.27);
+ // A taut cable scrape, ratchet ticks, then the heavy release latch.
+ noiseBurst(.32,.042,0,1150);
+ tone(205,.18,.026,'sawtooth',.015);
+ for(let i=0;i<5;i++){
+  const t=.045+i*.052;
+  tone(460-i*38,.026,.018,'square',t);
+  noiseBurst(.022,.012,t,1900-i*150);
+ }
+ tone(128,.2,.052,'triangle',.28);
+ noiseBurst(.09,.052,.34,780);
+ tone(72,.28,.07,'sine',.35);
+ tone(310,.055,.025,'triangle',.39);
 }
 let lastImpactSound=0;
 window.addEventListener('color-dice-impact',event=>{
