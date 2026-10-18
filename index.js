@@ -292,6 +292,15 @@ app.post('/api/scatter-spin/spin', async (req, res) => {
 // [JOJOWORLD DICE ARENA WEB GAME ROUTE] Serve the animated HTML game interface.
 // This is currently a visual prototype; wager settlement remains in the Messenger backend
 // until the authenticated game-session API is added and tested.
+app.get('/live-games', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'live-games.html'), err => {
+    if (err && !res.headersSent) {
+      console.error('[LIVE GAMES] Could not serve arcade lobby:', err.message);
+      res.status(503).send('Live Games is temporarily unavailable.');
+    }
+  });
+});
+
 app.get('/dice-arena', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dice-arena.html'), err => {
     if (err && !res.headersSent) {
@@ -2557,11 +2566,13 @@ A new user successfully registered using your link! 🎁
               await DiceWebSessionModel.create({ tokenHash, psid, expiresAt: new Date(Date.now() + 20 * 60 * 1000) });
               const launchUrl = publicBase + '/dice-arena?token=' + rawToken;
               const scatterUrl = publicBase + '/scatter-spin?token=' + rawToken;
+              const lobbyUrl = publicBase + '/live-games?token=' + rawToken;
               await axios.post('https://graph.facebook.com/v19.0/me/messages?access_token=' + PAGE_TOKEN, {
                 recipient: { id: psid },
                 message: { attachment: { type: 'template', payload: { template_type: 'button',
                   text: '🎮 JOJOWORLD LIVE GAMES\nPumili ng laro sa buttons sa ibaba. Parehong gumagamit ng JojoWorld virtual coins.\n\n🎰 Scatter Spin — reels at jackpot\n🎲 Dice Arena — roll dice at piliin ang ODD o EVEN.',
                   buttons: [
+                    { type: 'web_url', url: lobbyUrl, title: '🎮 Game Lobby' },
                     { type: 'web_url', url: scatterUrl, title: '🎰 Scatter Spin' },
                     { type: 'web_url', url: launchUrl, title: '🎲 Dice Arena' }
                   ]
