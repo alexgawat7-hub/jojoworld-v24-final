@@ -64,7 +64,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
   const dome = new THREE.Mesh(new THREE.SphereGeometry(1,48,24,0,Math.PI*2,0,Math.PI/2), domeMat);
   dome.scale.set(3.0,1.2,1.05); dome.position.set(0,-.02,0); dome.castShadow=false; base.add(dome);
   const hoop = new THREE.Mesh(new THREE.TorusGeometry(2.85,.055,10,64), brightGold);
-  hoop.scale.set(1,1,.37); hoop.position.set(0,-.18,0); base.add(hoop);
+  hoop.scale.set(1,.37,1); hoop.rotation.x=Math.PI/2; hoop.position.set(0,-.18,0); base.add(hoop);
   // Side hinges, latch, and a front control panel make the machine feel manufactured.
   for (const x of [-2.9,2.9]) {
     const hinge = new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.45,20), brightGold);
