@@ -301,6 +301,15 @@ app.get('/live-games', (req, res) => {
   });
 });
 
+app.get('/neon-tap-rush', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'games', 'neon-tap-rush.html'), err => {
+    if (err && !res.headersSent) {
+      console.error('[NEON TAP RUSH] Could not serve game page:', err.message);
+      res.status(503).send('Neon Tap Rush is temporarily unavailable.');
+    }
+  });
+});
+
 app.get('/dice-arena', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dice-arena.html'), err => {
     if (err && !res.headersSent) {
