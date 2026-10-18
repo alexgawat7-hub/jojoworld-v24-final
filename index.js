@@ -2482,52 +2482,9 @@ A new user successfully registered using your link! 🎁
           continue;
         }
 
-        // [JOJOWORLD DICE ARENA] Virtual-coin dice game with backend-generated fair dice.
+        // [JOJOWORLD DICE ARENA] Browser-only game entry. Text-based dice betting is disabled.
         const dicePayload = upperRaw.trim();
-        const startDiceBet = async (requestedBet) => {
-          const balance = Math.max(0, Math.floor(Number(user.coins) || 0));
-          const bet = String(requestedBet).toUpperCase() === "MAX" ? balance : Number(requestedBet);
-          if (!Number.isSafeInteger(bet) || bet < 10) {
-            send(psid, "🎲 Minimum bet is 10 coins. Choose a bet or use MAX BET.", [
-              { content_type: "text", title: "🪙 Bet 100", payload: "DICE_BET_100" },
-              { content_type: "text", title: "🪙 Bet 500", payload: "DICE_BET_500" },
-              { content_type: "text", title: "🪙 Bet 1,000", payload: "DICE_BET_1000" },
-              { content_type: "text", title: "👑 MAX BET", payload: "DICE_BET_MAX" }
-            ]);
-            return;
-          }
-          if (bet > balance) {
-            send(psid, `❌ Kulang ang coins mo. Taya: ${bet}c • Balance: ${balance}c`);
-            return;
-          }
-          const previousBet = user.pendingDiceBet;
-          user.pendingDiceBet = bet;
-          if (!await saveUserToDB(psid, { saveJackpot: false })) {
-            if (previousBet === undefined) delete user.pendingDiceBet;
-            else user.pendingDiceBet = previousBet;
-            send(psid, "⚠️ Hindi na-save ang dice bet. Walang nabawas na coins; subukan ulit.");
-            return;
-          }
-          send(psid, `🎲 DICE ARENA\n━━━━━━━━━━━━━━━━━━\n💰 Bet: ${bet.toLocaleString()} coins\n🏆 Correct prediction pays 2× total (kasama ang panalong taya).\n\nODD o EVEN ang total ng dalawang dice?`, [
-            { content_type: "text", title: "🔴 ODD", payload: "DICE_ROLL_ODD" },
-            { content_type: "text", title: "🔵 EVEN", payload: "DICE_ROLL_EVEN" },
-            { content_type: "text", title: "❌ Cancel Bet", payload: "DICE_CANCEL" }
-          ]);
-        };
         if (["DICE", "DICE GAME", "DICE ARENA"].includes(dicePayload)) {
-          let diceRoundStats = null;
-          try { diceRoundStats = await getDiceRoundStats(); } catch (statsError) { console.error("Dice round stats unavailable:", statsError.message); }
-          const roundSummary = diceRoundStats
-            ? `📊 ROUND #${diceRoundStats.roundNumber} (5-minute round)\n👥 Players who rolled: ${diceRoundStats.playerCount}\n🎲 Completed rolls: ${diceRoundStats.totalRolls}\n🪙 Total bets: ${diceRoundStats.totalBet.toLocaleString()} coins\n🏆 Total payouts: ${diceRoundStats.totalPayout.toLocaleString()} coins\n━━━━━━━━━━━━━━━━━━\n`
-            : "📊 Round stats are temporarily unavailable.\n";
-          send(psid, `🎲 JOJOWORLD • DICE ARENA\n━━━━━━━━━━━━━━━━━━\n💰 Balance: ${Math.max(0, Math.floor(Number(user.coins) || 0)).toLocaleString()} coins\n${roundSummary}\nPumili ng taya. Kapag tama ang ODD/EVEN prediction, 2× ang total payout. Virtual JojoWorld coins lang ang gamit.\nPwede rin i-type: DICE 250`, [
-            { content_type: "text", title: "🪙 Bet 100", payload: "DICE_BET_100" },
-            { content_type: "text", title: "🪙 Bet 500", payload: "DICE_BET_500" },
-            { content_type: "text", title: "🪙 Bet 1,000", payload: "DICE_BET_1000" },
-            { content_type: "text", title: "👑 MAX BET", payload: "DICE_BET_MAX" },
-            { content_type: "text", title: "↩️ Main Menu", payload: "MENU" }
-          ]);
-          // Create a short-lived account-bound launch link for Messenger's browser game.
           const publicBase = String(process.env.RENDER_EXTERNAL_URL || '').trim().replace(/\/$/, '');
           if (MONGODB_URI && mongoose.connection.readyState === 1 && /^https:\/\//i.test(publicBase) && PAGE_TOKEN) {
             try {
@@ -2548,96 +2505,14 @@ A new user successfully registered using your link! 🎁
               send(psid, '🎲 Hindi naipadala ang game button. I-type ulit ang DICE ARENA para gumawa ng bagong secure link.');
             }
           } else {
-            send(psid, 'ℹ️ Browser game account-linking is not ready yet. Maaari mo pa ring gamitin ang Dice Arena dito sa Messenger.');
+            send(psid, 'ℹ️ Hindi pa available ang browser game. Naka-disable ang text-based dice mode; subukan ulit mamaya.');
           }
           continue;
         }
-        if (dicePayload === "DICE_CANCEL") {
-          const previousBet = user.pendingDiceBet;
-          delete user.pendingDiceBet;
-          if (!await saveUserToDB(psid, { saveJackpot: false })) {
-            if (previousBet !== undefined) user.pendingDiceBet = previousBet;
-            send(psid, "⚠️ Hindi na-save ang cancellation. Subukan ulit.");
-          } else {
-            send(psid, "✅ Dice bet cancelled. Walang coins na nabawas.", [
-              { content_type: "text", title: "🎲 Dice Arena", payload: "DICE" },
-              { content_type: "text", title: "↩️ Main Menu", payload: "MENU" }
-            ]);
-          }
-          continue;
-        }
-        if (dicePayload.startsWith("DICE_BET_")) {
-          await startDiceBet(dicePayload.slice("DICE_BET_".length));
-          continue;
-        }
-        if (dicePayload.startsWith("DICE ")) {
-          const parts = dicePayload.split(/\s+/);
-          if (parts.length !== 2 || !/^(\d+|MAX)$/i.test(parts[1])) {
-            send(psid, "🎲 Use: DICE <amount> (example: DICE 250) or DICE MAX.");
-          } else {
-            await startDiceBet(parts[1]);
-          }
-          continue;
-        }
-        if (dicePayload === "DICE_ROLL_ODD" || dicePayload === "DICE_ROLL_EVEN") {
-          const bet = Math.floor(Number(user.pendingDiceBet) || 0);
-          const prediction = dicePayload === "DICE_ROLL_ODD" ? "ODD" : "EVEN";
-          if (!Number.isSafeInteger(bet) || bet < 10) {
-            delete user.pendingDiceBet;
-            await saveUserToDB(psid, { saveJackpot: false });
-            send(psid, "🎲 Walang active bet. Type DICE para magsimula ulit.");
-            continue;
-          }
-          const cooldownMs = 3000;
-          const sinceLastRoll = Date.now() - (Number(user.lastDiceRoll) || 0);
-          if (sinceLastRoll < cooldownMs) {
-            send(psid, `⏳ Sandali lang bago ang susunod na roll: ${Math.ceil((cooldownMs - sinceLastRoll) / 1000)}s.`);
-            continue;
-          }
-          const balance = Math.max(0, Math.floor(Number(user.coins) || 0));
-          if (bet > balance) {
-            delete user.pendingDiceBet;
-            await saveUserToDB(psid, { saveJackpot: false });
-            send(psid, `❌ Hindi na sapat ang balance para sa ${bet}c bet. Balance: ${balance}c.`);
-            continue;
-          }
-          const oldState = {
-            coins: user.coins, pendingDiceBet: user.pendingDiceBet, lastDiceRoll: user.lastDiceRoll,
-            diceWins: user.diceWins, diceLosses: user.diceLosses
-          };
-          // Brief rolling beat so the player sees an active roll before the result arrives.
-          await send(psid, "🎲 Rolling the dice...\n⚀  ⚄  ⚁  ⚅  ⚂  ⚃\n✨ Good luck!");
-          await new Promise(resolve => setTimeout(resolve, 700));
-          const die1 = crypto.randomInt(1, 7);
-          const die2 = crypto.randomInt(1, 7);
-          const total = die1 + die2;
-          const actual = total % 2 === 0 ? "EVEN" : "ODD";
-          const won = actual === prediction;
-          user.coins = won ? balance - bet + (bet * 2) : balance - bet;
-          user.lastDiceRoll = Date.now();
-          if (won) user.diceWins = (Number(user.diceWins) || 0) + 1;
-          else user.diceLosses = (Number(user.diceLosses) || 0) + 1;
-          delete user.pendingDiceBet;
-          if (!await saveUserToDB(psid, { saveJackpot: false })) {
-            Object.assign(user, oldState);
-            send(psid, "⚠️ Hindi na-save ang dice result. Naibalik ang dating balance; walang result na kinumpirma. Subukan ulit mamaya.");
-            continue;
-          }
-          let roundStatsAfterRoll = null;
-          try {
-            roundStatsAfterRoll = await recordDiceRoundRoll(psid, bet, won ? bet * 2 : 0, won);
-          } catch (statsError) {
-            console.error("Failed to update Dice Arena round totals:", statsError.message);
-          }
-          const roundResultSummary = roundStatsAfterRoll
-            ? `\n📊 ROUND #${roundStatsAfterRoll.roundNumber} TOTALS\n👥 Players who rolled: ${roundStatsAfterRoll.playerCount}\n🎲 Completed rolls: ${roundStatsAfterRoll.totalRolls}\n🪙 Total bets: ${roundStatsAfterRoll.totalBet.toLocaleString()} coins\n🏆 Total payouts: ${roundStatsAfterRoll.totalPayout.toLocaleString()} coins`
-            : "\n📊 Round totals temporarily unavailable.";
-          const face = n => ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"][n - 1];
-          send(psid, `🎲 JOJOWORLD DICE ARENA\n━━━━━━━━━━━━━━━━━━\n${face(die1)}  +  ${face(die2)}\n🎯 Total: ${total} • ${actual}\n🪙 Bet: ${bet.toLocaleString()}c on ${prediction}\n\n${won ? "🎉 YOU WIN! Payout: " + (bet * 2).toLocaleString() + "c (2× total). Net profit: +" + bet.toLocaleString() + "c." : "😢 You lose this round. Lost: " + bet.toLocaleString() + "c."}\n💰 New balance: ${user.coins.toLocaleString()}c${roundResultSummary}\n\n🎲 Ready for another roll?`, [
-            { content_type: "text", title: "🎲 Play Again", payload: "DICE" },
-            { content_type: "text", title: "💰 Balance", payload: "BALANCE" },
-            { content_type: "text", title: "↩️ Main Menu", payload: "MENU" }
-          ]);
+        // Legacy Messenger dice buttons/commands should no longer place bets in text chat.
+        if (dicePayload === "DICE_CANCEL" || dicePayload.startsWith("DICE_BET_") ||
+            dicePayload.startsWith("DICE_ROLL_") || /^DICE\\s+\S+/i.test(dicePayload)) {
+          send(psid, '🎲 Para maglaro, i-type ang DICE ARENA at pindutin ang Open Dice Arena button.');
           continue;
         }
 
