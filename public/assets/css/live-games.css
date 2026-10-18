@@ -12,3 +12,5 @@ h1{text-align:center;font-size:clamp(34px,10vw,52px);line-height:1.02;letter-spa
 @media(prefers-reduced-motion:no-preference){.live .dot{animation:pulse 1.5s infinite}@keyframes pulse{50%{opacity:.45;box-shadow:0 0 2px #5effc1}}.machine{animation:float 4s ease-in-out infinite}@keyframes float{50%{transform:translateY(-4px) rotate(-5deg)}}}
 
 .lobby-sound-toggle{display:block;width:100%;max-width:250px;margin:0 auto 17px;padding:11px 15px;border:1px solid #8f7bd1;border-radius:30px;background:linear-gradient(110deg,#282044,#17182e);color:#e7ddff;font-size:12px;font-weight:900;letter-spacing:.6px;box-shadow:0 0 18px #9e73ff18;cursor:pointer}.lobby-sound-toggle[aria-pressed="false"]{color:#aeb5c9;border-color:#42465f;background:#151827}.lobby-sound-toggle:active{transform:scale(.98)}
+
+.lobby-sound-toggle{position:relative;z-index:10;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
