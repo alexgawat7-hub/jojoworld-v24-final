@@ -11,8 +11,13 @@ function playSound(kind='tap'){
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
   if(!audioCtx)audioCtx=new AC();if(audioCtx.state==='suspended')audioCtx.resume();
   const now=audioCtx.currentTime;
-  const notes=kind==='tick'?[520,660]:kind==='win'?[660,880,1100]:kind==='jackpot'?[523,659,784,1047,1318]:kind==='lose'?[330,247]:[440];
-  notes.forEach((freq,i)=>{const osc=audioCtx.createOscillator(),gain=audioCtx.createGain(),start=now+i*(kind==='tick'?.035:.09);osc.type=kind==='tick'?'square':'sine';osc.frequency.setValueAtTime(freq,start);gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(kind==='tick'?.025:.07,start+.012);gain.gain.exponentialRampToValueAtTime(.0001,start+(kind==='tick'?.05:.17));osc.connect(gain);gain.connect(audioCtx.destination);osc.start(start);osc.stop(start+(kind==='tick'?.055:.19));});
+  const noise=(duration,volume,filterHz=1800)=>{const size=Math.max(1,Math.floor(audioCtx.sampleRate*duration)),buffer=audioCtx.createBuffer(1,size,audioCtx.sampleRate),data=buffer.getChannelData(0);for(let i=0;i<size;i++)data[i]=(Math.random()*2-1)*(1-i/size);const src=audioCtx.createBufferSource(),filter=audioCtx.createBiquadFilter(),gain=audioCtx.createGain();src.buffer=buffer;filter.type='bandpass';filter.frequency.value=filterHz;filter.Q.value=.7;gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(volume,now+.004);gain.gain.exponentialRampToValueAtTime(.0001,now+duration);src.connect(filter);filter.connect(gain);gain.connect(audioCtx.destination);src.start(now);src.stop(now+duration)};
+  if(kind==='tick'||kind==='tap'){noise(kind==='tick'?.035:.055,kind==='tick'?.045:.025,kind==='tick'?2400:1300);return}
+  if(kind==='start'){noise(.34,.055,460);const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sawtooth';o.frequency.setValueAtTime(90,now);o.frequency.exponentialRampToValueAtTime(330,now+.32);g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(.045,now+.03);g.gain.exponentialRampToValueAtTime(.0001,now+.35);o.connect(g);g.connect(audioCtx.destination);o.start(now);o.stop(now+.36);return}
+  if(kind==='lose'){noise(.22,.085,300);return}
+  const notes=kind==='jackpot'?[523,659,784,1047,1318,1568]:kind==='win'?[660,880,1100]:[440];
+  notes.forEach((freq,i)=>{const start=now+i*(kind==='jackpot'?.075:.09),o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='triangle';o.frequency.setValueAtTime(freq,start);o.frequency.exponentialRampToValueAtTime(freq*1.018,start+.035);g.gain.setValueAtTime(.0001,start);g.gain.exponentialRampToValueAtTime(kind==='jackpot'?.085:.06,start+.008);g.gain.exponentialRampToValueAtTime(.0001,start+.23);o.connect(g);g.connect(audioCtx.destination);o.start(start);o.stop(start+.24)});
+  if(kind==='jackpot'||kind==='win')noise(.12,.025,3400);
  }catch(_){}
 }
 try{soundOn=localStorage.getItem(soundKey)==='true'}catch(_){}
