@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#090a12"><title>JojoWorld • Dice Arena</title>
-<link rel="stylesheet" href="/assets/css/dice-arena.css?v=20261018b">
+<link rel="stylesheet" href="/assets/css/dice-arena.css?v=20261018c">
 </head>
 <body><main class="app">
-<div class="game-nav"><a class="lobby-link" id="lobbyLink" href="/live-games">← GAME LOBBY</a><button class="sound-toggle" id="soundToggle" type="button" aria-pressed="false">🔇 SOUND OFF</button></div><div class="brand">👑 JOJOWORLD</div><h1 class="title">DICE ARENA</h1><div class="sub">LIVE DICE TABLE • EVERY ROLL COUNTS</div>
+<div class="game-nav"><a class="lobby-link" id="lobbyLink" href="/live-games">← LOBBY</a><a class="lobby-link shop-link" id="coinShopLink" href="/coin-shop">🪙 COINS</a><button class="sound-toggle" id="soundToggle" type="button" aria-pressed="false">🔇 SOUND OFF</button></div><div class="brand">👑 JOJOWORLD</div><h1 class="title">DICE ARENA</h1><div class="sub">LIVE DICE TABLE • EVERY ROLL COUNTS</div>
 <div class="balance"><div><small>YOUR COIN BALANCE</small><strong id="balance">— coins</strong></div><span class="demo"><span class="live-dot"></span>CONNECTING LIVE</span></div>
 <section class="table"><div class="tablelabel">✦ GOLDEN TABLE ✦</div><div class="dicearea" id="dicearea"><div class="die" id="die1"></div><div class="die" id="die2"></div></div><div class="result" id="result">READY TO ROLL?<small>Select your bet and prediction below</small></div></section>
 <section class="panel"><div class="panelhead"><b>🪙 Choose your bet</b><span>VIRTUAL COINS</span></div><div class="chips" id="bets"><button class="chip active" data-bet="100">100</button><button class="chip" data-bet="500">500</button><button class="chip" data-bet="1000">1K</button><button class="chip" data-bet="max">MAX</button></div><div class="wager"><span>Your wager</span><strong id="wager">100 coins</strong></div><div class="panelhead" style="margin-top:15px"><b>🎯 Predict the total</b><span>2 DICE • 2–12</span></div><div class="predictions"><button class="predict active" data-pred="ODD">🔴 ODD</button><button class="predict" data-pred="EVEN">🔵 EVEN</button></div><button class="rollbtn" id="roll">🎲 ROLL THE DICE</button></section>
