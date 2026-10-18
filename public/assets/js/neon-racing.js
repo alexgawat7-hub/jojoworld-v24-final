@@ -9,7 +9,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     $('multiplayer').href = '/neon-racing-multiplayer?token=' + encodeURIComponent(token);
   }
   let running=false, sound=false, audio=null, audioRig=null, last=0, progress=0, rivalProgress=0;
-  let speed=0, steer=0, nitro=0, rivalBoost=0, braking=false, keys={};
+  let speed=0, steer=0, nitro=0, rivalBoost=0, braking=false, keys={}, edgeHitCooldown=0;
   let best=Number(localStorage.getItem('jojoworldNeonRacingBest')||0);
   $('best').textContent=best;
 
@@ -258,19 +258,38 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     audioRig.motorFilter.frequency.setTargetAtTime(80+speed*.7,t,.08);
     audioRig.windGain.gain.setTargetAtTime(running?Math.min(.14,speed/245*.14):.0001,t,.12);
     audioRig.windFilter.frequency.setTargetAtTime(250+speed*5,t,.1);
-    audioRig.tireGain.gain.setTargetAtTime(running&&driftAmount>.35?Math.min(.12,driftAmount*.1):.0001,t,.06);
-    audioRig.tireFilter.frequency.setTargetAtTime(900+Math.abs(steer)*1000,t,.06);
+    const tireIntensity=Math.max(driftAmount>.35?driftAmount*.1:0,braking&&speed>45?.055:0);
+    audioRig.tireGain.gain.setTargetAtTime(running&&tireIntensity>0?Math.min(.12,tireIntensity):.0001,t,.06);
+    audioRig.tireFilter.frequency.setTargetAtTime(braking?1850:900+Math.abs(steer)*1000,t,.06);
   }
   function beep(f=500){if(!sound)return;try{ensureAudio();if(!audio)return;const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.setValueAtTime(f,audio.currentTime);o.frequency.exponentialRampToValueAtTime(Math.max(90,f*.62),audio.currentTime+.18);g.gain.setValueAtTime(.0001,audio.currentTime);g.gain.exponentialRampToValueAtTime(.08,audio.currentTime+.015);g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+.22);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+.23)}catch{}}
+  function impactSound(){
+    if(!sound)return;
+    try{
+      ensureAudio();if(!audio)return;
+      const now=audio.currentTime;
+      const osc=audio.createOscillator(),gain=audio.createGain(),filter=audio.createBiquadFilter();
+      osc.type='triangle';osc.frequency.setValueAtTime(115,now);osc.frequency.exponentialRampToValueAtTime(38,now+.19);
+      filter.type='lowpass';filter.frequency.value=260;
+      gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.24,now+.008);gain.gain.exponentialRampToValueAtTime(.0001,now+.22);
+      osc.connect(filter);filter.connect(gain);gain.connect(audio.destination);osc.start(now);osc.stop(now+.23);
+    }catch{}
+  }
   function collectNitro(pickup){
     nitro=2.15;pickup.position.z=-245-Math.random()*18;pickup.position.x=[-3.6,0,3.6][Math.floor(Math.random()*3)];
     pickup.rotation.y=0;beep(760);
     if(sound&&audio){try{const o=audio.createOscillator(),g=audio.createGain();o.type='sawtooth';o.frequency.setValueAtTime(180,audio.currentTime);o.frequency.exponentialRampToValueAtTime(850,audio.currentTime+.28);g.gain.setValueAtTime(.0001,audio.currentTime);g.gain.exponentialRampToValueAtTime(.11,audio.currentTime+.025);g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+.34);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+.35);}catch{}}
   }
   function draw(){
-    const playerX=steer*4.35;
+    const playerX=steer*6.55;
     const slide=driftAmount*(steer<0?1:-1)*.52;
-    player.position.x+=(playerX+slide-player.position.x)*.16;
+    const targetX=playerX+slide;
+    player.position.x+=(targetX-player.position.x)*.16;
+    // The painted edge/shoulder acts as a light crash boundary, with a brief impact and speed loss.
+    if(running&&Math.abs(player.position.x)>6.25&&edgeHitCooldown<=0){
+      edgeHitCooldown=.9;speed=Math.max(55,speed*.58);impactSound();
+      player.position.x=Math.sign(player.position.x)*6.25;
+    }
     player.rotation.z=-steer*.08-driftAmount*steer*.055;
     player.rotation.y=-steer*.12-driftAmount*steer*.09;
     for(const wheel of player.userData.wheels){wheel.rotation.x+=speed*.00025;if(wheel.position.z<0)wheel.rotation.y=steer*.22;}
@@ -315,6 +334,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     if(nitro>0)nitro=Math.max(0,nitro-sec);
     const boosting=nitro>0,target=braking?88:(boosting?245:198);
     speed+=(target-speed)*Math.min(1,sec*2.4);
+    edgeHitCooldown=Math.max(0,edgeHitCooldown-sec);
     const hardTurn=Math.abs(steer)>.56&&speed>125&&!braking;
     driftAmount+=((hardTurn?1:0)-driftAmount)*Math.min(1,sec*(hardTurn?4.5:2.2));
     if(hardTurn&&Math.random()<.72)emitSmoke();
@@ -330,7 +350,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     requestAnimationFrame(frame);
   }
   function start(){
-    running=true;progress=0;rivalProgress=0;speed=0;steer=0;nitro=0;rivalBoost=0;braking=false;driftAmount=0;last=0;keys={};
+    running=true;progress=0;rivalProgress=0;speed=0;steer=0;nitro=0;rivalBoost=0;braking=false;driftAmount=0;edgeHitCooldown=0;last=0;keys={};player.position.x=0;
     nitroPickups.forEach((p,i)=>{p.position.set([-3.6,0,3.6,0,-3.6][i],.95,-34-i*43);});
     for(const p of smoke){p.life=0;p.mesh.visible=false;}
     $('score').textContent='0%';$('speed').textContent='0 km/h';$('overlay').hidden=true;beep(720);requestAnimationFrame(frame);
