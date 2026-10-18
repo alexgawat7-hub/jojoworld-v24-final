@@ -78,7 +78,6 @@ document.getElementById('roll').addEventListener('click',async()=>{
   try{
     flicker=setInterval(()=>{drawDie('die1',1+Math.floor(Math.random()*6));drawDie('die2',1+Math.floor(Math.random()*6))},95);
     const request=fetch('/api/dice-arena/roll',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,bet,prediction:pred})});
-    await new Promise(r=>setTimeout(r,1550));
     const response=await request;
     const data=await response.json();
     clearInterval(flicker);
