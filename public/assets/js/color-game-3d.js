@@ -72,11 +72,37 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
     const bolt = new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.045,16), brightGold);
     bolt.rotation.x=Math.PI/2; bolt.position.set(x,-.31,1.23); base.add(bolt);
   }
-  // Raised rim around the actual dice tray.
-  const rim = new THREE.Mesh(new THREE.BoxGeometry(5.75,.22,1.88), gold);
-  rim.position.set(0,-.21,0); base.add(rim);
-  const inner = new THREE.Mesh(new THREE.BoxGeometry(5.5,.2,1.63), felt);
-  inner.position.set(0,-.095,0); base.add(inner);
+  // Four separate raised rails form a real recessed tray instead of a flat border.
+  const trayFloor = new THREE.Mesh(new THREE.BoxGeometry(5.62,.13,1.82), felt);
+  trayFloor.position.set(0,-.16,0);trayFloor.receiveShadow=true;base.add(trayFloor);
+  box(5.82,.27,.18,gold,0,-.035,.91);
+  box(5.82,.27,.18,gold,0,-.035,-.91);
+  box(.18,.27,1.72,gold,-2.82,-.035,0);
+  box(.18,.27,1.72,gold,2.82,-.035,0);
+  box(5.54,.035,1.52,felt,0,-.078,0);
+  // Dark lacquered side housings and inset gold strips frame the tray like a manufactured cabinet.
+  for(const x of [-3.18,3.18]){
+    box(.32,.55,2.58,darkMetal,x,-.22,0);
+    box(.035,.42,2.38,brightGold,x+(x<0?.17:-.17),-.2,0);
+    for(const z of [-.88,0,.88]){
+      const screw=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,.025,12),brightGold);
+      screw.rotation.x=Math.PI/2;screw.position.set(x,-.01,z);base.add(screw);
+    }
+  }
+  // A small backlit machine fascia, rendered locally so no remote artwork is required.
+  const fasciaCanvas=document.createElement('canvas');fasciaCanvas.width=512;fasciaCanvas.height=128;
+  const fasciaCtx=fasciaCanvas.getContext('2d');
+  const fasciaGradient=fasciaCtx.createLinearGradient(0,0,0,128);
+  fasciaGradient.addColorStop(0,'#30382d');fasciaGradient.addColorStop(.48,'#111a16');fasciaGradient.addColorStop(1,'#050908');
+  fasciaCtx.fillStyle=fasciaGradient;fasciaCtx.fillRect(0,0,512,128);
+  fasciaCtx.strokeStyle='#d6b15e';fasciaCtx.lineWidth=5;fasciaCtx.strokeRect(5,5,502,118);
+  fasciaCtx.textAlign='center';fasciaCtx.font='bold 48px Georgia,serif';fasciaCtx.fillStyle='#ffe6a0';
+  fasciaCtx.shadowColor='#e8b84b';fasciaCtx.shadowBlur=12;fasciaCtx.fillText('COLOR DICE',256,61);
+  fasciaCtx.shadowBlur=0;fasciaCtx.font='bold 17px Arial,sans-serif';fasciaCtx.fillStyle='#a6f5ce';fasciaCtx.fillText('THREE DICE  •  LIVE ROUND',256,94);
+  const fasciaTexture=new THREE.CanvasTexture(fasciaCanvas);fasciaTexture.colorSpace=THREE.SRGBColorSpace;
+  const fascia=new THREE.Mesh(new THREE.PlaneGeometry(3.7,.92),new THREE.MeshBasicMaterial({map:fasciaTexture}));
+  fascia.position.set(0,-.03,-1.31);fascia.rotation.x=-.08;base.add(fascia);
+  box(4.0,.12,.15,gold,0,-.5,-1.31);
   // Transparent acrylic hood and polished circular rim. Alpha is intentionally subtle so dice remain visible.
   const domeMat = new THREE.MeshPhysicalMaterial({color:0xa6e8e5, roughness:.08, metalness:.12, transmission:.25, transparent:true, opacity:.17, thickness:.5, side:THREE.DoubleSide, clearcoat:1, depthWrite:false});
   const dome = new THREE.Mesh(new THREE.SphereGeometry(1,48,24,0,Math.PI*2,0,Math.PI/2), domeMat);
@@ -210,8 +236,11 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
           d.dropHeight+=d.verticalVelocity*dt;
           if(d.dropHeight<=0) {
             d.dropHeight=0;
-            if(Math.abs(d.verticalVelocity)>.72) d.verticalVelocity=Math.abs(d.verticalVelocity)*.34;
-            else {d.verticalVelocity=0;d.landed=true;}
+            if(Math.abs(d.verticalVelocity)>.72) {
+              const impactStrength=Math.min(1,Math.abs(d.verticalVelocity)/8);
+              window.dispatchEvent(new CustomEvent('color-dice-impact',{detail:{strength:impactStrength,index:d.index}}));
+              d.verticalVelocity=Math.abs(d.verticalVelocity)*.34;
+            } else {d.verticalVelocity=0;d.landed=true;}
           }
           d.root.position.y=.42+d.dropHeight;
           // Lateral momentum, felt-tray boundaries, and pairwise impacts keep the dice from floating through each other.
