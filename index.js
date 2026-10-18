@@ -2383,6 +2383,9 @@ A new user successfully registered using your link! 🎁
             coins: user.coins, pendingDiceBet: user.pendingDiceBet, lastDiceRoll: user.lastDiceRoll,
             diceWins: user.diceWins, diceLosses: user.diceLosses
           };
+          // Brief rolling beat so the player sees an active roll before the result arrives.
+          await send(psid, "🎲 Rolling the dice...\n⚀  ⚄  ⚁  ⚅  ⚂  ⚃\n✨ Good luck!");
+          await new Promise(resolve => setTimeout(resolve, 700));
           const die1 = crypto.randomInt(1, 7);
           const die2 = crypto.randomInt(1, 7);
           const total = die1 + die2;
