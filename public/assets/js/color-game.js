@@ -3,7 +3,7 @@ const token=new URLSearchParams(location.search).get('token')||'';
 const money=n=>Math.max(0,Math.floor(Number(n)||0)).toLocaleString('en-US');
 const compactMoney=n=>{const v=Math.max(0,Number(n)||0);return v>=1000000?(v/1000000).toFixed(v%1000000===0?0:1)+'M':v>=1000?(v/1000).toFixed(v%1000===0?0:1)+'K':String(Math.floor(v));};
 const colors=['RED','BLUE','GREEN','YELLOW','PINK','WHITE'];
-let previousBetAmount=100,lastBetAnnouncementRound='',lastCountdownSecond='';
+let previousBetAmount=100,lastBetAnnouncementRound='',lastCountdownSecond='',lastCountdownBeepRound='';
 let masterGain=null,masterCompressor=null;
 let selectedColor='',balance=0,roundState=null,working=false,loading=false,lastResultKey='',soundEnabled=false,audioContext=null,lastRollRound='',pendingResultState=null,revealedRoundNumber=0,pullInProgress=false,pullStartY=0,pullStartTime=0,pullTimer=null,autoPullTimer=null;
 const lobby=$('lobby'),shop=$('shop');
@@ -121,14 +121,14 @@ function speakPlaceYourBet(roundNumber){
   const english=voices.find(v=>/^en(-|_)/i.test(v.lang));
   if(english)utterance.voice=english;
   utterance.onerror=()=>{if(lastBetAnnouncementRound===round)lastBetAnnouncementRound='';};
-  synth.resume();
+  if(synth.paused)synth.resume();
   synth.speak(utterance);
   return true;
  }catch(_){if(lastBetAnnouncementRound===round)lastBetAnnouncementRound='';return false;}
 }
 function playCountdown(second){
  if(!soundEnabled)return;
- if(second===1){tone(520,.16,.055,'square');tone(330,.22,.05,'triangle',.18);}
+ if(second===1){tone(1040,.11,.095,'square');tone(760,.13,.085,'triangle',.12);tone(520,.2,.07,'square',.27);}
  else {tone(second<=3?880:660,.075,.035,'sine');tone(second<=3?660:495,.075,.028,'sine',.095);}
 }
 function playCordPull(){
@@ -158,7 +158,7 @@ window.addEventListener('color-dice-impact',event=>{
 });
 $('soundToggle').addEventListener('click',()=>{
  soundEnabled=!soundEnabled;$('soundToggle').textContent=soundEnabled?'🔊 SOUND ON':'🔇 SOUND OFF';$('soundToggle').setAttribute('aria-pressed',String(soundEnabled));
- if(soundEnabled){const a=audio();if(a?.state==='suspended')a.resume().catch(()=>{});tone(660,.12,.09,'sine');tone(990,.14,.065,'sine',.1);if(roundState?.status==='betting'){speakPlaceYourBet(roundState.roundNumber);const seconds=Math.ceil(Math.max(0,Number(roundState.timeLeftMs)||0)/1000);if(seconds<=10&&seconds>0){lastCountdownSecond=String(roundState.roundNumber)+':'+seconds;playCountdown(seconds);}}}
+ if(soundEnabled){const a=audio();if(a?.state==='suspended')a.resume().catch(()=>{});tone(660,.12,.09,'sine');tone(990,.14,.065,'sine',.1);if('speechSynthesis' in window&&typeof SpeechSynthesisUtterance!=='undefined'){try{const synth=window.speechSynthesis;synth.cancel();const unlock=new SpeechSynthesisUtterance(' ');unlock.volume=0;unlock.rate=1;synth.speak(unlock);}catch(_){}}if(roundState?.status==='betting'){speakPlaceYourBet(roundState.roundNumber);const seconds=Math.ceil(Math.max(0,Number(roundState.timeLeftMs)||0)/1000);if(seconds<=10&&seconds>0){lastCountdownSecond=String(roundState.roundNumber)+':'+seconds;playCountdown(seconds);}}}
 });
 const pullCord=$('pullCord'),cordRig=$('cordRig'),cordHint=$('cordHint');
 function beginCordPull(){
@@ -191,7 +191,7 @@ function renderState(state){
  $('timer').parentElement.classList.toggle('closed',state.status!=='betting');
  if(state.status==='betting'){
   if(String(lastCountdownSecond).split(':')[0]!==String(state.roundNumber))lastCountdownSecond='';
-  if(soundEnabled){speakPlaceYourBet(state.roundNumber);const seconds=Math.ceil(time/1000),countdownKey=String(state.roundNumber)+':'+seconds;if(seconds<=10&&seconds>0&&lastCountdownSecond!==countdownKey){lastCountdownSecond=countdownKey;playCountdown(seconds);}}
+  if(soundEnabled){speakPlaceYourBet(state.roundNumber);const seconds=Math.ceil(time/1000),countdownKey=String(state.roundNumber)+':'+seconds;if(seconds<=10&&seconds>0&&lastCountdownSecond!==countdownKey){lastCountdownSecond=countdownKey;playCountdown(seconds);}if(time<=1050&&time>0&&lastCountdownBeepRound!==String(state.roundNumber)){lastCountdownBeepRound=String(state.roundNumber);tone(1180,.12,.11,'square');tone(820,.16,.09,'triangle',.13);}}
   renderDice(['GREEN','RED','GREEN'],time<=3500);
   if(time<=3500&&time>0&&lastRollRound!==String(state.roundNumber)){lastRollRound=String(state.roundNumber);playRoll();}
  } else if(state.status==='settling'){
@@ -245,4 +245,4 @@ $('placeBet').addEventListener('click',async()=>{
  finally{working=false;renderControls();}
 });
 if(!token){setNotice('OPEN FROM MESSENGER');$('balance').textContent='—';setMessage('SECURE SESSION REQUIRED','Open Game Lobby from JojoWorld Messenger to play with your real coin balance.');$('placeBet').disabled=true;}
-else{loadState(true);setInterval(()=>loadState(false),1200);}
+else{loadState(true);setInterval(()=>loadState(false),250);}
