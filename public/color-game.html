@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#090b17"><title>JojoWorld • Color Dice Live</title>
-<link rel="stylesheet" href="/assets/css/color-game.css?v=20261018b">
+<link rel="stylesheet" href="/assets/css/color-game.css?v=20261018c">
 </head>
 <body>
 <main class="app">
 <header class="top"><a class="nav" id="lobby" href="/live-games">← GAME LOBBY</a><div class="brand">✦ JOJOWORLD LIVE</div><a class="nav shop" id="shop" href="/coin-shop">🪙 COIN SHOP</a></header>
-<section class="hero"><div class="eyebrow"><i class="live-dot"></i> SHARED LIVE ROUND</div><h1>COLOR <span>DICE</span></h1><p>Three tumbling color dice. Choose RED, BLUE, GREEN, YELLOW, or PINK and watch the shared live round.</p></section>
+<section class="hero"><div class="eyebrow"><i class="live-dot"></i> SHARED LIVE ROUND</div><h1>COLOR <span>DICE</span></h1><p>A luxury casino-style color dice table. Pick a color, watch three dice tumble, and follow the live table.</p></section>
 <section class="wallet"><div><small>YOUR COIN BALANCE</small><strong id="balance">CONNECTING…</strong></div><span id="connection" class="connection">CONNECTING</span></section>
 <section class="round-panel">
 <div class="round-head"><div><small>CURRENT ROUND</small><strong id="round">#—</strong></div><div class="timer-wrap"><small id="roundStatus">BETTING OPEN</small><strong id="timer">25.0s</strong></div></div>
-<div class="dice-stage" id="colorStage"><div class="die-slot"><div class="color-die red" id="die0"><span class="die-face">●</span></div></div><div class="die-slot"><div class="color-die blue" id="die1"><span class="die-face">●</span></div></div><div class="die-slot"><div class="color-die green" id="die2"><span class="die-face">●</span></div></div></div>
-<div class="result" id="result">Choose a color to place your bet.<small>Three color dice are rolled and settled by the game server.</small></div>
+<div class="casino-lights" aria-hidden="true"></div><div class="dice-stage" id="colorStage"><div class="die-slot"><div class="color-die red" id="die0"><span class="die-face">●</span></div></div><div class="die-slot"><div class="color-die blue" id="die1"><span class="die-face">●</span></div></div><div class="die-slot"><div class="color-die green" id="die2"><span class="die-face">●</span></div></div></div>
+<button type="button" class="sound-toggle" id="soundToggle" aria-pressed="false">🔇 SOUND OFF</button><div class="result" id="result">Choose a color to place your bet.<small>Three color dice are rolled and settled by the game server.</small></div>
 </section>
 <section class="bet-panel">
 <div class="section-title"><b>🎯 CHOOSE YOUR COLOR</b><span>1 BET / PLAYER / ROUND</span></div>
@@ -41,5 +41,5 @@
 </section>
 <p class="foot">JOJOWORLD COLOR DICE · 3 DICE · LIVE SERVER-SETTLED ROUNDS · VIRTUAL COINS ONLY</p>
 </main>
-<script src="/assets/js/color-game.js?v=20261018b" defer></script>
+<script src="/assets/js/color-game.js?v=20261018c" defer></script>
 </body></html>
