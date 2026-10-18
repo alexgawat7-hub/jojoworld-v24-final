@@ -198,14 +198,14 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
         d.landed=false;
         // Begin just above the felt, inside the recessed tray. Avoid teleporting
         // upward on pull: gravity carries each die down into the tray immediately.
-        d.dropHeight=.48+i*.08;
-        d.verticalVelocity=-.12-i*.08;
-        d.spinX=5.2+i*1.1;d.spinY=7.2-i*.65;d.spinZ=4.4+i*.8;
-        d.vx=[.72,-.18,-.66][i];d.vz=[.28,-.34,.22][i];
+        d.dropHeight=1.28+i*.12;
+        d.verticalVelocity=.12+i*.04;
+        d.spinX=9.2+i*1.1;d.spinY=11.2-i*.65;d.spinZ=8.4+i*.8;
+        d.vx=[1.18,-.32,-1.02][i];d.vz=[.46,-.58,.38][i];
       });
     }
     if(!rolling&&wasDropping){rollingUntil=0;}
-    dice.forEach(d=>d.rolling=rolling && (!dropping || now-dropStart<1050));
+    dice.forEach(d=>d.rolling=rolling && (!dropping || now-dropStart<2200));
     wasDropping=dropping;
     rig.userData.pulled=document.getElementById('cordRig')?.classList.contains('pulled')||false;
   }
