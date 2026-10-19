@@ -914,7 +914,7 @@ async function tetrisSettleBattle(matchId) {
         const pay=await UserModel.updateOne({psid:winner},{$inc:{'data.coins':Number(match.pot)}},{session});
         if(!pay.matchedCount)throw new Error('Tetris winner account missing during payout');
         for(const player of [{psid:String(match.player1.psid),name:match.player1.name,won:String(match.player1.psid)===winner,score:Number(a.score)||0},{psid:String(match.player2.psid),name:match.player2.name,won:String(match.player2.psid)===winner,score:Number(b.score)||0}]) {
-          await TetrisBattleStatsModel.findOneAndUpdate({psid:player.psid},{$set:{displayName:player.name,updatedAt:new Date()},$inc:{wins:player.won?1:0,losses:player.won?0:1,gamesPlayed:1},$max:{highestScore:player.score},$inc:{wins:player.won?1:0,losses:player.won?0:1,gamesPlayed:1,coinsWon:player.won?Number(match.pot):0}},{upsert:true,new:true,session,setDefaultsOnInsert:true});
+          await TetrisBattleStatsModel.findOneAndUpdate({psid:player.psid},{$set:{displayName:player.name,updatedAt:new Date()},$inc:{wins:player.won?1:0,losses:player.won?0:1,gamesPlayed:1,coinsWon:player.won?Number(match.pot):0},$max:{highestScore:player.score}},{upsert:true,new:true,session,setDefaultsOnInsert:true});
         }
         match.status='finished';match.winnerPsid=winner;
       }
@@ -1004,7 +1004,7 @@ app.post('/api/tetris/battle/leave',async(req,res)=>{
   const session=await getDiceWebSession(req);if(!session)return res.status(mongoose.connection.readyState===1?401:503).json({ok:false,error:'Reopen Tetris from Messenger.'});
   const psid=String(session.psid),queue=await TetrisBattleQueueModel.findOne({psid}).lean();
   if(queue?.status==='waiting'){await TetrisBattleQueueModel.deleteOne({psid,status:'waiting'});return res.json({ok:true,status:'idle'});}
-  if(queue?.status==='matched'&&queue.matchId){const match=await TetrisBattleMatchModel.findOne({matchId:queue.matchId,status:'active'}).lean();if(match){const winner=String(match.player1.psid)===psid?String(match.player2.psid):String(match.player1.psid);await TetrisBattleMatchModel.updateOne({matchId:match.matchId,status:'active'},{$set:{winnerPsid:winner,status:'finished',updatedAt:new Date()}});await tetrisSettleBattle(match.matchId);}}
+  if(queue?.status==='matched'&&queue.matchId){const match=await TetrisBattleMatchModel.findOne({matchId:queue.matchId,status:'active'}).lean();if(match){const field=String(match.player1.psid)===psid?'board1':'board2';const board=match[field]||tetrisNewBoard();board.gameOver=true;await TetrisBattleMatchModel.updateOne({matchId:match.matchId,status:'active'},{$set:{[field]:board,updatedAt:new Date()}});await tetrisSettleBattle(match.matchId);}}
   res.set('Cache-Control','no-store');return res.json({ok:true,status:'idle'});
  }catch(err){console.error('[TETRIS BATTLE] Leave failed:',err.message);return res.status(503).json({ok:false,error:'Could not leave Tetris battle.'});}
 });
