@@ -38,21 +38,21 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
   const brightGold = mat(0xffe4a0, .8, .2);
   const darkMetal = mat(0x20272a, .78, .29);
   const black = mat(0x090f12, .45, .35);
-  // Procedural felt fibers give the tray a textured casino-table surface without external assets.
-  const feltCanvas=document.createElement('canvas');
-  feltCanvas.width=256;feltCanvas.height=256;
-  const feltCtx=feltCanvas.getContext('2d');
-  feltCtx.fillStyle='#07563d';feltCtx.fillRect(0,0,256,256);
-  for(let i=0;i<2600;i++){
-    const shade=Math.random()>.5?'rgba(132,211,160,.10)':'rgba(0,16,12,.16)';
-    feltCtx.strokeStyle=shade;feltCtx.lineWidth=.5+Math.random()*.7;
-    const x=Math.random()*256,y=Math.random()*256,len=1+Math.random()*4;
-    feltCtx.beginPath();feltCtx.moveTo(x,y);feltCtx.lineTo(x+len,y+(Math.random()-.5)*1.8);feltCtx.stroke();
+  // [UPGRADED] Procedural felt uses a GPU-ready DataTexture, with no Canvas API.
+  const feltWidth=256,feltHeight=256,feltPixels=new Uint8Array(feltWidth*feltHeight*4);
+  for(let y=0;y<feltHeight;y++)for(let x=0;x<feltWidth;x++){
+    const i=(y*feltWidth+x)*4;
+    const fiber=Math.random()>.5?Math.floor(Math.random()*24): -Math.floor(Math.random()*19);
+    feltPixels[i]=Math.max(0,7+fiber*.22);
+    feltPixels[i+1]=Math.max(24,86+fiber*1.05);
+    feltPixels[i+2]=Math.max(12,61+fiber*.62);
+    feltPixels[i+3]=255;
   }
-  const feltTexture=new THREE.CanvasTexture(feltCanvas);
+  const feltTexture=new THREE.DataTexture(feltPixels,feltWidth,feltHeight,THREE.RGBAFormat);
   feltTexture.colorSpace=THREE.SRGBColorSpace;
   feltTexture.wrapS=feltTexture.wrapT=THREE.RepeatWrapping;
   feltTexture.repeat.set(4,2);
+  feltTexture.needsUpdate=true;
   const felt = mat(0x07563d, .08, .98, {map:feltTexture});
   const base = new THREE.Group(); scene.add(base);
 
@@ -101,17 +101,16 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
       screw.rotation.x=Math.PI/2;screw.position.set(x,-.01,z);base.add(screw);
     }
   }
-  // A small backlit machine fascia, rendered locally so no remote artwork is required.
-  const fasciaCanvas=document.createElement('canvas');fasciaCanvas.width=512;fasciaCanvas.height=128;
-  const fasciaCtx=fasciaCanvas.getContext('2d');
-  const fasciaGradient=fasciaCtx.createLinearGradient(0,0,0,128);
-  fasciaGradient.addColorStop(0,'#30382d');fasciaGradient.addColorStop(.48,'#111a16');fasciaGradient.addColorStop(1,'#050908');
-  fasciaCtx.fillStyle=fasciaGradient;fasciaCtx.fillRect(0,0,512,128);
-  fasciaCtx.strokeStyle='#d6b15e';fasciaCtx.lineWidth=5;fasciaCtx.strokeRect(5,5,502,118);
-  fasciaCtx.textAlign='center';fasciaCtx.font='bold 48px Georgia,serif';fasciaCtx.fillStyle='#ffe6a0';
-  fasciaCtx.shadowColor='#e8b84b';fasciaCtx.shadowBlur=12;fasciaCtx.fillText('COLOR DICE',256,61);
-  fasciaCtx.shadowBlur=0;fasciaCtx.font='bold 17px Arial,sans-serif';fasciaCtx.fillStyle='#a6f5ce';fasciaCtx.fillText('THREE DICE  •  LIVE ROUND',256,94);
-  const fasciaTexture=new THREE.CanvasTexture(fasciaCanvas);fasciaTexture.colorSpace=THREE.SRGBColorSpace;
+  // [UPGRADED] SVG artwork replaces the Canvas-rendered fascia; it stays local and self-contained.
+  const fasciaSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="128" viewBox="0 0 512 128">
+    <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#30382d"/><stop offset=".48" stop-color="#111a16"/><stop offset="1" stop-color="#050908"/></linearGradient>
+    <filter id="glow" x="-30%" y="-50%" width="160%" height="200%"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    <rect width="512" height="128" rx="7" fill="url(#bg)"/><rect x="5" y="5" width="502" height="118" rx="4" fill="none" stroke="#d6b15e" stroke-width="5"/>
+    <text x="256" y="61" text-anchor="middle" font-family="Georgia,serif" font-size="48" font-weight="bold" fill="#ffe6a0" filter="url(#glow)">COLOR DICE</text>
+    <text x="256" y="94" text-anchor="middle" font-family="Arial,sans-serif" font-size="17" font-weight="bold" fill="#a6f5ce">THREE DICE • LIVE ROUND</text>
+  </svg>`;
+  const fasciaTexture=new THREE.TextureLoader().load('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(fasciaSvg));
+  fasciaTexture.colorSpace=THREE.SRGBColorSpace;
   const fascia=new THREE.Mesh(new THREE.PlaneGeometry(3.7,.92),new THREE.MeshBasicMaterial({map:fasciaTexture}));
   fascia.position.set(0,-.03,-1.31);fascia.rotation.x=-.08;base.add(fascia);
   box(4.0,.12,.15,gold,0,-.5,-1.31);
