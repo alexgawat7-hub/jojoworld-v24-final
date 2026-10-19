@@ -938,6 +938,7 @@ app.post('/api/tetris/battle/join',async(req,res)=>{
   return await withDiceUserQueue(psid,async()=>{
    const user=await loadUserFromDB(psid);if(!user)return res.status(404).json({ok:false,error:'JojoWorld account not found.'});
    const old=await TetrisBattleQueueModel.findOne({psid}).lean();
+   if(old?.status==='matching')return res.json({ok:true,status:'waiting',stake:old.stake,message:'Pairing your match…'});
    if(old?.status==='matched'&&old.matchId){const m=await TetrisBattleMatchModel.findOne({matchId:old.matchId}).lean();if(m&&m.status==='active')return res.json(tetrisBattlePublicState(m,psid,Math.max(0,Math.floor(Number(user.coins)||0))));}
    if(Number(user.coins||0)<stake)return res.status(400).json({ok:false,error:'Not enough coins for that stake.'});
    const name=String(user.name||user.displayName||'Jojo Player').replace(/[<>\u0000-\u001f]/g,'').slice(0,32)||'Jojo Player';
@@ -973,7 +974,7 @@ app.get('/api/tetris/battle/state',async(req,res)=>{
   const session=await getDiceWebSession(req);if(!session)return res.status(mongoose.connection.readyState===1?401:503).json({ok:false,error:'Reopen Tetris from Messenger.'});
   const psid=String(session.psid),queue=await TetrisBattleQueueModel.findOne({psid}).lean();
   if(!queue)return res.json({ok:true,status:'idle'});
-  if(queue.status==='waiting')return res.json({ok:true,status:'waiting',stake:queue.stake});
+  if(queue.status==='waiting'||queue.status==='matching')return res.json({ok:true,status:'waiting',stake:queue.stake,message:queue.status==='matching'?'Pairing your match…':'Waiting for a matching rival.'});
   const match=await TetrisBattleMatchModel.findOne({matchId:queue.matchId}).lean();if(!match)return res.json({ok:true,status:'idle'});
   if(match.status==='active'){
    const field=String(match.player1.psid)===psid?'board1':'board2',board=match[field];
