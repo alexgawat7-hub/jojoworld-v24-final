@@ -172,3 +172,8 @@ loadAccount();
 refreshStats();
 setInterval(()=>{refreshStats();if(!rolling)loadAccount({quiet:true})},10000);
 updateBet();
+
+// [FIXED] Release the PixiJS renderer/WebGL resources when leaving Dice Arena.
+window.addEventListener('pagehide',()=>{
+ if(dicePixi){dicePixi.destroy(true,{children:true});dicePixi=null;diceLayer=null;diceGraphics=[]}
+});
