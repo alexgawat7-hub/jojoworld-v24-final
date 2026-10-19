@@ -80,12 +80,12 @@ $('spin').addEventListener('click',async()=>{
  const els=[$('r1'),$('r2'),$('r3')];if(reelSpinTicker)clearInterval(reelSpinTicker);reelSpinTicker=setInterval(()=>{if(leavingPage)return;els.forEach(e=>setReelSymbol(e.id,symbols[Math.floor(Math.random()*symbols.length)]));if(++tickCount%2===0)playSound('tick')},100);
  try{
   const req=fetch('/api/scatter-spin/spin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token})});
-  const response=await req;const d=await response.json();if(reelSpinTicker){clearInterval(reelSpinTicker);reelSpinTicker=null}$('reels').classList.remove('spinning');
+  const response=await req;const d=await response.json();if(reelSpinTicker){clearInterval(reelSpinTicker);reelSpinTicker=null}if(leavingPage)return;$('reels').classList.remove('spinning');
   if(!response.ok||!d.ok){playSound('lose');if(d.balance!==undefined)setBalance(d.balance);$('result').classList.remove('win-result','jackpot-result');$('result').classList.add('loss-result');$('result').innerHTML='SPIN NOT COMPLETED<small>'+(d.error||'Please try again.')+'</small>';return}
   playSound(d.jackpotWin?'jackpot':d.win>0?'win':'lose');d.symbols.forEach((v,i)=>setReelSymbol(els[i].id,v));els.forEach(e=>{e.classList.remove('win');if(d.win>0){void e.offsetWidth;e.classList.add('win')}});setBalance(d.balance);setJackpot(d.jackpot);
   $('result').classList.remove('win-result','jackpot-result','loss-result');$('result').classList.add(d.jackpotWin?'jackpot-result':d.win>0?'win-result':'loss-result');$('result').innerHTML=(d.jackpotWin?'🏆 GRAND JACKPOT!':d.win>0?'✨ '+d.message:'💣 NO WIN — SPIN AGAIN!')+'<small>'+(d.jackpotWin?'You won '+money(d.win)+' coins!':d.win>0?'+'+money(d.win)+' coins • '+d.message:'No prize on this spin. Better luck next time! Your result is confirmed.')+'</small>';$('result').classList.add('reveal');
- }catch(e){playSound('lose');if(reelSpinTicker){clearInterval(reelSpinTicker);reelSpinTicker=null}$('reels').classList.remove('spinning');$('result').innerHTML='SPIN RESULT UNCONFIRMED<small>The server did not return a result, so we can’t safely call this a win or loss. Refresh your balance before spinning again.</small>';document.querySelector('.status').innerHTML='<i class="dot"></i>RECONNECT NEEDED';}
- finally{spinning=false;$('spin').disabled=!(token&&accountConnected)}
+ }catch(e){if(!leavingPage){playSound('lose');if(reelSpinTicker){clearInterval(reelSpinTicker);reelSpinTicker=null}$('reels').classList.remove('spinning');$('result').innerHTML='SPIN RESULT UNCONFIRMED<small>The server did not return a result, so we can’t safely call this a win or loss. Refresh your balance before spinning again.</small>';document.querySelector('.status').innerHTML='<i class="dot"></i>RECONNECT NEEDED';}}
+ finally{spinning=false;if(!leavingPage)$('spin').disabled=!(token&&accountConnected)}
 });
 $('refresh').addEventListener('click',e=>{e.preventDefault();loadAccount()});
 $('diceLink').addEventListener('click',e=>{e.preventDefault();if(!token){location.href='/dice-arena';return}location.href='/dice-arena?token='+encodeURIComponent(token)});
