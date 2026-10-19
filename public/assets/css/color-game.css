@@ -321,3 +321,24 @@ body.crazy-color-page{height:100dvh}
 .crazy-app .dice-stage:not(.three-ready) .color-die{
   box-shadow:inset 0 0 0 3px #ffe5a0,0 4px 0 #422714,0 8px 10px #0008;
 }
+
+
+/* [FIXED] Compact Crazy Color on short mobile screens so all six color choices are reachable without losing the wager controls. */
+@media (max-width: 480px) {
+  .crazy-app .dice-stage { height: 190px; min-height: 190px; }
+  .crazy-app .round-panel { padding: 8px; }
+  .crazy-app .bet-panel.crazy-bet-panel { padding: 9px; gap: 5px; }
+  .crazy-app .bet-panel.crazy-bet-panel .board-heading { margin-bottom: 2px; }
+  .crazy-app .bet-entry { gap: 5px; }
+  .crazy-app .bet-entry label { font-size: 10px; letter-spacing: .4px; }
+  .crazy-app .bet-entry input { height: 38px; font-size: 18px; }
+  .crazy-app .bet-entry .max { height: 38px; min-width: 48px; }
+  .crazy-app .quick-bets { gap: 4px; }
+  .crazy-app .quick-bets button { min-height: 29px; padding: 4px 2px; }
+  .crazy-app .crazy-color-grid { gap: 4px; }
+  .crazy-app .crazy-color-grid .color-choice { min-height: 72px; padding: 5px 2px; }
+  .crazy-app .crazy-color-grid .color-choice .swatch { width: 24px; height: 24px; }
+  .crazy-app .crazy-color-grid .color-choice b { font-size: 10px; }
+  .crazy-app .crazy-color-grid .color-choice small { font-size: 9px; }
+  .crazy-app .crazy-bet-panel .place-bet { min-height: 34px; }
+}
