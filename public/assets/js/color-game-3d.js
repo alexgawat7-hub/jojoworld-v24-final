@@ -207,8 +207,8 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
         d.landed=false;
         // Begin just above the felt, inside the recessed tray. Avoid teleporting
         // upward on pull: gravity carries each die down into the tray immediately.
-        d.dropHeight=1.28+i*.12;
-        d.verticalVelocity=.12+i*.04;
+        d.dropHeight=.035+i*.012;
+        d.verticalVelocity=.22+i*.06;
         d.spinX=9.2+i*1.1;d.spinY=11.2-i*.65;d.spinZ=8.4+i*.8;
         // [FIXED] Give each die enough forward momentum to pass through the open front of the tray.
         d.vx=[.32,-.12,-.28][i];d.vz=[2.15,2.55,2.25][i];
@@ -271,7 +271,7 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
             } else {d.verticalVelocity=0;d.landed=true;}
           }
           // [FIXED] Lower the die onto the catch deck after it passes through the tray opening.
-          const deckY=d.root.position.z>1.02?-.02:.33;
+          const deckY=d.root.position.z>1.02?.10:.30;
           d.root.position.y=deckY+d.dropHeight;
           // Lateral momentum, felt-tray boundaries, and pairwise impacts keep the dice from floating through each other.
           if(!d.landed){
@@ -295,7 +295,7 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
           const damp=Math.exp(-2.4*dt);
           d.spinX*=damp;d.spinY*=damp;d.spinZ*=damp;
           if(d.landed) {
-            d.root.position.y=d.root.position.z>1.02?-.02:.33;
+            d.root.position.y=d.root.position.z>1.02?.10:.30;
             // Settle toward a clear three-dice presentation after the last bounce.
             const homeX=[-1.65,0,1.65][i];
             d.root.position.x+=(homeX-d.root.position.x)*Math.min(1,dt*1.8);
@@ -310,11 +310,11 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
           }
         } else {
           d.root.rotation.x+=dt*(6.8+i*1.1);d.root.rotation.y+=dt*(8.1-i*.7);d.root.rotation.z+=dt*(5.2+i);
-          d.root.position.y=.33+Math.abs(Math.sin(now*.012+d.phase))*.18;
+          d.root.position.y=.30+Math.abs(Math.sin(now*.012+d.phase))*.12;
           d.root.position.x=[-1.65,0,1.65][i]+Math.sin(now*.004+i)*.08;
         }
       } else {
-        d.root.position.set([-1.65,0,1.65][i],.33,0);
+        d.root.position.set([-1.65,0,1.65][i],.30,0);
         d.root.position.z=0;
         d.root.rotation.x+=(.06-d.root.rotation.x)*Math.min(1,dt*4);
         d.root.rotation.z+=(0-d.root.rotation.z)*Math.min(1,dt*4);
