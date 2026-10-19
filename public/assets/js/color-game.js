@@ -201,7 +201,7 @@ $('soundToggle').addEventListener('click',()=>{
 });
 const pullCord=$('pullCord'),cordRig=$('cordRig'),cordHint=$('cordHint');
 // [FIXED] Keep the visible fallback dice cycling colors even when the 3D module cannot load.
-let dropColorTimer=null,statePollTimer=null;
+let dropColorTimer=null,statePollTimer=null,leavingPage=false;
 function startDropColorCycle(){
  if(dropColorTimer)clearInterval(dropColorTimer);
  const palette=[
@@ -296,12 +296,13 @@ function renderState(state){
  renderBets(state);renderControls();
 }
 async function loadState(showErrors=false){
- if(loading||!token)return;
+ if(leavingPage||loading||!token)return;
  loading=true;
  try{
   const response=await fetch('/api/color-game/state?token='+encodeURIComponent(token),{cache:'no-store'});
   const data=await response.json();
   if(!response.ok||!data.ok)throw new Error(data.error||'Could not connect');
+  if(leavingPage)return;
   renderState(data);setNotice('● LIVE CONNECTED');
  }catch(error){setNotice('RECONNECT NEEDED');if(showErrors)setMessage('LIVE CONNECTION LOST',String(error.message||'Please reopen Game Lobby from Messenger.'));}
  finally{loading=false;}
@@ -323,6 +324,7 @@ $('placeBet').addEventListener('click',async()=>{
 if(!token){setNotice('OPEN FROM MESSENGER');$('balance').textContent='—';setMessage('SECURE SESSION REQUIRED','Open Game Lobby from JojoWorld Messenger to play with your real coin balance.');$('placeBet').disabled=true;}
 else{loadState(true);statePollTimer=setInterval(()=>loadState(false),1000);}
 window.addEventListener('pagehide',()=>{
+ leavingPage=true;
  if(statePollTimer){clearInterval(statePollTimer);statePollTimer=null;}
  stopDropColorCycle();
  if(autoPullTimer){clearTimeout(autoPullTimer);autoPullTimer=null;}
