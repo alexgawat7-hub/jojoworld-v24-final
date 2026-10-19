@@ -254,9 +254,10 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
     const now=performance.now(),dt=Math.min(.04,(now-lastTime)/1000||.016);lastTime=now;
     syncState(now);
     const activeDrop=stage.classList.contains('dice-drop');
-    // [FIXED] Keep dice miniature and concealed while betting is open; scale to full size during the pull/drop animation.
+    // [FIXED] Dice stay concealed beneath the cup during betting, grow during the drop, and remain full-size after the result is revealed.
+    const showingResult=stage.classList.contains('revealed')&&!activeDrop;
     const diceReveal=activeDrop?Math.min(1,Math.max(0,(now-dropStart)/560)):0;
-    const diceScale=.035+.965*(diceReveal*diceReveal*(3-2*diceReveal));
+    const diceScale=activeDrop?.035+.965*(diceReveal*diceReveal*(3-2*diceReveal)):(showingResult?1:.035);
     dice.forEach(d=>d.root.scale.setScalar(diceScale));
 
     // Lift the golden cup after pull, then keep it out of the rolling dice' path.
@@ -343,12 +344,16 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
           d.root.position.x=[-1.65,0,1.65][i]+Math.sin(now*.004+i)*.08;
         }
       } else {
-        // [FIXED] Keep dice in their actual starting slots at the rear of the tray during betting.
-        // The old idle branch reset z to 0 every frame, undoing the tray placement above.
-        d.root.position.set([-1.45,0,1.45][i],.30,-.34);
-        d.root.rotation.x+=(.06-d.root.rotation.x)*Math.min(1,dt*4);
+        // [FIXED] Keep idle dice centered beneath the golden shaker; when revealed, place all three full-size dice clearly on the tray.
+        const showingResult=stage.classList.contains('revealed')&&!stage.classList.contains('dice-drop');
+        if(showingResult){
+          d.root.position.set([-1.45,0,1.45][i],.30,0);
+        }else{
+          d.root.position.set([-.48,0,.48][i],.30,-.45);
+        }
+        d.root.rotation.x+=(showingResult?0:.06-d.root.rotation.x)*Math.min(1,dt*4);
         d.root.rotation.z+=(0-d.root.rotation.z)*Math.min(1,dt*4);
-        d.root.rotation.y+=(.15+i*.28-d.root.rotation.y)*Math.min(1,dt*4);
+        d.root.rotation.y+=((showingResult?0:.15+i*.28)-d.root.rotation.y)*Math.min(1,dt*4);
       }
     });
     rig.position.y=rig.userData.pulled? .83:1.1;
