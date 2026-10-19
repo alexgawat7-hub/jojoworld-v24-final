@@ -131,6 +131,9 @@ const app = express();
 // Serve versioned-friendly local CSS/JS resources used by browser games.
 app.use('/assets', express.static(path.join(__dirname, 'public', 'assets'), { maxAge: '1h' }));
 
+// [ADDED] Serve the installed PixiJS browser build locally so Tetris does not depend on a third-party CDN.
+app.use('/vendor/pixi', express.static(path.join(__dirname, 'node_modules', 'pixi.js', 'dist'), { maxAge: '7d', immutable: true }));
+
 // Body-parser rawBody configuration para sa PayMongo Webhook HMAC signature
 app.use(bodyParser.json({
   verify: (req, res, buf) => {
