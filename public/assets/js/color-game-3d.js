@@ -239,11 +239,11 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
   mount.classList.add('three-ready');
   stage.classList.add('three-ready');
 
-  let framePending=false;
+  let framePending=false, frameRequest=0;
   function scheduleFrame() {
     if (document.hidden || framePending) return;
     framePending=true;
-    requestAnimationFrame(()=>{framePending=false;animate();});
+    frameRequest=requestAnimationFrame(()=>{frameRequest=0;framePending=false;animate();});
   }
   function animate() {
     if (document.hidden) return;
@@ -352,6 +352,20 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
     renderer.render(scene,camera);
     scheduleFrame();
   }
+  window.addEventListener('pagehide',()=>{
+    if(frameRequest){cancelAnimationFrame(frameRequest);frameRequest=0;}
+    framePending=false;
+    try{observer.disconnect();}catch(e){}
+    try{
+      const geometries=new Set(),materials=new Set(),textures=new Set();
+      scene.traverse(obj=>{
+        if(obj.geometry)geometries.add(obj.geometry);
+        const list=Array.isArray(obj.material)?obj.material:(obj.material?[obj.material]:[]);
+        list.forEach(mat=>{materials.add(mat);Object.values(mat).forEach(value=>{if(value&&value.isTexture)textures.add(value);});});
+      });
+      textures.forEach(t=>t.dispose());materials.forEach(m=>m.dispose());geometries.forEach(g=>g.dispose());renderer.dispose();
+    }catch(e){try{renderer.dispose();}catch(_){}}
+  },{once:true});
   document.addEventListener('visibilitychange',()=>{
     if(!document.hidden){lastTime=performance.now();scheduleFrame();}
   });
