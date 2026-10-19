@@ -30,7 +30,7 @@ function renderPixiDice(){
  });
 }
 drawDie('die1',3);drawDie('die2',5);initDicePixi();
-let bet=100,pred='ODD',rolling=false,accountConnected=false,accountLoading=false,resultUnconfirmed=false,statsPollTimer=null,flicker=null,leavingPage=false;
+let bet=100,pred='ODD',rolling=false,accountConnected=false,accountLoading=false,resultUnconfirmed=false,statsPollTimer=null,statsLoading=false,flicker=null,leavingPage=false;
 const soundKey='jojoworldArcadeSound';
 let soundOn=false,audioCtx=null,rollTick=0;
 function playSound(kind='tap'){
@@ -154,6 +154,8 @@ document.getElementById('roll').addEventListener('click',async()=>{
   }
 });
 async function refreshStats(){
+  if(leavingPage||statsLoading)return;
+  statsLoading=true;
   try{
     const response=await fetch('/api/dice-arena/stats',{cache:'no-store'});
     if(!response.ok)throw new Error('Stats unavailable');
@@ -165,7 +167,9 @@ async function refreshStats(){
     document.getElementById('payouts').textContent=money(s.totalPayout)+' coins';
     document.querySelector('.sub').textContent='ROUND #'+s.roundNumber+' • LIVE SHARED STATS';
   }catch(_){
-    document.querySelector('.sub').textContent='ROLL YOUR LUCK • SHARED STATS OFFLINE';
+    if(!leavingPage)document.querySelector('.sub').textContent='ROLL YOUR LUCK • SHARED STATS OFFLINE';
+  }finally{
+    statsLoading=false;
   }
 }
 loadAccount();
