@@ -239,14 +239,14 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
   mount.classList.add('three-ready');
   stage.classList.add('three-ready');
 
-  let framePending=false, frameRequest=0;
+  let framePending=false, frameRequest=0, pageLeaving=false;
   function scheduleFrame() {
-    if (document.hidden || framePending) return;
+    if (pageLeaving || document.hidden || framePending) return;
     framePending=true;
     frameRequest=requestAnimationFrame(()=>{frameRequest=0;framePending=false;animate();});
   }
   function animate() {
-    if (document.hidden) return;
+    if (pageLeaving || document.hidden) return;
     const now=performance.now(),dt=Math.min(.04,(now-lastTime)/1000||.016);lastTime=now;
     syncState(now);
     const activeDrop=stage.classList.contains('dice-drop');
@@ -353,6 +353,7 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
     scheduleFrame();
   }
   window.addEventListener('pagehide',()=>{
+    pageLeaving=true;
     if(frameRequest){cancelAnimationFrame(frameRequest);frameRequest=0;}
     framePending=false;
     try{observer.disconnect();}catch(e){}
@@ -367,7 +368,7 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
     }catch(e){try{renderer.dispose();}catch(_){}}
   },{once:true});
   document.addEventListener('visibilitychange',()=>{
-    if(!document.hidden){lastTime=performance.now();scheduleFrame();}
+    if(!pageLeaving&&!document.hidden){lastTime=performance.now();scheduleFrame();}
   });
   animate();
   // Pause rendering in background tabs to save mobile battery and resume when visible.
