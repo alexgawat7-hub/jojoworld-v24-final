@@ -4,6 +4,7 @@ const money=n=>Math.max(0,Math.floor(Number(n)||0)).toLocaleString('en-US');
 const compactMoney=n=>{const v=Math.max(0,Number(n)||0);return v>=1000000?(v/1000000).toFixed(v%1000000===0?0:1)+'M':v>=1000?(v/1000).toFixed(v%1000===0?0:1)+'K':String(Math.floor(v));};
 const colors=['RED','BLUE','GREEN','YELLOW','PINK','WHITE'];
 let previousBetAmount=100,lastBetAnnouncementRound='',lastCountdownSecond='',lastCountdownBeepRound='';
+let lastKnownDiceColors=['WHITE','WHITE','WHITE'];
 let masterGain=null,masterCompressor=null;
 let selectedColor='',balance=0,roundState=null,working=false,loading=false,lastResultKey='',soundEnabled=false,audioContext=null,lastRollRound='',pendingResultState=null,revealedRoundNumber=0,pullInProgress=false,pullStartY=0,pullStartTime=0,pullTimer=null,autoPullTimer=null;
 const lobby=$('lobby'),shop=$('shop');
@@ -213,8 +214,11 @@ function normalizeResultColors(value){
 }
 function renderDice(diceColors,rolling=false){
  const stage=$('colorStage');stage.classList.toggle('rolling',rolling);stage.classList.toggle('revealed',!rolling);
+ const validColors=normalizeResultColors(diceColors);
+ if(validColors.length===3)lastKnownDiceColors=validColors;
+ const displayColors=validColors.length===3?validColors:lastKnownDiceColors;
  document.querySelectorAll('.color-die').forEach((die,i)=>{
-  die.className='color-die '+String(diceColors[i]||'RED').toLowerCase();
+  die.className='color-die '+String(displayColors[i]||'WHITE').toLowerCase();
   if(rolling)die.classList.add('rolling-die');
   const face=die.querySelector('.die-face');face.replaceChildren();
   if(rolling){const glint=document.createElement('span');glint.className='die-glint';glint.textContent='✦';face.appendChild(glint);}
@@ -235,13 +239,13 @@ function renderState(state){
   // [FIXED] Keep the exact previous server result visible in the tray while the next round is open.
   const previousResult=normalizeResultColors(state.lastResult);
   if(previousResult.length===3)renderDice(previousResult,false);
-  else renderDice(['GREEN','RED','GREEN'],true);
+  else renderDice(lastKnownDiceColors,true);
   if(time<=3500&&time>0&&lastRollRound!==String(state.roundNumber)){lastRollRound=String(state.roundNumber);playRoll();}
  } else if(state.status==='settling'){
   if(lastRollRound!==String(state.roundNumber)){lastRollRound=String(state.roundNumber);playRoll();}
-  renderDice(['GREEN','RED','GREEN'],true);
+  renderDice(lastKnownDiceColors,true);
  } else if(state.status==='complete'&&Array.isArray(state.result)&&revealedRoundNumber===Number(state.roundNumber))renderDice(state.result,false);
- else if(state.status==='complete'&&Array.isArray(state.result))renderDice(['GREEN','RED','GREEN'],true);
+ else if(state.status==='complete'&&Array.isArray(state.result))renderDice(lastKnownDiceColors,true);
  else renderDice(['GREEN','RED','GREEN'],true);
  if(state.status==='complete'&&state.result){
   pendingResultState=state;
