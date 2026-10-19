@@ -80,15 +80,15 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
   box(1.72,.42,.22,gold,-1.98,.02,.91);
   box(1.72,.42,.22,gold,1.98,.02,.91);
   box(5.82,.42,.22,gold,0,.02,-.91);
-  // [FIXED] The tray and the lower landing floor are separate, visibly stepped surfaces.
-  // Darker felt on the lower floor makes the drop from the raised tray edge easy to read.
-  const landingFelt=mat(0x043d2b,.05,.98,{map:feltTexture});
-  box(3.35,.12,1.52,darkMetal,0,-.39,1.67);
-  box(3.19,.045,1.38,landingFelt,0,-.31,1.67);
-  // Raised gold edge outlines the lower landing floor without closing the tray's front exit.
-  box(3.35,.055,.08,brightGold,0,-.29,2.39);
-  box(.07,.06,1.48,brightGold,-1.66,-.29,1.67);
-  box(.07,.06,1.48,brightGold,1.66,-.29,1.67);
+  // [FIXED] A broad, clearly LOWER landing floor sits in front of the raised dice tray.
+  // Its dark metal step and contrasting green felt make the tray-to-floor drop visible from the mobile camera.
+  const landingFelt=mat(0x063522,.05,.98,{map:feltTexture});
+  box(3.55,.14,2.02,darkMetal,0,-.49,1.86);
+  box(3.39,.045,1.88,landingFelt,0,-.3975,1.86);
+  // Gold trim outlines the lower floor's front and sides, while the tray's front-center exit stays open.
+  box(3.55,.06,.09,brightGold,0,-.36,2.825);
+  box(.07,.065,1.94,brightGold,-1.74,-.36,1.86);
+  box(.07,.065,1.94,brightGold,1.74,-.36,1.86);
   box(.18,.27,1.72,gold,-2.82,-.035,0);
   box(.18,.27,1.72,gold,2.82,-.035,0);
   box(5.54,.035,1.52,felt,0,-.078,0);
@@ -322,7 +322,7 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
             } else {d.verticalVelocity=0;d.landed=true;}
           }
           // [FIXED] Lower the die onto the catch deck after it passes through the tray opening.
-          const deckY=d.root.position.z>1.02?.10:.30;
+          const deckY=d.root.position.z>1.02?.02:.30; // [FIXED] Land at the top surface of the lower floor.
           d.root.position.y=deckY+d.dropHeight;
           // Lateral momentum, felt-tray boundaries, and pairwise impacts keep the dice from floating through each other.
           if(!d.landed){
@@ -335,8 +335,8 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
             if(d.root.position.x > limitX){d.root.position.x=limitX;d.vx=-Math.abs(d.vx)*.48;d.spinY-=1.4;}
             if(d.root.position.z < -.37){d.root.position.z=-.37;d.vz=Math.abs(d.vz)*.42;d.spinX+=1.1;}
             // The front opening leads to a lower felt deck; let the dice visibly roll out onto it.
-            if(d.root.position.z > 2.18){
-              d.root.position.z=2.18;d.vz=-Math.abs(d.vz)*.24;d.spinX+=.9;
+            if(d.root.position.z > 2.62){
+              d.root.position.z=2.62;d.vz=-Math.abs(d.vz)*.24;d.spinX+=.9;
             }
           }
           const friction=d.landed?Math.min(1,dt*11):1;
@@ -346,12 +346,12 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
           const damp=Math.exp(-2.4*dt);
           d.spinX*=damp;d.spinY*=damp;d.spinZ*=damp;
           if(d.landed) {
-            d.root.position.y=d.root.position.z>1.02?.10:.30;
+            d.root.position.y=d.root.position.z>1.02?.02:.30; // [FIXED] Settle on the correct tray/floor height.
             // Settle toward a clear three-dice presentation after the last bounce.
             const homeX=[-1.65,0,1.65][i];
             d.root.position.x+=(homeX-d.root.position.x)*Math.min(1,dt*1.8);
             // Keep the final result visible on the lower deck if the die rolled out of the tray.
-            const homeZ=d.root.position.z>1.02?1.72:0;
+            const homeZ=d.root.position.z>1.02?2.02:0;
             d.root.position.z+=(homeZ-d.root.position.z)*Math.min(1,dt*2.2);
             const snap=Math.min(1,dt*5.5);
             // Finish with a stable, readable upright die pose instead of leaving a random tilted Euler angle.
