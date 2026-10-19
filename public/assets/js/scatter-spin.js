@@ -89,3 +89,8 @@ $('spin').addEventListener('click',async()=>{
 $('refresh').addEventListener('click',e=>{e.preventDefault();loadAccount()});
 $('diceLink').addEventListener('click',e=>{e.preventDefault();if(!token){location.href='/dice-arena';return}location.href='/dice-arena?token='+encodeURIComponent(token)});
 loadAccount();
+
+// [FIXED] Release the PixiJS renderer/WebGL resources when leaving Reel Spin.
+window.addEventListener('pagehide',()=>{
+ if(reelPixi){reelPixi.destroy(true,{children:true});reelPixi=null;reelVisuals.clear()}
+});
