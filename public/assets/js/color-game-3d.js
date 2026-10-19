@@ -115,12 +115,7 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
   const fascia=new THREE.Mesh(new THREE.PlaneGeometry(3.7,.92),new THREE.MeshBasicMaterial({map:fasciaTexture}));
   fascia.position.set(0,-.03,-1.31);fascia.rotation.x=-.08;base.add(fascia);
   box(4.0,.12,.15,gold,0,-.5,-1.31);
-  // Transparent acrylic hood and polished circular rim. Alpha is intentionally subtle so dice remain visible.
-  const domeMat = new THREE.MeshPhysicalMaterial({color:0xa6e8e5, roughness:.08, metalness:.12, transmission:.25, transparent:true, opacity:.17, thickness:.5, side:THREE.DoubleSide, clearcoat:1, depthWrite:false});
-  const dome = new THREE.Mesh(new THREE.SphereGeometry(1,48,24,0,Math.PI*2,0,Math.PI/2), domeMat);
-  dome.scale.set(3.0,1.2,1.05); dome.position.set(0,-.02,0); dome.castShadow=false; base.add(dome);
-  const hoop = new THREE.Mesh(new THREE.TorusGeometry(2.85,.055,10,64), brightGold);
-  hoop.scale.set(1,.37,1); hoop.rotation.x=Math.PI/2; hoop.position.set(0,-.18,0); base.add(hoop);
+  // [FIXED] Removed the remaining transparent hood and gold rim that still looked like a covered golden cup.
   // Side hinges, latch, and a front control panel make the machine feel manufactured.
   for (const x of [-2.9,2.9]) {
     const hinge = new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.45,20), brightGold);
@@ -230,7 +225,7 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
       dropStart=now;rollingUntil=now+1.05;
       dice.forEach((d,i)=>{
         d.landed=false;
-        // [FIXED] Dice start compact and hidden beneath the cup, then enlarge as the cup lifts.
+        // [FIXED] Dice begin small for the drop animation; the cup is no longer part of the scene.
         d.dropHeight=.12+i*.035;
         d.verticalVelocity=.85+i*.12;
         d.spinX=9.2+i*1.1;d.spinY=11.2-i*.65;d.spinZ=8.4+i*.8;
@@ -265,7 +260,7 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
     // [FIXED] Dice stay concealed beneath the cup during betting, grow during the drop, and remain full-size after the result is revealed.
     const showingResult=stage.classList.contains('revealed')&&!activeDrop;
     const diceReveal=activeDrop?Math.min(1,Math.max(0,(now-dropStart)/560)):0;
-    const diceScale=activeDrop ? (.035+.965*(diceReveal*diceReveal*(3-2*diceReveal))) : (showingResult ? 1 : .035);
+    const diceScale=activeDrop ? (.035+.965*(diceReveal*diceReveal*(3-2*diceReveal))) : 1; // [FIXED] Keep dice visible on the open tray during betting; no cup hides them.
     dice.forEach(d=>d.root.scale.setScalar(diceScale));
 
     // [FIXED] No golden cup animation; keep the dice tray fully visible.
@@ -347,7 +342,7 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
           d.root.position.x=[-1.65,0,1.65][i]+Math.sin(now*.004+i)*.08;
         }
       } else {
-        // [FIXED] Keep idle dice centered beneath the golden shaker; when revealed, place all three full-size dice clearly on the tray.
+        // [FIXED] Keep idle dice centered on the open tray; show the previous confirmed result full-size.
         const showingResult=stage.classList.contains('revealed')&&!stage.classList.contains('dice-drop');
         if(showingResult){
           // [FIXED] Gently bounce the previous confirmed result in place during the next betting round.
