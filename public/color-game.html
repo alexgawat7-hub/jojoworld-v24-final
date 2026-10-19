@@ -23,6 +23,10 @@
 </section>
 <section class="bet-panel crazy-bet-panel">
 <div class="board-heading"><strong>PLACE YOUR BET</strong><span>BET UP TO ALL 6 COLORS</span></div>
+<div class="bet-controls"><div class="bet-entry"><label for="betAmount">BET</label><input id="betAmount" type="number" inputmode="numeric" min="10" max="100000" step="10" value="100"><button type="button" class="max" id="maxBet">MAX</button></div>
+<div class="quick-bets"><button type="button" data-amount="10">10</button><button type="button" data-amount="50">50</button><button type="button" data-amount="100">100</button><button type="button" data-amount="500">500</button></div>
+<button type="button" class="place-bet" id="placeBet" disabled>SELECT A COLOR</button>
+<div class="action-row"><button type="button" id="againBtn">AGAIN</button><button type="button" id="doubleBtn">×2 DOUBLE</button><button type="button" id="undoBtn">UNDO</button><button type="button" id="clearBtn">CLEAR</button></div></div>
 <div class="color-options crazy-color-grid">
 <button type="button" class="color-choice yellow-choice" data-color="YELLOW"><span class="swatch"></span><b>YELLOW</b><small>UP TO 1:4</small></button>
 <button type="button" class="color-choice white-choice" data-color="WHITE"><span class="swatch"></span><b>WHITE</b><small>UP TO 1:4</small><em class="chip-stack" style="display:none" aria-label="Live player bets"></em></button>
@@ -32,15 +36,12 @@
 <button type="button" class="color-choice green-choice" data-color="GREEN"><span class="swatch"></span><b>GREEN</b><small>UP TO 1:4</small><em class="chip-stack chip-triple" style="display:none" aria-label="Live player bets"></em></button>
 </div>
 <div class="board-totals"><span>WIN: <b id="winAmount">0</b></span><span>TOTAL BET: <b id="totalBet">0</b></span></div>
-<div class="bet-controls"><div class="bet-entry"><label for="betAmount">BET</label><input id="betAmount" type="number" inputmode="numeric" min="10" max="100000" step="10" value="100"><button type="button" class="max" id="maxBet">MAX</button></div>
-<div class="quick-bets"><button type="button" data-amount="10">10</button><button type="button" data-amount="50">50</button><button type="button" data-amount="100">100</button><button type="button" data-amount="500">500</button></div>
-<button type="button" class="place-bet" id="placeBet" disabled>SELECT A COLOR</button>
-<div class="action-row"><button type="button" id="againBtn">AGAIN</button><button type="button" id="doubleBtn">×2 DOUBLE</button><button type="button" id="undoBtn">UNDO</button><button type="button" id="clearBtn">CLEAR</button></div></div>
+
 <p class="fineprint">Virtual coins only. Live balances, bets, countdown, dice results, and payouts remain server-controlled. The roadmap is a display reference, not a prediction.</p>
 </section>
 <section class="live-board"><div class="section-title"><b>👥 LIVE PLAYER BETS</b><span id="livePlayerCount">0 PLAYERS</span></div>
 <div class="totals"><div class="total red-total"><small>🔴 RED</small><strong id="redTotal">0</strong></div><div class="total blue-total"><small>🔵 BLUE</small><strong id="blueTotal">0</strong></div><div class="total green-total"><small>🟢 GREEN</small><strong id="greenTotal">0</strong></div><div class="total yellow-total"><small>🟡 YELLOW</small><strong id="yellowTotal">0</strong></div><div class="total pink-total"><small>💗 PINK</small><strong id="pinkTotal">0</strong></div><div class="total white-total"><small>⚪ WHITE</small><strong id="whiteTotal">0</strong></div></div>
 <div class="bets-heading"><span>PLAYER</span><span>COLOR</span><span>BET</span><span>STATUS</span></div><div class="bets-list" id="betsList"><div class="empty">Waiting for the first player to bet…</div></div></section>
 </main>
-<script type="module" src="/assets/js/color-game-3d.js?v=20261019e"></script><script src="/assets/js/color-game.js?v=20261019final" defer></script>
+<script type="module" src="/assets/js/color-game-3d.js?v=20261019final"></script><script src="/assets/js/color-game.js?v=20261019final2" defer></script>
 </body></html>
