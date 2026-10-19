@@ -66,7 +66,7 @@ button:disabled{opacity:.42;filter:saturate(.55)}
  #battlePanel .controls .btn{min-height:27px}
 }
 </style></head><body><main class="app">
-<header class="top"><div class="brand">✦ JOJOWORLD ARCADE</div><div class="top-actions"><button id="fullscreenBtn" class="back" type="button">⛶ FULL SCREEN</button><button id="ranksBtn" class="back" type="button">🏆 RANKS</button><a id="lobby" class="back" href="/live-games">← LOBBY</a></div></header>
+<header class="top"><div class="brand">✦ JOJOWORLD ARCADE</div><div class="top-actions"><button id="soundBtn" class="back" type="button" aria-pressed="true">🔊 SOUND ON</button><button id="fullscreenBtn" class="back" type="button">⛶ FULL SCREEN</button><button id="ranksBtn" class="back" type="button">🏆 RANKS</button><a id="lobby" class="back" href="/live-games">← LOBBY</a></div></header>
 <section class="hero"><span class="pill">GLOBAL RANKED SKILL GAME</span><h1>TETRIS</h1><p>Clear lines. Beat your personal best. Climb the global leaderboard.</p></section>
 <div class="wallet"><div><small>YOUR JOJOWORLD COINS</small><strong id="balance">Connecting…</strong></div><div style="text-align:right"><small>YOUR SOLO RANK</small><strong id="myRank">—</strong></div></div>
 <div class="tabs"><button class="tab active" id="soloTab">🧩 SOLO TETRIS</button><button class="tab" id="battleTab">⚔️ 1v1 COIN BATTLE</button></div>
@@ -80,6 +80,19 @@ $('fullscreenBtn').onclick=async()=>{try{if(!document.fullscreenElement){await d
 document.addEventListener('fullscreenchange',()=>{$('fullscreenBtn').textContent=document.fullscreenElement?'⤢ EXIT FULL':'⛶ FULL SCREEN'});
 $('ranksBtn').onclick=()=>{const opened=document.querySelector('.app').classList.toggle('ranks-open');$('ranksBtn').textContent=opened?'✕ CLOSE RANKS':'🏆 RANKS';if(opened){loadLeaderboard();loadBattleRanks()}};
 const $=id=>document.getElementById(id);let myBest=0, myRank=null, runStart=0, gameStarted=false, gameOver=false, paused=false, raf=0, dropTimer=0, lastTime=0, score=0, lines=0, level=1;
+// [ADDED] Lightweight arcade sound effects generated locally with Web Audio; no downloads or paid APIs.
+let soundEnabled=true,audioCtx=null;
+function playSfx(kind){
+ if(!soundEnabled)return;
+ try{
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  if(!audioCtx)audioCtx=new AC();if(audioCtx.state==='suspended')audioCtx.resume();
+  const now=audioCtx.currentTime;
+  const notes={move:[[240,.045,'sine']],rotate:[[390,.07,'triangle'],[520,.055,'triangle']],drop:[[150,.09,'triangle'],[95,.12,'sine']],lock:[[180,.055,'square']],clear:[[523,.08,'triangle'],[659,.08,'triangle'],[784,.14,'triangle']],level:[[440,.08,'sine'],[660,.08,'sine'],[880,.16,'sine']],over:[[330,.12,'triangle'],[247,.14,'triangle'],[165,.24,'sawtooth']],win:[[523,.09,'triangle'],[659,.09,'triangle'],[784,.09,'triangle'],[1047,.22,'triangle']],lose:[[260,.12,'sine'],[196,.2,'sine']]};
+  (notes[kind]||notes.move).forEach((n,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=n[2];o.frequency.setValueAtTime(n[0],now+i*.085);g.gain.setValueAtTime(.0001,now+i*.085);g.gain.exponentialRampToValueAtTime(.12,now+i*.085+.012);g.gain.exponentialRampToValueAtTime(.0001,now+i*.085+n[1]);o.connect(g);g.connect(audioCtx.destination);o.start(now+i*.085);o.stop(now+i*.085+n[1]+.02)});
+ }catch(e){}
+}
+$('soundBtn').onclick=()=>{soundEnabled=!soundEnabled;$('soundBtn').textContent=soundEnabled?'🔊 SOUND ON':'🔇 SOUND OFF';$('soundBtn').setAttribute('aria-pressed',String(soundEnabled));if(soundEnabled)playSfx('rotate')};
 const canvas=$('board'),ctx=canvas.getContext('2d');const COLS=10,ROWS=20,S=30;const colors=['#000','#54d8ff','#ffd166','#bb86fc','#7cffb2','#ff6b9a','#ff9f43','#f5f7ff'];const shapes=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]],[[0,1,1],[1,1,0]],[[1,1,0],[0,1,1]]];let grid,piece,bag=[];
 function emptyGrid(){return Array.from({length:ROWS},()=>Array(COLS).fill(0))}
 function nextPiece(){if(!bag.length)bag=shapes.map((_,i)=>i).sort(()=>Math.random()-.5);const type=bag.pop(),shape=shapes[type].map(r=>r.slice());return {type,shape,x:Math.floor((COLS-shape[0].length)/2),y:0}}
@@ -89,14 +102,14 @@ function draw(){ctx.fillStyle='#080d1c';ctx.fillRect(0,0,canvas.width,canvas.hei
 function updateStats(){$('score').textContent=score.toLocaleString();$('lines').textContent=lines;$('level').textContent=level}
 function spawn(){piece=nextPiece();if(collide(piece)){endGame()}}
 function rotate(){const shape=piece.shape[0].map((_,i)=>piece.shape.map(row=>row[i]).reverse());if(!collide(piece,0,0,shape))piece.shape=shape}
-function lock(){piece.shape.forEach((row,y)=>row.forEach((v,x)=>{if(v&&piece.y+y>=0)grid[piece.y+y][piece.x+x]=piece.type+1}));let cleared=0;for(let y=ROWS-1;y>=0;y--)if(grid[y].every(Boolean)){grid.splice(y,1);grid.unshift(Array(COLS).fill(0));cleared++;y++}if(cleared){lines+=cleared;score+=[0,100,300,500,800][cleared]*level;level=1+Math.floor(lines/10)}spawn();updateStats()}
+function lock(){piece.shape.forEach((row,y)=>row.forEach((v,x)=>{if(v&&piece.y+y>=0)grid[piece.y+y][piece.x+x]=piece.type+1}));let cleared=0;for(let y=ROWS-1;y>=0;y--)if(grid[y].every(Boolean)){grid.splice(y,1);grid.unshift(Array(COLS).fill(0));cleared++;y++}if(cleared){const oldLevel=level;lines+=cleared;score+=[0,100,300,500,800][cleared]*level;level=1+Math.floor(lines/10);playSfx(cleared>=4?"level":"clear");if(level>oldLevel)playSfx("level")}else playSfx("lock");spawn();updateStats()}
 function tick(now){if(!gameStarted||paused||gameOver)return;if(now-lastTime>Math.max(90,700-(level-1)*55)){if(!collide(piece,0,1))piece.y++;else lock();lastTime=now}draw();raf=requestAnimationFrame(tick)}
 function start(){cancelAnimationFrame(raf);grid=emptyGrid();score=0;lines=0;level=1;gameOver=false;paused=false;gameStarted=true;runStart=Date.now();lastTime=0;bag=[];spawn();updateStats();$('gameNotice').textContent='Game in progress — clear lines and avoid topping out.';$('submit').disabled=true;$('pause').textContent='Ⅱ PAUSE';raf=requestAnimationFrame(tick)}
-function endGame(){gameOver=true;gameStarted=false;piece=null;cancelAnimationFrame(raf);draw();$('gameNotice').textContent='GAME OVER — score '+score.toLocaleString()+'. Upload your completed score to update your global rank.';$('submit').disabled=score<=0}
-function move(dx,dy=0){if(!gameStarted||paused||gameOver)return;if(!collide(piece,dx,dy)){piece.x+=dx;piece.y+=dy}else if(dy)lock();draw()}
-function hardDrop(){if(!gameStarted||paused||gameOver)return;while(!collide(piece,0,1))piece.y++;lock();draw()}
-$('start').onclick=start;$('left').onclick=()=>move(-1);$('right').onclick=()=>move(1);$('down').onclick=()=>move(0,1);$('rotate').onclick=()=>{if(gameStarted&&!paused&&!gameOver)rotate();draw()};$('hardDrop').onclick=hardDrop;$('pause').onclick=()=>{if(!gameStarted||gameOver)return;paused=!paused;$('pause').textContent=paused?'▶ RESUME':'Ⅱ PAUSE';if(!paused){lastTime=performance.now();raf=requestAnimationFrame(tick)}else cancelAnimationFrame(raf)};
-document.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight','ArrowDown','ArrowUp',' '].includes(e.key))e.preventDefault();if(battleMode){const a={'ArrowLeft':'left','ArrowRight':'right','ArrowDown':'down','ArrowUp':'rotate',' ':'drop'}[e.key];if(a)battleAction(a);return}if(e.key==='ArrowLeft')move(-1);if(e.key==='ArrowRight')move(1);if(e.key==='ArrowDown')move(0,1);if(e.key==='ArrowUp'&&gameStarted&&!paused&&!gameOver){rotate();draw()}if(e.key===' ')hardDrop()});
+function endGame(){gameOver=true;gameStarted=false;piece=null;cancelAnimationFrame(raf);playSfx("over");draw();$('gameNotice').textContent='GAME OVER — score '+score.toLocaleString()+'. Upload your completed score to update your global rank.';$('submit').disabled=score<=0}
+function move(dx,dy=0){if(!gameStarted||paused||gameOver)return;if(!collide(piece,dx,dy)){piece.x+=dx;piece.y+=dy;if(dx!==0)playSfx("move");else playSfx("lock")}else if(dy)lock();draw()}
+function hardDrop(){if(!gameStarted||paused||gameOver)return;while(!collide(piece,0,1))piece.y++;playSfx("drop");lock();draw()}
+$('start').onclick=start;$('left').onclick=()=>move(-1);$('right').onclick=()=>move(1);$('down').onclick=()=>move(0,1);$('rotate').onclick=()=>{if(gameStarted&&!paused&&!gameOver){rotate();playSfx("rotate")}draw()};$('hardDrop').onclick=hardDrop;$('pause').onclick=()=>{if(!gameStarted||gameOver)return;paused=!paused;$('pause').textContent=paused?'▶ RESUME':'Ⅱ PAUSE';if(!paused){lastTime=performance.now();raf=requestAnimationFrame(tick)}else cancelAnimationFrame(raf)};
+document.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight','ArrowDown','ArrowUp',' '].includes(e.key))e.preventDefault();if(battleMode){const a={'ArrowLeft':'left','ArrowRight':'right','ArrowDown':'down','ArrowUp':'rotate',' ':'drop'}[e.key];if(a)battleAction(a);return}if(e.key==='ArrowLeft')move(-1);if(e.key==='ArrowRight')move(1);if(e.key==='ArrowDown')move(0,1);if(e.key==='ArrowUp'&&gameStarted&&!paused&&!gameOver){rotate();playSfx("rotate");draw()}if(e.key===' ')hardDrop()});
 function setMode(battle){$('soloTab').classList.toggle('active',!battle);$('battleTab').classList.toggle('active',battle);$('soloPanel').classList.toggle('hidden',battle);$('battlePanel').classList.toggle('hidden',!battle)}$('soloTab').onclick=()=>setMode(false);$('battleTab').onclick=()=>setMode(true);
 async function api(url,opts={}){const res=await fetch(url,{...opts,headers:{'Content-Type':'application/json',...(opts.headers||{})},cache:'no-store'});const d=await res.json();if(!res.ok||!d.ok)throw Error(d.error||'Request failed');return d}
 async function loadSession(){if(!token){$('balance').textContent='Open from Messenger';$('gameNotice').textContent='Open Game Lobby from Messenger to link your account and save scores.';return}try{const d=await api('/api/tetris/session'+q);$('balance').textContent=d.balance.toLocaleString()+' coins';$('myRank').textContent=d.rank?'#'+d.rank:'Unranked';myBest=d.highestScore||0;myRank=d.rank;$('best').textContent=myBest.toLocaleString();$('bestRank').textContent=d.rank?'#'+d.rank:'—'}catch(e){$('gameNotice').textContent=e.message}}
@@ -139,7 +152,7 @@ async function refreshBattle(){
 async function battleAction(action){
  if(battleBusy||!lastBattle||lastBattle.status!=='active')return;
  battleBusy=true;document.querySelectorAll('[data-move]').forEach(b=>b.disabled=true);
- try{await api('/api/tetris/battle/action'+q,{method:'POST',body:JSON.stringify({action})});await refreshBattle()}
+ try{const before=lastBattle;await api('/api/tetris/battle/action'+q,{method:'POST',body:JSON.stringify({action})});await refreshBattle();if(lastBattle?.status==='finished'){playSfx(lastBattle.winner==='you'?'win':lastBattle.winner==='opponent'?'lose':'over')}else if(action==='drop')playSfx('drop');else if(action==='rotate')playSfx('rotate');else playSfx('move')}
  catch(e){$('battleStatus').textContent=e.message}
  finally{battleBusy=false;document.querySelectorAll('[data-move]').forEach(b=>b.disabled=!lastBattle||lastBattle.status!=='active')}
 }
