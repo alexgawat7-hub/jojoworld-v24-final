@@ -201,7 +201,7 @@ $('soundToggle').addEventListener('click',()=>{
 });
 const pullCord=$('pullCord'),cordRig=$('cordRig'),cordHint=$('cordHint');
 // [FIXED] Keep the visible fallback dice cycling colors even when the 3D module cannot load.
-let dropColorTimer=null;
+let dropColorTimer=null,statePollTimer=null;
 function startDropColorCycle(){
  if(dropColorTimer)clearInterval(dropColorTimer);
  const palette=[
@@ -321,4 +321,13 @@ $('placeBet').addEventListener('click',async()=>{
  finally{working=false;renderControls();}
 });
 if(!token){setNotice('OPEN FROM MESSENGER');$('balance').textContent='—';setMessage('SECURE SESSION REQUIRED','Open Game Lobby from JojoWorld Messenger to play with your real coin balance.');$('placeBet').disabled=true;}
-else{loadState(true);setInterval(()=>loadState(false),250);}
+else{loadState(true);statePollTimer=setInterval(()=>loadState(false),250);}
+window.addEventListener('pagehide',()=>{
+ if(statePollTimer){clearInterval(statePollTimer);statePollTimer=null;}
+ stopDropColorCycle();
+ if(autoPullTimer){clearTimeout(autoPullTimer);autoPullTimer=null;}
+ if(pullTimer){clearTimeout(pullTimer);pullTimer=null;}
+ pullInProgress=false;
+ try{if(audioContext&&audioContext.state!=='closed')audioContext.close();}catch(e){}
+ try{if('speechSynthesis' in window)window.speechSynthesis.cancel();}catch(e){}
+},{once:true});
