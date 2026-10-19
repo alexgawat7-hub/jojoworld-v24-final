@@ -137,7 +137,8 @@ let balance=0,myBest=0,myRank=null,runStart=0,started=false,over=false,paused=fa
 const COLS=10,ROWS=20,S=30,colors=['#000','#55d9ff','#ffd166','#bb86fc','#7cffb2','#ff6b9a','#ff9f43','#f7f8ff'];
 const shapes=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]],[[0,1,1],[1,1,0]],[[1,1,0],[0,1,1]]];
 function emptyGrid(){return Array.from({length:ROWS},function(){return Array(COLS).fill(0)})}
-function refillBag(){bag=shapes.map(function(_,i){return i});for(let i=bag.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)),v=bag[i];bag[i]=bag[j];bag[j]=v}}\nfunction nextPiece(){if(!bag.length)refillBag();const type=bag.pop(),shape=shapes[type].map(function(r){return r.slice()});return{type:type,shape:shape,x:Math.floor((COLS-shape[0].length)/2),y:0}}
+function refillBag(){bag=shapes.map(function(_,i){return i});for(let i=bag.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)),v=bag[i];bag[i]=bag[j];bag[j]=v}}
+function nextPiece(){if(!bag.length)refillBag();const type=bag.pop(),shape=shapes[type].map(function(r){return r.slice()});return{type:type,shape:shape,x:Math.floor((COLS-shape[0].length)/2),y:0}}
 function collide(p,dx,dy,shape){dx=dx||0;dy=dy||0;shape=shape||p.shape;for(let y=0;y<shape.length;y++)for(let x=0;x<shape[y].length;x++)if(shape[y][x]){const nx=p.x+x+dx,ny=p.y+y+dy;if(nx<0||nx>=COLS||ny>=ROWS||(ny>=0&&grid[ny][nx]))return true}return false}
 const boardHost=$('board');
 let pixiApp=null,pixiBg=null,pixiGrid=null,pixiBlocks=null,pixiFx=null,pixiOverlay=null,pixiText=null,particles=[],visualY=0,dropAccumulator=0,lastFrame=0,clearFlash=0;
