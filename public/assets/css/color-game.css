@@ -435,3 +435,76 @@ body.crazy-color-page{height:100dvh}
   box-shadow:inset 0 1px 0 #fff4,0 3px 7px #0009;
   font-size:clamp(10px,2.8vw,14px);
 }
+
+
+/* [FIXED] Remove the long page-scroll layout; keep Crazy Color as a compact fixed-height mobile game screen. */
+@media (max-width: 480px) {
+  html, body.crazy-color-page {
+    width:100%;
+    height:100dvh !important;
+    min-height:0 !important;
+    overflow:hidden !important;
+    overscroll-behavior:none;
+  }
+  .crazy-app {
+    width:100%;
+    height:100dvh !important;
+    min-height:0 !important;
+    max-height:100dvh;
+    overflow:hidden !important;
+    padding:4px 6px 5px !important;
+    gap:4px !important;
+    box-sizing:border-box;
+  }
+  .crazy-app .top { flex:0 0 25px !important; min-height:25px !important; margin:0 !important; }
+  .crazy-app .machine-shell {
+    flex:0 1 auto !important;
+    min-height:0 !important;
+    margin:0 !important;
+    overflow:hidden !important;
+  }
+  .crazy-app .lid { min-height:48px !important; padding:3px 5px !important; }
+  .crazy-app .lid strong { font-size:clamp(16px,4.8vw,22px) !important; letter-spacing:2px !important; }
+  .crazy-app .machine-inset { padding:4px !important; gap:4px !important; }
+  .crazy-app .dice-stage { height:clamp(86px,12dvh,118px) !important; min-height:clamp(86px,12dvh,118px) !important; margin:5px auto !important; padding:4px !important; }
+  .crazy-app .die-slot { height:clamp(54px,8dvh,72px) !important; }
+  .crazy-app .color-die { width:clamp(38px,11vw,54px) !important; height:clamp(38px,11vw,54px) !important; }
+  .crazy-app .die-face { font-size:clamp(22px,6vw,32px) !important; }
+  .crazy-app .banker-booth { margin:3px 0 !important; padding:2px !important; min-height:29px !important; }
+  .crazy-app .machine-foot { padding:3px 5px !important; }
+  .crazy-app .timer-dial { flex-basis:34px !important; height:34px !important; }
+  .crazy-app .bet-panel.crazy-bet-panel {
+    flex:1 1 auto !important;
+    min-height:0 !important;
+    height:auto !important;
+    max-height:none !important;
+    overflow:hidden !important;
+    padding:5px 6px 6px !important;
+    gap:3px !important;
+  }
+  .crazy-app .bet-panel.crazy-bet-panel .board-heading { margin:0 !important; font-size:11px !important; }
+  .crazy-app .bet-entry-top { gap:4px !important; }
+  .crazy-app .bet-entry-top label { font-size:9px !important; }
+  .crazy-app .bet-entry-top input, .crazy-app .bet-entry-top .max { height:31px !important; }
+  .crazy-app .quick-bets { gap:3px !important; }
+  .crazy-app .quick-bets button { min-height:25px !important; height:25px !important; padding:2px !important; font-size:11px !important; }
+  .crazy-app .crazy-color-grid {
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    grid-template-rows:repeat(2, minmax(40px,1fr)) !important;
+    grid-auto-rows:40px !important;
+    gap:3px !important;
+    min-height:0 !important;
+    flex:1 1 auto !important;
+  }
+  .crazy-app .crazy-color-grid .color-choice {
+    min-height:40px !important;
+    height:40px !important;
+    padding:2px !important;
+    gap:1px !important;
+  }
+  .crazy-app .crazy-color-grid .color-choice .swatch { width:16px !important; height:16px !important; flex-basis:16px !important; }
+  .crazy-app .crazy-color-grid .color-choice b { font-size:8px !important; }
+  .crazy-app .crazy-color-grid .color-choice small { font-size:7px !important; }
+  .crazy-app .crazy-bet-panel .place-bet { min-height:26px !important; padding:4px !important; }
+  .crazy-app .bet-panel.crazy-bet-panel { padding-bottom:6px !important; }
+}
