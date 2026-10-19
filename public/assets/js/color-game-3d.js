@@ -317,8 +317,9 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
           d.root.position.x=[-1.65,0,1.65][i]+Math.sin(now*.004+i)*.08;
         }
       } else {
-        d.root.position.set([-1.65,0,1.65][i],.30,0);
-        d.root.position.z=0;
+        // [FIXED] Keep dice in their actual starting slots at the rear of the tray during betting.
+        // The old idle branch reset z to 0 every frame, undoing the tray placement above.
+        d.root.position.set([-1.45,0,1.45][i],.30,-.34);
         d.root.rotation.x+=(.06-d.root.rotation.x)*Math.min(1,dt*4);
         d.root.rotation.z+=(0-d.root.rotation.z)*Math.min(1,dt*4);
         d.root.rotation.y+=(.15+i*.28-d.root.rotation.y)*Math.min(1,dt*4);
