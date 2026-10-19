@@ -920,6 +920,8 @@ async function tetrisSettleBattle(matchId) {
       }
       match.settlementApplied=true;match.updatedAt=new Date();await match.save({session});
     });
+    const settled=await TetrisBattleMatchModel.findOne({matchId}).lean();
+    if(settled){await loadUserFromDB(String(settled.player1.psid));await loadUserFromDB(String(settled.player2.psid));}
   } catch(err) { console.error('[TETRIS BATTLE] Settlement failed:',err.message); }
   finally { await session.endSession(); }
 }
@@ -960,6 +962,7 @@ app.post('/api/tetris/battle/join',async(req,res)=>{
    }catch(err){await TetrisBattleQueueModel.updateOne({psid:rival.psid,status:'matching'},{$set:{status:'waiting',updatedAt:new Date()}});await TetrisBattleQueueModel.deleteOne({psid,status:'waiting'});throw err;}
    finally{await dbSession.endSession();}
    const match=await TetrisBattleMatchModel.findOne({matchId}).lean();
+   await loadUserFromDB(String(rival.psid));
    const me=await loadUserFromDB(psid);
    return res.json(tetrisBattlePublicState(match,psid,Math.max(0,Math.floor(Number(me?.coins)||0))));
   });
