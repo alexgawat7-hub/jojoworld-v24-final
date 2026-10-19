@@ -77,9 +77,9 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
   const trayFloor = new THREE.Mesh(new THREE.BoxGeometry(5.62,.13,1.82), felt);
   trayFloor.position.set(0,-.16,0);trayFloor.receiveShadow=true;base.add(trayFloor);
   // [FIXED] Open the front-center of the tray so dice have a visible exit path toward the player.
-  box(1.72,.27,.18,gold,-1.98,-.035,.91);
-  box(1.72,.27,.18,gold,1.98,-.035,.91);
-  box(5.82,.27,.18,gold,0,-.035,-.91);
+  box(1.72,.42,.22,gold,-1.98,.02,.91);
+  box(1.72,.42,.22,gold,1.98,.02,.91);
+  box(5.82,.42,.22,gold,0,.02,-.91);
   // [ADDED] Lower catch/roll-out deck directly in front of the tray opening.
   box(3.35,.12,1.52,darkMetal,0,-.39,1.67);
   box(3.19,.045,1.38,felt,0,-.31,1.67);
@@ -170,7 +170,8 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
         pip.position.set(u,v,.005); group.add(pip);root.add(group);
       });
     });
-    root.position.set([-1.65,0,1.65][index],.33,0);
+    // [FIXED] Keep the dice visibly inside the rear half of the recessed tray during betting, not parked along the front edge.
+    root.position.set([-1.45,0,1.45][index],.30,-.34);
     root.rotation.set(.12+index*.13,.25+index*.4,.1-index*.1);
     scene.add(root);dice.push({root,body,topPlate,sidePlate,index,phase:index*2.1,rolling:false,landed:false,dropHeight:0,verticalVelocity:0,spinX:0,spinY:0,spinZ:0,vx:0,vz:0,target:colors[['red','blue','green'][index]]});
   }
