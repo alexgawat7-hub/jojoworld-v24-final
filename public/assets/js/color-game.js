@@ -193,6 +193,7 @@ function renderState(state){
  const time=Math.max(0,Number(state.timeLeftMs)||0);
  $('timer').textContent=state.status==='betting'?(time/1000).toFixed(1)+'s':state.status==='settling'?'ROLLING…':'RESULT';
  $('roundStatus').textContent=state.status==='betting'?'BETTING OPEN':state.status==='settling'?'DICE ROLLING':'ROUND RESULT';
+  $('colorStage').classList.toggle('betting-open',state.status==='betting');
  $('timer').parentElement.classList.toggle('closed',state.status!=='betting');
  if(state.status==='betting'){
   if(String(lastCountdownSecond).split(':')[0]!==String(state.roundNumber))lastCountdownSecond='';
