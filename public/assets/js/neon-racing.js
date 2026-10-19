@@ -40,24 +40,36 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
   streetGlow.position.set(-6,4,-10);scene.add(streetGlow);
 
   const mat=(color,roughness=.8,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
-  // Procedural asphalt grain: generated locally so no paid API or extra asset download is needed.
+  // [UPGRADED] Procedural asphalt is a GPU-ready DataTexture; no Canvas API is used.
   function makeRoadTexture(){
-    const canvas=document.createElement('canvas');canvas.width=256;canvas.height=1024;
-    const ctx=canvas.getContext('2d');ctx.fillStyle='#292d32';ctx.fillRect(0,0,256,1024);
-    for(let i=0;i<18000;i++){
-      const v=35+Math.floor(Math.random()*55);
-      ctx.fillStyle='rgba('+v+','+v+','+v+','+(Math.random()*.22)+')';
-      const s=Math.random()*2.1+.3;ctx.fillRect(Math.random()*256,Math.random()*1024,s,s);
+    const width=256,height=1024,data=new Uint8Array(width*height*4);
+    const base=41;
+    // Longitudinal worn patches are stored as pixel bands, preserving road detail without Canvas.
+    const wear=Array.from({length:22},()=>({
+      x:Math.floor(Math.random()*width),
+      w:2+Math.floor(Math.random()*8),
+      shade:Math.floor(Math.random()*12)
+    }));
+    for(let y=0;y<height;y++){
+      for(let x=0;x<width;x++){
+        const i=(y*width+x)*4;
+        const grain=Math.random()<.12?Math.floor(Math.random()*42)-10:Math.floor(Math.random()*13)-6;
+        let v=base+grain;
+        for(const band of wear){
+          if(x>=band.x&&x<band.x+band.w) v-=band.shade;
+        }
+        v=Math.max(18,Math.min(92,v));
+        data[i]=v;
+        data[i+1]=Math.max(20,Math.min(96,v+4));
+        data[i+2]=Math.max(24,Math.min(102,v+9));
+        data[i+3]=255;
+      }
     }
-    // Subtle longitudinal wear and patched areas break up the toy-like flat road surface.
-    for(let i=0;i<22;i++){
-      ctx.fillStyle='rgba(7,10,13,'+(Math.random()*.12)+')';
-      ctx.fillRect(Math.random()*256,0,2+Math.random()*8,1024);
-    }
-    const texture=new THREE.CanvasTexture(canvas);
+    const texture=new THREE.DataTexture(data,width,height,THREE.RGBAFormat);
     texture.wrapS=THREE.RepeatWrapping;texture.wrapT=THREE.RepeatWrapping;
     texture.repeat.set(1,5);texture.colorSpace=THREE.SRGBColorSpace;
     texture.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());
+    texture.needsUpdate=true;
     return texture;
   }
   const asphalt= new THREE.MeshStandardMaterial({color:0xffffff,map:makeRoadTexture(),roughness:.91,metalness:.04});
