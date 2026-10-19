@@ -764,6 +764,85 @@ app.post('/api/coin-shop/checkout', async (req, res) => {
   }
 });
 
+// [ADDED] JojoWorld Tetris: authenticated solo score submissions and global rankings.
+app.get('/tetris', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'tetris.html'), err => {
+    if (err && !res.headersSent) { console.error('[TETRIS] Could not serve game:', err.message); res.status(503).send('Tetris is temporarily unavailable.'); }
+  });
+});
+async function getTetrisRank(psid) {
+  const stats = await TetrisStatsModel.find({}).sort({ highestScore: -1, updatedAt: 1, _id: 1 }).select('psid').lean();
+  const index = stats.findIndex(row => String(row.psid) === String(psid));
+  return index < 0 ? null : index + 1;
+}
+app.get('/api/tetris/session', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Open Tetris from Game Lobby in Messenger to connect your account.' });
+    const user = await loadUserFromDB(String(session.psid));
+    if (!user) return res.status(404).json({ ok: false, error: 'JojoWorld account not found.' });
+    const stats = await TetrisStatsModel.findOne({ psid: String(session.psid) }).lean();
+    const rank = stats ? await getTetrisRank(String(session.psid)) : null;
+    res.set('Cache-Control', 'no-store');
+    return res.json({ ok: true, name: String(user.name || user.displayName || 'Jojo Player').slice(0, 32), balance: Math.max(0, Math.floor(Number(user.coins) || 0)), highestScore: Math.max(0, Number(stats?.highestScore) || 0), gamesPlayed: Math.max(0, Number(stats?.gamesPlayed) || 0), rank });
+  } catch (err) {
+    console.error('[TETRIS] Session read failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Tetris account is temporarily unavailable.' });
+  }
+});
+app.get('/api/tetris/leaderboard', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Open Tetris from Game Lobby in Messenger to view the global ranking.' });
+    const term = String(req.query.search || '').trim().slice(0, 60);
+    const all = await TetrisStatsModel.find({}).sort({ highestScore: -1, updatedAt: 1, _id: 1 }).limit(10000).lean();
+    const ranked = all.map((row, index) => ({ rank: index + 1, name: String(row.displayName || 'Jojo Player').slice(0, 32), highestScore: Math.max(0, Number(row.highestScore) || 0), gamesPlayed: Math.max(0, Number(row.gamesPlayed) || 0), psid: String(row.psid) }));
+    let selected;
+    if (!term) selected = ranked.slice(0, 50);
+    else if (/^#?\d+$/.test(term)) {
+      const wanted = Number(term.replace('#', ''));
+      selected = ranked.filter(row => row.rank === wanted);
+    } else {
+      const needle = term.toLowerCase();
+      selected = ranked.filter(row => row.name.toLowerCase().includes(needle)).slice(0, 50);
+    }
+    res.set('Cache-Control', 'no-store');
+    return res.json({ ok: true, totalRanked: ranked.length, players: selected.map(({ psid, ...row }) => row), myRank: (ranked.find(row => row.psid === String(session.psid)) || {}).rank || null });
+  } catch (err) {
+    console.error('[TETRIS] Leaderboard read failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Tetris leaderboard is temporarily unavailable.' });
+  }
+});
+app.post('/api/tetris/score', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Session expired. Reopen Tetris from Messenger.' });
+    const psid = String(session.psid);
+    const score = Math.floor(Number(req.body?.score));
+    const lines = Math.floor(Number(req.body?.lines));
+    const durationMs = Math.floor(Number(req.body?.durationMs));
+    if (!Number.isFinite(score) || score < 1 || score > 2000000 || !Number.isFinite(lines) || lines < 0 || lines > 2000 || !Number.isFinite(durationMs) || durationMs < 10000 || durationMs > 60 * 60 * 1000 || score > Math.max(5000, durationMs / 1000 * 1200)) {
+      return res.status(400).json({ ok: false, error: 'Score did not pass basic game validation. Play a complete round and try again.' });
+    }
+    return await withDiceUserQueue(psid, async () => {
+      const user = await loadUserFromDB(psid);
+      if (!user) return res.status(404).json({ ok: false, error: 'JojoWorld account not found.' });
+      const displayName = String(user.name || user.displayName || 'Jojo Player').replace(/[<>\u0000-\u001f]/g, '').slice(0, 32) || 'Jojo Player';
+      const stats = await TetrisStatsModel.findOneAndUpdate(
+        { psid },
+        { $set: { displayName, updatedAt: new Date() }, $max: { highestScore: score, bestLines: lines }, $inc: { gamesPlayed: 1 } },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      ).lean();
+      const rank = await getTetrisRank(psid);
+      res.set('Cache-Control', 'no-store');
+      return res.json({ ok: true, highestScore: Math.max(0, Number(stats.highestScore) || 0), gamesPlayed: Math.max(0, Number(stats.gamesPlayed) || 0), rank });
+    });
+  } catch (err) {
+    console.error('[TETRIS] Score submission failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Score could not be saved. Please try again.' });
+  }
+});
+
 app.get('/live-games', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'live-games.html'), err => {
     if (err && !res.headersSent) {
@@ -827,6 +906,17 @@ const MONGODB_URI = configuredValue(process.env.MONGODB_URI);
 
 // PAGE NAME FOR MESSENGER LINK
 const PAGE_USERNAME = "100064525073153";
+
+// [ADDED] Persistent JojoWorld Tetris solo leaderboard. One record per Messenger account.
+const TetrisStatsSchema = new mongoose.Schema({
+  psid: { type: String, required: true, unique: true, index: true },
+  displayName: { type: String, default: 'Jojo Player' },
+  highestScore: { type: Number, default: 0, index: true },
+  bestLines: { type: Number, default: 0 },
+  gamesPlayed: { type: Number, default: 0 },
+  updatedAt: { type: Date, default: Date.now }
+}, { strict: true });
+const TetrisStatsModel = mongoose.models.JTetrisStats || mongoose.model('JTetrisStats', TetrisStatsSchema);
 
 const UserSchema = new mongoose.Schema({ psid: { type: String, required: true, unique: true }, data: Object }, { strict: false });
 const UserModel = mongoose.models.JUser || mongoose.model('JUser', UserSchema);
