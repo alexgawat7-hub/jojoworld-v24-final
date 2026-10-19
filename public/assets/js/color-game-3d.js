@@ -225,9 +225,9 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
       dropStart=now;rollingUntil=now+1.05;
       dice.forEach((d,i)=>{
         d.landed=false;
-        // [FIXED] Dice begin small for the drop animation; the cup is no longer part of the scene.
-        d.dropHeight=.12+i*.035;
-        d.verticalVelocity=.85+i*.12;
+        // [FIXED] Start from the visible tray surface, then let gravity carry each full-size die down as it rolls through the open front.
+        d.dropHeight=0;
+        d.verticalVelocity=.18+i*.04;
         d.spinX=9.2+i*1.1;d.spinY=11.2-i*.65;d.spinZ=8.4+i*.8;
         // [FIXED] Give each die enough forward momentum to pass through the open front of the tray.
         d.vx=[.32,-.12,-.28][i];d.vz=[2.15,2.55,2.25][i];
@@ -259,8 +259,7 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
     const activeDrop=stage.classList.contains('dice-drop');
     // [FIXED] Dice stay concealed beneath the cup during betting, grow during the drop, and remain full-size after the result is revealed.
     const showingResult=stage.classList.contains('revealed')&&!activeDrop;
-    const diceReveal=activeDrop?Math.min(1,Math.max(0,(now-dropStart)/560)):0;
-    const diceScale=activeDrop ? (.035+.965*(diceReveal*diceReveal*(3-2*diceReveal))) : 1; // [FIXED] Keep dice visible on the open tray during betting; no cup hides them.
+    const diceScale=1; // [FIXED] Keep all three dice full-size as they leave the tray and fall onto the lower floor; never shrink them out of view.
     dice.forEach(d=>d.root.scale.setScalar(diceScale));
 
     // [FIXED] No golden cup animation; keep the dice tray fully visible.
