@@ -196,6 +196,8 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
         dice[i].target=colors[name]??colors.red;
         dice[i].body.material.color.setHex(dice[i].target);
         dice[i].topPlate.material.color.setHex(dice[i].target);
+        // [FIXED] Keep every visible face the server-confirmed color; no leftover placeholder side colors.
+        dice[i].sidePlate.material.color.setHex(dice[i].target);
       });
       lastColors=signature;
     }
