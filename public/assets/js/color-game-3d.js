@@ -198,7 +198,7 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
   const pull = new THREE.Mesh(new THREE.CylinderGeometry(.15,.18,.28,20),gold);pull.position.set(0,-1.27,.16);rig.add(pull);
   const redButton = new THREE.Mesh(new THREE.SphereGeometry(.09,16,12),mat(0xff424f,.15,.2,{emissive:0x991020,emissiveIntensity:1}));redButton.position.set(.22,-1.27,.18);rig.add(redButton);
 
-  let lastColors='', wasDropping=false, rollingUntil=0, dropStart=0, lastTime=0, lockedResultColors=null;
+  let lastColors='', wasDropping=false, rollingUntil=0, dropStart=0, lastTime=0;
   const clock=new THREE.Clock();
   function syncState(now) {
     const dropping=stage.classList.contains('dice-drop');
@@ -207,10 +207,8 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
       const el=document.getElementById('die'+i);
       return el ? [...el.classList].find(c=>colors[c]!==undefined) || 'red' : 'red';
     });
-    // [FIXED] Lock the server result colors at the start of the banker pull so later polling/placeholder dice cannot recolor the 3D dice.
-    if(bettingOpen) lockedResultColors=null;
-    if(dropping&&!wasDropping) lockedResultColors=readDomColors();
-    const names=(lockedResultColors&&(dropping||(!bettingOpen&&stage.classList.contains('revealed'))))?lockedResultColors:readDomColors();
+    // [FIXED] Use neutral white dice throughout betting and every spin/drop; read actual colors only after the result is revealed.
+    const names=(bettingOpen||dropping||stage.classList.contains('rolling'))?['white','white','white']:readDomColors();
     const signature=names.join(',');
     if(signature!==lastColors) {
       names.forEach((name,i)=>{
