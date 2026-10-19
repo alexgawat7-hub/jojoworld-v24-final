@@ -171,7 +171,7 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
       });
     });
     // [FIXED] Keep the dice visibly inside the rear half of the recessed tray during betting, not parked along the front edge.
-    root.position.set([-1.45,0,1.45][index],.30,-.34);
+    root.position.set([-0.48,0,0.48][index],.30,-.62);
     root.rotation.set(.12+index*.13,.25+index*.4,.1-index*.1);
     scene.add(root);dice.push({root,body,topPlate,sidePlate,index,phase:index*2.1,rolling:false,landed:false,dropHeight:0,verticalVelocity:0,spinX:0,spinY:0,spinZ:0,vx:0,vz:0,target:colors[['red','blue','green'][index]]});
   }
@@ -222,10 +222,9 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
       dropStart=now;rollingUntil=now+1.05;
       dice.forEach((d,i)=>{
         d.landed=false;
-        // Begin just above the felt, inside the recessed tray. Avoid teleporting
-        // upward on pull: gravity carries each die down into the tray immediately.
-        d.dropHeight=.035+i*.012;
-        d.verticalVelocity=.22+i*.06;
+        // [FIXED] Dice start compact and hidden beneath the cup, then enlarge as the cup lifts.
+        d.dropHeight=.12+i*.035;
+        d.verticalVelocity=.85+i*.12;
         d.spinX=9.2+i*1.1;d.spinY=11.2-i*.65;d.spinZ=8.4+i*.8;
         // [FIXED] Give each die enough forward momentum to pass through the open front of the tray.
         d.vx=[.32,-.12,-.28][i];d.vz=[2.15,2.55,2.25][i];
@@ -255,6 +254,11 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
     const now=performance.now(),dt=Math.min(.04,(now-lastTime)/1000||.016);lastTime=now;
     syncState(now);
     const activeDrop=stage.classList.contains('dice-drop');
+    // [FIXED] Keep dice miniature and concealed while betting is open; scale to full size during the pull/drop animation.
+    const diceReveal=activeDrop?Math.min(1,Math.max(0,(now-dropStart)/560)):0;
+    const diceScale=.035+.965*(diceReveal*diceReveal*(3-2*diceReveal));
+    dice.forEach(d=>d.root.scale.setScalar(diceScale));
+
     // Lift the golden cup after pull, then keep it out of the rolling dice' path.
     const keepShakerRaised=stage.classList.contains('revealed')&&!stage.classList.contains('betting-open');
     const shakerLift=activeDrop?Math.min(1,Math.max(0,(now-dropStart)/520)):(keepShakerRaised?1:0);
