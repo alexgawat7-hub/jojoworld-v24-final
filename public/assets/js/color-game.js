@@ -6,7 +6,7 @@ const colors=['RED','BLUE','GREEN','YELLOW','PINK','WHITE'];
 let previousBetAmount=100,lastBetAnnouncementRound='',lastCountdownSecond='',lastCountdownBeepRound='';
 let lastKnownDiceColors=['WHITE','WHITE','WHITE'];
 let masterGain=null,masterCompressor=null;
-let selectedColor='',balance=0,roundState=null,working=false,loading=false,lastResultKey='',soundEnabled=false,audioContext=null,lastRollRound='',pendingResultState=null,revealedRoundNumber=0,pullInProgress=false,pullStartY=0,pullStartTime=0,pullTimer=null,autoPullTimer=null;
+let selectedColor='',balance=0,roundState=null,working=false,loading=false,lastResultKey='',soundEnabled=true,audioContext=null,lastRollRound='',pendingResultState=null,revealedRoundNumber=0,pullInProgress=false,pullStartY=0,pullStartTime=0,pullTimer=null,autoPullTimer=null;
 const lobby=$('lobby'),shop=$('shop');
 if(token){const q='?token='+encodeURIComponent(token);lobby.href='/live-games'+q;shop.href='/coin-shop'+q;}
 function setMessage(main,sub=''){const el=$('result');el.textContent=main;const small=document.createElement('small');small.textContent=sub;if(sub)el.appendChild(small);}
@@ -191,6 +191,10 @@ window.addEventListener('color-dice-impact',event=>{
  noiseBurst(.045,.035+strength*.055,0,1250+strength*900);
  tone(105+strength*95,.065,.035+strength*.055,'triangle');
 });
+$('soundToggle').textContent='🔊 SOUND ON';$('soundToggle').setAttribute('aria-pressed','true');
+// [ADDED] Browsers require a user gesture before audio can actually play; keep sound ON by default and unlock audio on the first interaction.
+function unlockGameAudio(){if(!soundEnabled)return;const a=audio();if(a?.state==='suspended')a.resume().catch(()=>{});primePlaceBetVoice();window.removeEventListener('pointerdown',unlockGameAudio);window.removeEventListener('touchstart',unlockGameAudio);window.removeEventListener('keydown',unlockGameAudio);}
+window.addEventListener('pointerdown',unlockGameAudio,{passive:true});window.addEventListener('touchstart',unlockGameAudio,{passive:true});window.addEventListener('keydown',unlockGameAudio);
 $('soundToggle').addEventListener('click',()=>{
  soundEnabled=!soundEnabled;$('soundToggle').textContent=soundEnabled?'🔊 SOUND ON':'🔇 SOUND OFF';$('soundToggle').setAttribute('aria-pressed',String(soundEnabled));
  if(soundEnabled){const a=audio();if(a?.state==='suspended')a.resume().catch(()=>{});primePlaceBetVoice();tone(660,.12,.09,'sine');tone(990,.14,.065,'sine',.1);if('speechSynthesis' in window&&typeof SpeechSynthesisUtterance!=='undefined'){try{const synth=window.speechSynthesis;synth.cancel();const unlock=new SpeechSynthesisUtterance(' ');unlock.volume=0;unlock.rate=1;synth.speak(unlock);}catch(_){}}if(roundState?.status==='betting'){speakPlaceYourBet(roundState.roundNumber);const seconds=Math.ceil(Math.max(0,Number(roundState.timeLeftMs)||0)/1000);if(seconds<=10&&seconds>0){lastCountdownSecond=String(roundState.roundNumber)+':'+seconds;playCountdown(seconds);}}}
