@@ -76,8 +76,16 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
   // Four separate raised rails form a real recessed tray instead of a flat border.
   const trayFloor = new THREE.Mesh(new THREE.BoxGeometry(5.62,.13,1.82), felt);
   trayFloor.position.set(0,-.16,0);trayFloor.receiveShadow=true;base.add(trayFloor);
-  box(5.82,.27,.18,gold,0,-.035,.91);
+  // [FIXED] Open the front-center of the tray so dice have a visible exit path toward the player.
+  box(1.72,.27,.18,gold,-1.98,-.035,.91);
+  box(1.72,.27,.18,gold,1.98,-.035,.91);
   box(5.82,.27,.18,gold,0,-.035,-.91);
+  // [ADDED] Lower catch/roll-out deck directly in front of the tray opening.
+  box(3.35,.12,1.52,darkMetal,0,-.39,1.67);
+  box(3.19,.045,1.38,felt,0,-.31,1.67);
+  box(3.35,.055,.08,brightGold,0,-.29,2.39);
+  box(.07,.06,1.48,brightGold,-1.66,-.29,1.67);
+  box(.07,.06,1.48,brightGold,1.66,-.29,1.67);
   box(.18,.27,1.72,gold,-2.82,-.035,0);
   box(.18,.27,1.72,gold,2.82,-.035,0);
   box(5.54,.035,1.52,felt,0,-.078,0);
@@ -202,7 +210,8 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
         d.dropHeight=1.28+i*.12;
         d.verticalVelocity=.12+i*.04;
         d.spinX=9.2+i*1.1;d.spinY=11.2-i*.65;d.spinZ=8.4+i*.8;
-        d.vx=[1.18,-.32,-1.02][i];d.vz=[.46,-.58,.38][i];
+        // [FIXED] Give each die enough forward momentum to pass through the open front of the tray.
+        d.vx=[.32,-.12,-.28][i];d.vz=[2.15,2.55,2.25][i];
       });
     }
     if(!rolling&&wasDropping){rollingUntil=0;}
@@ -261,17 +270,23 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
               d.verticalVelocity=Math.abs(d.verticalVelocity)*.34;
             } else {d.verticalVelocity=0;d.landed=true;}
           }
-          d.root.position.y=.33+d.dropHeight;
+          // [FIXED] Lower the die onto the catch deck after it passes through the tray opening.
+          const deckY=d.root.position.z>1.02?-.02:.33;
+          d.root.position.y=deckY+d.dropHeight;
           // Lateral momentum, felt-tray boundaries, and pairwise impacts keep the dice from floating through each other.
           if(!d.landed){
             d.root.position.x+=d.vx*dt;
             d.root.position.z+=d.vz*dt;
             d.vx*=Math.exp(-.42*dt);d.vz*=Math.exp(-.55*dt);
-            const limitX=2.22,limitZ=.37;
+            const limitX=d.root.position.z>1.02?1.34:2.22;
+            // [FIXED] Side walls still contain the dice inside the tray; the front is deliberately open.
             if(d.root.position.x < -limitX){d.root.position.x=-limitX;d.vx=Math.abs(d.vx)*.48;d.spinY+=1.4;}
             if(d.root.position.x > limitX){d.root.position.x=limitX;d.vx=-Math.abs(d.vx)*.48;d.spinY-=1.4;}
-            if(d.root.position.z < -limitZ){d.root.position.z=-limitZ;d.vz=Math.abs(d.vz)*.42;d.spinX+=1.1;}
-            if(d.root.position.z > limitZ){d.root.position.z=limitZ;d.vz=-Math.abs(d.vz)*.42;d.spinX-=1.1;}
+            if(d.root.position.z < -.37){d.root.position.z=-.37;d.vz=Math.abs(d.vz)*.42;d.spinX+=1.1;}
+            // The front opening leads to a lower felt deck; let the dice visibly roll out onto it.
+            if(d.root.position.z > 2.18){
+              d.root.position.z=2.18;d.vz=-Math.abs(d.vz)*.24;d.spinX+=.9;
+            }
           }
           const friction=d.landed?Math.min(1,dt*11):1;
           d.root.rotation.x+=d.spinX*dt*friction;
@@ -280,11 +295,13 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
           const damp=Math.exp(-2.4*dt);
           d.spinX*=damp;d.spinY*=damp;d.spinZ*=damp;
           if(d.landed) {
-            d.root.position.y=.33;
+            d.root.position.y=d.root.position.z>1.02?-.02:.33;
             // Settle toward a clear three-dice presentation after the last bounce.
             const homeX=[-1.65,0,1.65][i];
             d.root.position.x+=(homeX-d.root.position.x)*Math.min(1,dt*1.8);
-            d.root.position.z+=(0-d.root.position.z)*Math.min(1,dt*2.2);
+            // Keep the final result visible on the lower deck if the die rolled out of the tray.
+            const homeZ=d.root.position.z>1.02?1.72:0;
+            d.root.position.z+=(homeZ-d.root.position.z)*Math.min(1,dt*2.2);
             const snap=Math.min(1,dt*5.5);
             // Finish with a stable, readable upright die pose instead of leaving a random tilted Euler angle.
             d.root.rotation.x+=(0-d.root.rotation.x)*snap;
