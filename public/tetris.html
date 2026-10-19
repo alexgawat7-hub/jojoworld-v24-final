@@ -81,7 +81,26 @@ document.addEventListener('fullscreenchange',()=>{$('fullscreenBtn').textContent
 $('ranksBtn').onclick=()=>{const opened=document.querySelector('.app').classList.toggle('ranks-open');$('ranksBtn').textContent=opened?'✕ CLOSE RANKS':'🏆 RANKS';if(opened){loadLeaderboard();loadBattleRanks()}};
 const $=id=>document.getElementById(id);let myBest=0, myRank=null, runStart=0, gameStarted=false, gameOver=false, paused=false, raf=0, dropTimer=0, lastTime=0, score=0, lines=0, level=1;
 // [ADDED] Lightweight arcade sound effects generated locally with Web Audio; no downloads or paid APIs.
-let soundEnabled=true,audioCtx=null;
+let soundEnabled=true,audioCtx=null,beatTimer=null,beatStep=0;
+function playBeatThump(offset=0){
+ if(!soundEnabled)return;
+ try{
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  if(!audioCtx)audioCtx=new AC();if(audioCtx.state==='suspended')audioCtx.resume();
+  const t=audioCtx.currentTime+offset,o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type='sine';o.frequency.setValueAtTime(105,t);o.frequency.exponentialRampToValueAtTime(58,t+.11);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.16,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+.14);
+  o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+.15);
+ }catch(e){}
+}
+// [ADDED] Rhythmic low "tug-tug" pulse while a match/game is actively running.
+function startGameBeat(){
+ if(!soundEnabled||beatTimer)return;
+ playBeatThump(0);playBeatThump(.13);beatStep=0;
+ beatTimer=setInterval(()=>{if(!soundEnabled){stopGameBeat();return}playBeatThump(0);playBeatThump(.13);beatStep++},520);
+}
+function stopGameBeat(){if(beatTimer){clearInterval(beatTimer);beatTimer=null}}
+function syncGameBeat(){if(soundEnabled&&((!battleMode&&gameStarted&&!paused&&!gameOver)||(battleMode&&lastBattle?.status==='active')))startGameBeat();else stopGameBeat();}
 function playSfx(kind){
  if(!soundEnabled)return;
  try{
@@ -92,7 +111,7 @@ function playSfx(kind){
   (notes[kind]||notes.move).forEach((n,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=n[2];o.frequency.setValueAtTime(n[0],now+i*.085);g.gain.setValueAtTime(.0001,now+i*.085);g.gain.exponentialRampToValueAtTime(.12,now+i*.085+.012);g.gain.exponentialRampToValueAtTime(.0001,now+i*.085+n[1]);o.connect(g);g.connect(audioCtx.destination);o.start(now+i*.085);o.stop(now+i*.085+n[1]+.02)});
  }catch(e){}
 }
-$('soundBtn').onclick=()=>{soundEnabled=!soundEnabled;$('soundBtn').textContent=soundEnabled?'🔊 SOUND ON':'🔇 SOUND OFF';$('soundBtn').setAttribute('aria-pressed',String(soundEnabled));if(soundEnabled)playSfx('rotate')};
+$('soundBtn').onclick=()=>{soundEnabled=!soundEnabled;$('soundBtn').textContent=soundEnabled?'🔊 SOUND ON':'🔇 SOUND OFF';$('soundBtn').setAttribute('aria-pressed',String(soundEnabled));if(soundEnabled){playSfx('rotate');syncGameBeat()}else stopGameBeat()};
 const canvas=$('board'),ctx=canvas.getContext('2d');const COLS=10,ROWS=20,S=30;const colors=['#000','#54d8ff','#ffd166','#bb86fc','#7cffb2','#ff6b9a','#ff9f43','#f5f7ff'];const shapes=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]],[[0,1,1],[1,1,0]],[[1,1,0],[0,1,1]]];let grid,piece,bag=[];
 function emptyGrid(){return Array.from({length:ROWS},()=>Array(COLS).fill(0))}
 function nextPiece(){if(!bag.length)bag=shapes.map((_,i)=>i).sort(()=>Math.random()-.5);const type=bag.pop(),shape=shapes[type].map(r=>r.slice());return {type,shape,x:Math.floor((COLS-shape[0].length)/2),y:0}}
@@ -104,11 +123,11 @@ function spawn(){piece=nextPiece();if(collide(piece)){endGame()}}
 function rotate(){const shape=piece.shape[0].map((_,i)=>piece.shape.map(row=>row[i]).reverse());if(!collide(piece,0,0,shape))piece.shape=shape}
 function lock(){piece.shape.forEach((row,y)=>row.forEach((v,x)=>{if(v&&piece.y+y>=0)grid[piece.y+y][piece.x+x]=piece.type+1}));let cleared=0;for(let y=ROWS-1;y>=0;y--)if(grid[y].every(Boolean)){grid.splice(y,1);grid.unshift(Array(COLS).fill(0));cleared++;y++}if(cleared){const oldLevel=level;lines+=cleared;score+=[0,100,300,500,800][cleared]*level;level=1+Math.floor(lines/10);playSfx(cleared>=4?"level":"clear");if(level>oldLevel)playSfx("level")}else playSfx("lock");spawn();updateStats()}
 function tick(now){if(!gameStarted||paused||gameOver)return;if(now-lastTime>Math.max(90,700-(level-1)*55)){if(!collide(piece,0,1))piece.y++;else lock();lastTime=now}draw();raf=requestAnimationFrame(tick)}
-function start(){cancelAnimationFrame(raf);grid=emptyGrid();score=0;lines=0;level=1;gameOver=false;paused=false;gameStarted=true;runStart=Date.now();lastTime=0;bag=[];spawn();updateStats();$('gameNotice').textContent='Game in progress — clear lines and avoid topping out.';$('submit').disabled=true;$('pause').textContent='Ⅱ PAUSE';raf=requestAnimationFrame(tick)}
-function endGame(){gameOver=true;gameStarted=false;piece=null;cancelAnimationFrame(raf);playSfx("over");draw();$('gameNotice').textContent='GAME OVER — score '+score.toLocaleString()+'. Upload your completed score to update your global rank.';$('submit').disabled=score<=0}
+function start(){cancelAnimationFrame(raf);grid=emptyGrid();score=0;lines=0;level=1;gameOver=false;paused=false;gameStarted=true;runStart=Date.now();lastTime=0;bag=[];spawn();updateStats();$('gameNotice').textContent='Game in progress — clear lines and avoid topping out.';$('submit').disabled=true;$('pause').textContent='Ⅱ PAUSE';syncGameBeat();raf=requestAnimationFrame(tick)}
+function endGame(){gameOver=true;gameStarted=false;piece=null;cancelAnimationFrame(raf);syncGameBeat();playSfx("over");draw();$('gameNotice').textContent='GAME OVER — score '+score.toLocaleString()+'. Upload your completed score to update your global rank.';$('submit').disabled=score<=0}
 function move(dx,dy=0){if(!gameStarted||paused||gameOver)return;if(!collide(piece,dx,dy)){piece.x+=dx;piece.y+=dy;if(dx!==0)playSfx("move");else playSfx("lock")}else if(dy)lock();draw()}
 function hardDrop(){if(!gameStarted||paused||gameOver)return;while(!collide(piece,0,1))piece.y++;playSfx("drop");lock();draw()}
-$('start').onclick=start;$('left').onclick=()=>move(-1);$('right').onclick=()=>move(1);$('down').onclick=()=>move(0,1);$('rotate').onclick=()=>{if(gameStarted&&!paused&&!gameOver){rotate();playSfx("rotate")}draw()};$('hardDrop').onclick=hardDrop;$('pause').onclick=()=>{if(!gameStarted||gameOver)return;paused=!paused;$('pause').textContent=paused?'▶ RESUME':'Ⅱ PAUSE';if(!paused){lastTime=performance.now();raf=requestAnimationFrame(tick)}else cancelAnimationFrame(raf)};
+$('start').onclick=start;$('left').onclick=()=>move(-1);$('right').onclick=()=>move(1);$('down').onclick=()=>move(0,1);$('rotate').onclick=()=>{if(gameStarted&&!paused&&!gameOver){rotate();playSfx("rotate")}draw()};$('hardDrop').onclick=hardDrop;$('pause').onclick=()=>{if(!gameStarted||gameOver)return;paused=!paused;$('pause').textContent=paused?'▶ RESUME':'Ⅱ PAUSE';syncGameBeat();if(!paused){lastTime=performance.now();raf=requestAnimationFrame(tick)}else cancelAnimationFrame(raf)};
 document.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight','ArrowDown','ArrowUp',' '].includes(e.key))e.preventDefault();if(battleMode){const a={'ArrowLeft':'left','ArrowRight':'right','ArrowDown':'down','ArrowUp':'rotate',' ':'drop'}[e.key];if(a)battleAction(a);return}if(e.key==='ArrowLeft')move(-1);if(e.key==='ArrowRight')move(1);if(e.key==='ArrowDown')move(0,1);if(e.key==='ArrowUp'&&gameStarted&&!paused&&!gameOver){rotate();playSfx("rotate");draw()}if(e.key===' ')hardDrop()});
 function setMode(battle){$('soloTab').classList.toggle('active',!battle);$('battleTab').classList.toggle('active',battle);$('soloPanel').classList.toggle('hidden',battle);$('battlePanel').classList.toggle('hidden',!battle)}$('soloTab').onclick=()=>setMode(false);$('battleTab').onclick=()=>setMode(true);
 async function api(url,opts={}){const res=await fetch(url,{...opts,headers:{'Content-Type':'application/json',...(opts.headers||{})},cache:'no-store'});const d=await res.json();if(!res.ok||!d.ok)throw Error(d.error||'Request failed');return d}
@@ -134,9 +153,9 @@ async function refreshBattle(){
  if(!token)return;
  try{
   const d=await api('/api/tetris/battle/state'+q);lastBattle=d;
-  if(d.status==='idle'){ $('battleStatus').textContent='Choose a stake and find a rival with the same stake.';return}
-  if(d.status==='waiting'){$('battleStatus').textContent='WAITING FOR RIVAL · '+Number(d.stake).toLocaleString()+' coins stake. Another player must choose the same amount.';return}
-  $('battlePot').textContent=Number(d.pot||0).toLocaleString()+' coins';
+  if(d.status==='idle'){syncGameBeat();$('battleStatus').textContent='Choose a stake and find a rival with the same stake.';return}
+  if(d.status==='waiting'){syncGameBeat();$('battleStatus').textContent='WAITING FOR RIVAL · '+Number(d.stake).toLocaleString()+' coins stake. Another player must choose the same amount.';return}
+  syncGameBeat();$('battlePot').textContent=Number(d.pot||0).toLocaleString()+' coins';
   $('balance').textContent=Number(d.balance||0).toLocaleString()+' coins';
   $('youLabel').textContent=(d.you.name||'YOU')+' · RANK '+(d.you.rank?'#'+d.you.rank:'—')+' · W/L '+Number(d.you.wins||0)+'/'+Number(d.you.losses||0)+' · SCORE '+Number(d.you.score||0).toLocaleString()+' · L'+(d.you.level||1);
   $('opponentLabel').textContent=(d.opponent.name||'RIVAL')+' · RANK '+(d.opponent.rank?'#'+d.opponent.rank:'—')+' · '+(d.status==='active'?'LIVE':'FINISHED');$('rivalRank').textContent=d.opponent.rank?'#'+d.opponent.rank:'—';$('battleRecord').textContent=Number(d.opponent.wins||0)+' / '+Number(d.opponent.losses||0);
@@ -176,7 +195,7 @@ async function loadBattleRanks(){
  for(const p of d.players){const row=document.createElement('div');row.className='row';const rank=document.createElement('div');rank.className='rank';rank.textContent='#'+p.rank;const name=document.createElement('div');name.textContent=p.name;const detail=document.createElement('div');detail.className='muted';detail.textContent='Wins '+p.wins+' · Losses '+p.losses+' · Best '+Number(p.highestScore).toLocaleString();const scoreEl=document.createElement('strong');scoreEl.textContent=Number(p.coinsWon).toLocaleString()+' coins won';row.append(rank,name,scoreEl);row.appendChild(detail);$('battleRankRows').appendChild(row)}
  }catch(e){$('battleRankRows').textContent=e.message}
 }
-function setMode(battle){battleMode=battle;$('soloTab').classList.toggle('active',!battle);$('battleTab').classList.toggle('active',battle);$('soloPanel').classList.toggle('hidden',battle);$('battlePanel').classList.toggle('hidden',!battle);if(battle){cancelAnimationFrame(raf);drawRemoteBoard('battleYouBoard',lastBattle?.you);drawRemoteBoard('battleOpponentBoard',lastBattle?.opponent);refreshBattle();loadBattleRanks();if(!battlePoll)battlePoll=setInterval(()=>{if(battleMode)refreshBattle()},900)}else{if(battlePoll){clearInterval(battlePoll);battlePoll=null}if(gameStarted&&!paused&&!gameOver){lastTime=performance.now();raf=requestAnimationFrame(tick)}}}
+function setMode(battle){battleMode=battle;syncGameBeat();$('soloTab').classList.toggle('active',!battle);$('battleTab').classList.toggle('active',battle);$('soloPanel').classList.toggle('hidden',battle);$('battlePanel').classList.toggle('hidden',!battle);if(battle){cancelAnimationFrame(raf);drawRemoteBoard('battleYouBoard',lastBattle?.you);drawRemoteBoard('battleOpponentBoard',lastBattle?.opponent);refreshBattle();loadBattleRanks();if(!battlePoll)battlePoll=setInterval(()=>{if(battleMode)refreshBattle()},900)}else{if(battlePoll){clearInterval(battlePoll);battlePoll=null}if(gameStarted&&!paused&&!gameOver){lastTime=performance.now();raf=requestAnimationFrame(tick)}}}
 $('findRival').onclick=findRival;$('leaveBattle').onclick=leaveBattle;$('battleRefresh').onclick=refreshBattle;
 document.querySelectorAll('[data-move]').forEach(b=>b.onclick=()=>battleAction(b.dataset.move));
 grid=emptyGrid();piece=nextPiece();draw();loadSession();loadLeaderboard();
