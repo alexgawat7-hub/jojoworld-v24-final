@@ -57,7 +57,7 @@ async function refreshBattle(){
   if(d.status==='waiting'){$('battleStatus').textContent='WAITING FOR RIVAL · '+Number(d.stake).toLocaleString()+' coins stake. Another player must choose the same amount.';return}
   $('battlePot').textContent=Number(d.pot||0).toLocaleString()+' coins';
   $('balance').textContent=Number(d.balance||0).toLocaleString()+' coins';
-  $('youLabel').textContent=(d.you.name||'YOU')+' · RANK '+(d.you.rank?'#'+d.you.rank:'—')+' · SCORE '+Number(d.you.score||0).toLocaleString()+' · L'+(d.you.level||1);
+  $('youLabel').textContent=(d.you.name||'YOU')+' · RANK '+(d.you.rank?'#'+d.you.rank:'—')+' · W/L '+Number(d.you.wins||0)+'/'+Number(d.you.losses||0)+' · SCORE '+Number(d.you.score||0).toLocaleString()+' · L'+(d.you.level||1);
   $('opponentLabel').textContent=(d.opponent.name||'RIVAL')+' · RANK '+(d.opponent.rank?'#'+d.opponent.rank:'—')+' · '+(d.status==='active'?'LIVE':'FINISHED');$('rivalRank').textContent=d.opponent.rank?'#'+d.opponent.rank:'—';$('battleRecord').textContent=Number(d.opponent.wins||0)+' / '+Number(d.opponent.losses||0);
   $('rivalScore').textContent=Number(d.opponent.score||0).toLocaleString();
   drawRemoteBoard('battleYouBoard',d.you);drawRemoteBoard('battleOpponentBoard',d.opponent);
