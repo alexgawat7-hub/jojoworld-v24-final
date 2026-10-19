@@ -176,6 +176,20 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
     scene.add(root);dice.push({root,body,topPlate,sidePlate,index,phase:index*2.1,rolling:false,landed:false,dropHeight:0,verticalVelocity:0,spinX:0,spinY:0,spinZ:0,vx:0,vz:0,target:colors[['red','blue','green'][index]]});
   }
   for(let i=0;i<3;i++)makeDie(i);
+  // [ADDED] Opaque golden shaker covers all dice throughout betting; it lifts only after the banker pulls.
+  const shaker = new THREE.Group();
+  const shakerGold = new THREE.MeshStandardMaterial({color:0xc18a32,metalness:.72,roughness:.23});
+  const shakerHighlight = new THREE.MeshStandardMaterial({color:0xffe2a0,metalness:.78,roughness:.18});
+  const shakerDome = new THREE.Mesh(new THREE.SphereGeometry(1,40,24,0,Math.PI*2,0,Math.PI/2),shakerGold);
+  shakerDome.scale.set(1.92,1.42,1.02); shakerDome.position.y=.03; shakerDome.castShadow=true; shakerDome.receiveShadow=true; shaker.add(shakerDome);
+  const shakerRim = new THREE.Mesh(new THREE.TorusGeometry(1.88,.095,12,48),shakerHighlight);
+  shakerRim.rotation.x=Math.PI/2; shakerRim.position.y=.025; shakerRim.castShadow=true; shaker.add(shakerRim);
+  const shakerTop = new THREE.Mesh(new THREE.CylinderGeometry(.28,.38,.16,32),shakerHighlight);
+  shakerTop.position.set(0,1.38,0); shakerTop.castShadow=true; shaker.add(shakerTop);
+  const shakerKnob = new THREE.Mesh(new THREE.SphereGeometry(.19,24,16),shakerGold);
+  shakerKnob.position.set(0,1.55,0); shakerKnob.castShadow=true; shaker.add(shakerKnob);
+  shaker.position.set(0,-.03,0); scene.add(shaker);
+
   // A banker-operated overhead release arm, cable and weighted brass pull.
   const rig = new THREE.Group();rig.position.set(0,1.1,-.5);scene.add(rig);
   const arm = new THREE.Mesh(new THREE.BoxGeometry(3.7,.13,.15),darkMetal);arm.position.set(0,0,0);rig.add(arm);
@@ -241,6 +255,13 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
     const now=performance.now(),dt=Math.min(.04,(now-lastTime)/1000||.016);lastTime=now;
     syncState(now);
     const activeDrop=stage.classList.contains('dice-drop');
+    // Lift the golden cup after pull, then keep it out of the rolling dice' path.
+    const shakerLift=activeDrop?Math.min(1,Math.max(0,(now-dropStart)/520)):0;
+    const shakerEase=shakerLift*shakerLift*(3-2*shakerLift);
+    shaker.position.y=-.03+shakerEase*2.85;
+    shaker.rotation.z=activeDrop?Math.sin(shakerLift*Math.PI)*.10:0;
+    shaker.visible=!activeDrop || shakerLift<1;
+
     if(activeDrop){
       for(let a=0;a<dice.length;a++)for(let b=a+1;b<dice.length;b++){
         const da=dice[a],db=dice[b];
