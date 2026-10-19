@@ -55,9 +55,17 @@ function renderBets(state){
   const chip=choice.querySelector('.chip-stack');
   if(!chip)continue;
   const actual=(Array.isArray(state.bets)?state.bets:[]).filter(b=>String(b.color||'').toUpperCase()===color);
-  chip.textContent=actual.slice(0,3).map(b=>compactMoney(b.amount)).join(' · ');
-  chip.style.display=actual.length?'grid':'none';
-  chip.title=actual.length?actual.length+' actual bet(s) on '+color:'No bets on '+color;
+  // [FIXED] Render each live player's bet as a separate visible chip on this color.
+  chip.replaceChildren();
+  actual.slice(0,3).forEach(bet=>{
+   const coin=document.createElement('span');
+   coin.className='player-chip';
+   coin.textContent=compactMoney(bet.amount);
+   coin.title=(bet.name||'Player')+' bet '+money(bet.amount)+' on '+color;
+   chip.appendChild(coin);
+  });
+  chip.style.display=actual.length?'flex':'none';
+  chip.title=actual.length?actual.length+' live bet(s) on '+color:'No bets on '+color;
   chip.classList.toggle('chip-triple',actual.length>1);
  }
  const list=$('betsList');list.replaceChildren();
