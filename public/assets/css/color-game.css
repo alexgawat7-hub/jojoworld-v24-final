@@ -342,3 +342,33 @@ body.crazy-color-page{height:100dvh}
   .crazy-app .crazy-color-grid .color-choice small { font-size: 9px; }
   .crazy-app .crazy-bet-panel .place-bet { min-height: 34px; }
 }
+
+
+/* [FIXED] Prevent the lower row of six betting colors from being clipped on short Messenger/mobile viewports. */
+@media (max-width: 480px) {
+  html, body.crazy-color-page { overflow-y: auto !important; }
+  body.crazy-color-page { height: auto !important; min-height: 100dvh; }
+  .crazy-app {
+    height: auto !important;
+    min-height: 100dvh;
+    overflow: visible !important;
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+  }
+  .crazy-app .bet-panel.crazy-bet-panel {
+    height: auto !important;
+    min-height: max-content;
+    overflow: visible !important;
+    flex: 0 0 auto;
+  }
+  .crazy-app .crazy-color-grid {
+    grid-template-rows: repeat(2, 68px) !important;
+    grid-auto-rows: 68px;
+    align-content: start;
+    flex: 0 0 auto;
+  }
+  .crazy-app .crazy-color-grid .color-choice {
+    height: 68px;
+    min-height: 68px;
+    box-sizing: border-box;
+  }
+}
