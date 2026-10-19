@@ -80,9 +80,12 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
   box(1.72,.42,.22,gold,-1.98,.02,.91);
   box(1.72,.42,.22,gold,1.98,.02,.91);
   box(5.82,.42,.22,gold,0,.02,-.91);
-  // [ADDED] Lower catch/roll-out deck directly in front of the tray opening.
+  // [FIXED] The tray and the lower landing floor are separate, visibly stepped surfaces.
+  // Darker felt on the lower floor makes the drop from the raised tray edge easy to read.
+  const landingFelt=mat(0x043d2b,.05,.98,{map:feltTexture});
   box(3.35,.12,1.52,darkMetal,0,-.39,1.67);
-  box(3.19,.045,1.38,felt,0,-.31,1.67);
+  box(3.19,.045,1.38,landingFelt,0,-.31,1.67);
+  // Raised gold edge outlines the lower landing floor without closing the tray's front exit.
   box(3.35,.055,.08,brightGold,0,-.29,2.39);
   box(.07,.06,1.48,brightGold,-1.66,-.29,1.67);
   box(.07,.06,1.48,brightGold,1.66,-.29,1.67);
