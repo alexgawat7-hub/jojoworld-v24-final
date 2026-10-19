@@ -54,7 +54,7 @@ initReelPixi();
 function setBalance(n){balance=Number(n)||0;$('balance').textContent=money(balance)+' coins'}
 function setJackpot(n){$('jackpot').textContent=money(n)+' coins'}
 async function loadAccount({quiet=false}={}){
- if(accountLoading)return;accountLoading=true;
+ if(leavingPage||accountLoading)return;accountLoading=true;
  if(!token){accountConnected=false;$('result').innerHTML='OPEN FROM MESSENGER<small>Type SPIN in JojoWorld Messenger and open the Reel Spin button.</small>';$('spin').disabled=true;accountLoading=false;return}
  $('spin').disabled=true;
  let lastError=null;
@@ -62,12 +62,13 @@ async function loadAccount({quiet=false}={}){
   try{
    const r=await fetch('/api/scatter-spin/session?token='+encodeURIComponent(token),{cache:'no-store'});
    const d=await r.json();
+   if(leavingPage)return;
    if(!r.ok||!d.ok){const err=Error(d.error||'Account session unavailable');err.status=r.status;throw err}
    setBalance(d.balance);setJackpot(d.jackpot);accountConnected=true;
    document.querySelector('.status').innerHTML='<i class="dot"></i>LIVE ACCOUNT';
    if(!quiet)$('result').innerHTML='READY TO PLAY<small>Account connected. Each spin costs 10 coins.</small>';
    $('spin').disabled=false;accountLoading=false;return true;
-  }catch(e){lastError=e;if(e.status===401||e.status===404||e.status===400)break;if(attempt<2)await new Promise(resolve=>setTimeout(resolve,900*(attempt+1)));}
+  }catch(e){if(leavingPage)return;lastError=e;if(e.status===401||e.status===404||e.status===400)break;if(attempt<2)await new Promise(resolve=>setTimeout(resolve,900*(attempt+1)));if(leavingPage)return;}
  }
  accountConnected=false;
  const message=lastError?.message||'Connection unavailable';
@@ -96,4 +97,5 @@ window.addEventListener('pagehide',()=>{
  leavingPage=true;
  if(reelSpinTicker){clearInterval(reelSpinTicker);reelSpinTicker=null}
  if(reelPixi){reelPixi.destroy(true,{children:true});reelPixi=null;reelVisuals.clear()}
-});
+ try{if(audioCtx&&audioCtx.state!=='closed')audioCtx.close()}catch(_){}
+},{once:true});
