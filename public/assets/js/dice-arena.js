@@ -30,7 +30,7 @@ function renderPixiDice(){
  });
 }
 drawDie('die1',3);drawDie('die2',5);initDicePixi();
-let bet=100,pred='ODD',rolling=false,accountConnected=false,accountLoading=false,resultUnconfirmed=false;
+let bet=100,pred='ODD',rolling=false,accountConnected=false,accountLoading=false,resultUnconfirmed=false,statsPollTimer=null,leavingPage=false;
 const soundKey='jojoworldArcadeSound';
 let soundOn=false,audioCtx=null,rollTick=0;
 function playSound(kind='tap'){
@@ -175,5 +175,9 @@ updateBet();
 
 // [FIXED] Release the PixiJS renderer/WebGL resources when leaving Dice Arena.
 window.addEventListener('pagehide',()=>{
+ leavingPage=true;
+ if(statsPollTimer){clearInterval(statsPollTimer);statsPollTimer=null;}
+ if(flicker){clearInterval(flicker);flicker=null;}
  if(dicePixi){dicePixi.destroy(true,{children:true});dicePixi=null;diceLayer=null;diceGraphics=[]}
-});
+ try{if(audioCtx&&audioCtx.state!=='closed')audioCtx.close();}catch(_){}
+},{once:true});
