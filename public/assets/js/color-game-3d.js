@@ -257,7 +257,7 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
     // [FIXED] Dice stay concealed beneath the cup during betting, grow during the drop, and remain full-size after the result is revealed.
     const showingResult=stage.classList.contains('revealed')&&!activeDrop;
     const diceReveal=activeDrop?Math.min(1,Math.max(0,(now-dropStart)/560)):0;
-    const diceScale=activeDrop?.035+.965*(diceReveal*diceReveal*(3-2*diceReveal)):(showingResult?1:.035);
+    const diceScale=activeDrop ? (.035+.965*(diceReveal*diceReveal*(3-2*diceReveal))) : (showingResult ? 1 : .035);
     dice.forEach(d=>d.root.scale.setScalar(diceScale));
 
     // Lift the golden cup after pull, then keep it out of the rolling dice' path.
