@@ -196,14 +196,39 @@ $('soundToggle').addEventListener('click',()=>{
  if(soundEnabled){const a=audio();if(a?.state==='suspended')a.resume().catch(()=>{});primePlaceBetVoice();tone(660,.12,.09,'sine');tone(990,.14,.065,'sine',.1);if('speechSynthesis' in window&&typeof SpeechSynthesisUtterance!=='undefined'){try{const synth=window.speechSynthesis;synth.cancel();const unlock=new SpeechSynthesisUtterance(' ');unlock.volume=0;unlock.rate=1;synth.speak(unlock);}catch(_){}}if(roundState?.status==='betting'){speakPlaceYourBet(roundState.roundNumber);const seconds=Math.ceil(Math.max(0,Number(roundState.timeLeftMs)||0)/1000);if(seconds<=10&&seconds>0){lastCountdownSecond=String(roundState.roundNumber)+':'+seconds;playCountdown(seconds);}}}
 });
 const pullCord=$('pullCord'),cordRig=$('cordRig'),cordHint=$('cordHint');
+// [FIXED] Keep the visible fallback dice cycling colors even when the 3D module cannot load.
+let dropColorTimer=null;
+function startDropColorCycle(){
+ if(dropColorTimer)clearInterval(dropColorTimer);
+ const palette=[
+  'linear-gradient(145deg,#ff7777,#d7193f 58%,#65102a)',
+  'linear-gradient(145deg,#b4ffda,#08a66c 58%,#075b4b)',
+  'linear-gradient(145deg,#fff6a3,#f5b900 58%,#9b5a0b)',
+  'linear-gradient(145deg,#ffd1f1,#e936a9 58%,#8c176a)',
+  'linear-gradient(145deg,#ffffff,#f4f5f6 58%,#aeb8c0)',
+  'linear-gradient(145deg,#a3edff,#1679ee 58%,#123c91)'
+ ];
+ const dice=[...document.querySelectorAll('.color-die')];
+ let step=0;
+ const paint=()=>{
+  dice.forEach((die,i)=>{die.style.background=palette[(step+i*2)%palette.length];});
+  step=(step+1)%palette.length;
+ };
+ paint();
+ dropColorTimer=setInterval(paint,95);
+}
+function stopDropColorCycle(){
+ if(dropColorTimer){clearInterval(dropColorTimer);dropColorTimer=null;}
+ document.querySelectorAll('.color-die').forEach(die=>{die.style.removeProperty('background');});
+}
 function beginCordPull(){
  if(!roundState||roundState.status!=='complete'||!Array.isArray(roundState.result)||revealedRoundNumber===Number(roundState.roundNumber)||pullInProgress)return false;
  if(autoPullTimer){clearTimeout(autoPullTimer);autoPullTimer=null;}
  pullInProgress=true;pullCord.classList.add('pulled');pullCord.classList.remove('ready');cordRig.classList.add('pulled');cordHint.textContent='DICE DROPPING…';
- const stage=$('colorStage');stage.classList.remove('revealed','rolling');stage.classList.add('dice-drop');renderDice(['WHITE','WHITE','WHITE'],true,false);
+ const stage=$('colorStage');stage.classList.remove('revealed','rolling');stage.classList.add('dice-drop');renderDice(['WHITE','WHITE','WHITE'],true,false);startDropColorCycle();
  playCordPull();playRoll();
  if(pullTimer)clearTimeout(pullTimer);
- pullTimer=setTimeout(()=>{pullInProgress=false;revealedRoundNumber=Number(pendingResultState?.roundNumber||roundState.roundNumber);pullCord.classList.remove('pulled');cordRig.classList.remove('pulled');stage.classList.remove('dice-drop');if(pendingResultState)renderState(pendingResultState);},2400);
+ pullTimer=setTimeout(()=>{stopDropColorCycle();pullInProgress=false;revealedRoundNumber=Number(pendingResultState?.roundNumber||roundState.roundNumber);pullCord.classList.remove('pulled');cordRig.classList.remove('pulled');stage.classList.remove('dice-drop');if(pendingResultState)renderState(pendingResultState);},2400);
  return true;
 }
 
