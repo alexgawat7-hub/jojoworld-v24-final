@@ -170,7 +170,7 @@ function beginCordPull(){
  if(!roundState||roundState.status!=='complete'||!Array.isArray(roundState.result)||revealedRoundNumber===Number(roundState.roundNumber)||pullInProgress)return false;
  if(autoPullTimer){clearTimeout(autoPullTimer);autoPullTimer=null;}
  pullInProgress=true;pullCord.classList.add('pulled');pullCord.classList.remove('ready');cordRig.classList.add('pulled');cordHint.textContent='DICE DROPPING…';
- const stage=$('colorStage');stage.classList.remove('revealed','rolling');stage.classList.add('dice-drop');renderDice(['GREEN','RED','GREEN'],true);
+ const stage=$('colorStage');stage.classList.remove('revealed','rolling');stage.classList.add('dice-drop');renderDice(roundState.result,true);
  playCordPull();playRoll();
  if(pullTimer)clearTimeout(pullTimer);
  pullTimer=setTimeout(()=>{pullInProgress=false;revealedRoundNumber=Number(pendingResultState?.roundNumber||roundState.roundNumber);pullCord.classList.remove('pulled');cordRig.classList.remove('pulled');stage.classList.remove('dice-drop');if(pendingResultState)renderState(pendingResultState);},2400);
@@ -208,7 +208,7 @@ function renderState(state){
  if(state.status==='complete'&&state.result){
   pendingResultState=state;
   if(revealedRoundNumber!==Number(state.roundNumber)){
-   if(!pullInProgress){renderDice(['GREEN','RED','GREEN'],true);$('colorStage').classList.remove('dice-drop');pullCord.classList.add('ready');cordHint.textContent='BETTING CLOSED · BANKER PULLING THE CORD';setMessage('🎰 BANKER IS PULLING THE CORD','The banker triggers the mechanism. The three dice will drop before the server-confirmed result is revealed.');if(!autoPullTimer)autoPullTimer=setTimeout(()=>{autoPullTimer=null;beginCordPull();},850);}
+   if(!pullInProgress){renderDice(state.result,true);$('colorStage').classList.remove('dice-drop');pullCord.classList.add('ready');cordHint.textContent='BETTING CLOSED · BANKER PULLING THE CORD';setMessage('🎰 BANKER IS PULLING THE CORD','The banker triggers the mechanism. The three dice will drop before the server-confirmed result is revealed.');if(!autoPullTimer)autoPullTimer=setTimeout(()=>{autoPullTimer=null;beginCordPull();},850);}
   }else{
    const key=state.roundNumber+':'+state.result.join(',');const counts={};state.result.forEach(c=>counts[c]=(counts[c]||0)+1);
    const ownBets=Array.isArray(state.myBets)?state.myBets:(state.myBet?[state.myBet]:[]);
