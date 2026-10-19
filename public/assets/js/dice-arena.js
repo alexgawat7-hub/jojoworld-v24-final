@@ -1,7 +1,35 @@
 const token=new URLSearchParams(location.search).get('token')||'';
 const faces={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
-function drawDie(id,n){const el=document.getElementById(id);el.innerHTML='';for(let i=0;i<9;i++){const p=document.createElement('i');p.className='pip'+(faces[n].includes(i)?' on':'');el.appendChild(p)}}
-drawDie('die1',3);drawDie('die2',5);
+const diceFaces=[3,5];let dicePixi=null,diceLayer=null,diceGraphics=[];
+function drawDie(id,n){const el=document.getElementById(id);el.innerHTML='';for(let i=0;i<9;i++){const p=document.createElement('i');p.className='pip'+(faces[n].includes(i)?' on':'');el.appendChild(p)}const index=id==='die1'?0:1;diceFaces[index]=Math.max(1,Math.min(6,Number(n)||1))}
+function initDicePixi(){
+ const host=document.getElementById('dicearea');if(!host||!window.PIXI)return;
+ try{
+  dicePixi=new PIXI.Application({resizeTo:host,backgroundAlpha:0,antialias:true,autoDensity:true,resolution:Math.min(window.devicePixelRatio||1,2)});
+  dicePixi.view.className='dice-arena-pixi';dicePixi.view.setAttribute('aria-hidden','true');host.prepend(dicePixi.view);
+  diceLayer=new PIXI.Container();dicePixi.stage.addChild(diceLayer);
+  diceGraphics=[new PIXI.Graphics(),new PIXI.Graphics()];diceGraphics.forEach(g=>diceLayer.addChild(g));
+  host.classList.add('pixi-ready');
+  dicePixi.ticker.add(()=>renderPixiDice());
+  renderPixiDice();
+ }catch(error){console.warn('[DICE ARENA PIXI] initialization failed',error);if(dicePixi){dicePixi.destroy(true,{children:true});dicePixi=null}host.classList.remove('pixi-ready')}
+}
+function renderPixiDice(){
+ if(!dicePixi||!diceGraphics.length)return;
+ const host=document.getElementById('dicearea'),w=dicePixi.screen.width,h=dicePixi.screen.height,rolling=host.classList.contains('rolling'),t=dicePixi.ticker.lastTime||0;
+ const size=Math.min(w*.25,h*.7,82),gap=Math.min(w*.12,36),cx=w/2,cy=h*.48;
+ diceGraphics.forEach((g,index)=>{
+  g.clear();const spin=rolling?Math.sin(t*.018+index*1.8)*.55:0,bounce=rolling?Math.abs(Math.sin(t*.025+index*1.5))*Math.min(18,h*.12):0;
+  g.position.set(cx+(index===0?-1:1)*(size/2+gap/2),cy-bounce);g.rotation=(index===0?-.12:.14)+spin;
+  g.beginFill(0x090d18,.4);g.drawRoundedRect(-size*.52+4,size*.52-3,size*1.04,size*.16,8);g.endFill();
+  g.beginFill(0xffffff);g.lineStyle(2,0xffe4a0,.95);g.drawRoundedRect(-size/2,-size/2,size,size,size*.16);g.endFill();
+  g.lineStyle(1,0xb7b5b5,.8);g.beginFill(0xf0eee7);g.drawRoundedRect(-size*.45,-size*.45,size*.9,size*.9,size*.13);g.endFill();
+  const pipPositions=[[0,0],[-.25,-.25],[.25,.25],[-.25,.25],[.25,-.25],[0,-.25],[0,.25],[-.25,0],[.25,0]];
+  const map={1:[0],2:[1,2],3:[1,0,2],4:[1,4,6,2],5:[1,4,0,6,2],6:[1,4,6,2,7,8]};
+  (map[diceFaces[index]]||map[1]).forEach(p=>{const pos=pipPositions[p];g.beginFill(0x25212b);g.drawCircle(pos[0]*size,pos[1]*size,size*.055);g.endFill()});
+ });
+}
+drawDie('die1',3);drawDie('die2',5);initDicePixi();
 let bet=100,pred='ODD',rolling=false,accountConnected=false,accountLoading=false,resultUnconfirmed=false;
 const soundKey='jojoworldArcadeSound';
 let soundOn=false,audioCtx=null,rollTick=0;
