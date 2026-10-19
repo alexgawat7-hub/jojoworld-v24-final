@@ -187,6 +187,14 @@ async function leaveBattle(){try{await api('/api/tetris/battle/leave'+q,{method:
 async function loadBattleRanks(){if(!token)return;try{const term=$('search').value.trim();const d=await api('/api/tetris/battle/leaderboard'+q+'&search='+encodeURIComponent(term));$('battleRanks').replaceChildren();if(!d.players.length){$('battleRanks').textContent='No completed battles yet.';return}d.players.slice(0,12).forEach(function(p){const row=document.createElement('div');row.className='row';const rank=document.createElement('div');rank.className='rank';rank.textContent='#'+p.rank;const name=document.createElement('div');name.textContent=p.name;const stat=document.createElement('strong');stat.textContent=Number(p.wins||0)+'W / '+Number(p.losses||0)+'L';const detail=document.createElement('div');detail.className='muted';detail.textContent='Best '+Number(p.highestScore||0).toLocaleString()+' · '+Number(p.coinsWon||0).toLocaleString()+' coins won';row.append(rank,name,stat,detail);$('battleRanks').appendChild(row)})}catch(e){$('battleRanks').textContent=e.message}}
 $('findRival').addEventListener('click',findRival);$('leaveBattle').addEventListener('click',leaveBattle);$('battleRefresh').addEventListener('click',refreshBattle);document.querySelectorAll('[data-action]').forEach(function(b){b.addEventListener('click',function(){battleAction(b.dataset.action)})});
 grid=emptyGrid();piece=nextPiece();drawNext();draw();drawRemote('youBoard',null);drawRemote('rivalBoard',null);loadSession();loadLeaderboard();
+window.addEventListener('pagehide',function(){
+ try{cancelAnimationFrame(raf)}catch(e){}
+ try{if(battlePoll){clearInterval(battlePoll);battlePoll=0}}catch(e){}
+ try{if(searchTimer){clearTimeout(searchTimer);searchTimer=0}}catch(e){}
+ try{[pixiApp,nextApp,remoteBoards.youBoard&&remoteBoards.youBoard.app,remoteBoards.rivalBoard&&remoteBoards.rivalBoard.app].forEach(function(app){if(app&&!app.destroyed)app.destroy(true,{children:true,texture:true,baseTexture:true})})}catch(e){console.warn('[TETRIS PIXI] cleanup failed',e)}
+ try{if(audio&&audio.state!=='closed')audio.close()}catch(e){}
+},{once:true});
+
 })();
 </script>
 </body>
