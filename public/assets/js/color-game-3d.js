@@ -256,11 +256,12 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
     syncState(now);
     const activeDrop=stage.classList.contains('dice-drop');
     // Lift the golden cup after pull, then keep it out of the rolling dice' path.
-    const shakerLift=activeDrop?Math.min(1,Math.max(0,(now-dropStart)/520)):0;
+    const keepShakerRaised=stage.classList.contains('revealed')&&!stage.classList.contains('betting-open');
+    const shakerLift=activeDrop?Math.min(1,Math.max(0,(now-dropStart)/520)):(keepShakerRaised?1:0);
     const shakerEase=shakerLift*shakerLift*(3-2*shakerLift);
     shaker.position.y=-.03+shakerEase*2.85;
     shaker.rotation.z=activeDrop?Math.sin(shakerLift*Math.PI)*.10:0;
-    shaker.visible=!activeDrop || shakerLift<1;
+    shaker.visible=shakerLift<1;
 
     if(activeDrop){
       for(let a=0;a<dice.length;a++)for(let b=a+1;b<dice.length;b++){
