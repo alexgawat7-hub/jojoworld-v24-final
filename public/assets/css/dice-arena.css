@@ -147,6 +147,7 @@ input, textarea, [contenteditable="true"] {
 }
 
 /* [UPGRADED] PixiJS draws the dice faces and rolling motion; DOM dice remain as a fallback. */
-.dicearea{isolation:isolate}
+/* [FIXED] Anchor the PixiJS dice canvas to the dice table instead of the page. */
+.dicearea{position:relative;isolation:isolate;overflow:hidden}
 .dice-arena-pixi{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
 .dicearea.pixi-ready>.die{opacity:0;pointer-events:none}
