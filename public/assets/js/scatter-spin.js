@@ -1,6 +1,7 @@
 const token=new URLSearchParams(location.search).get('token')||'';
 const $=id=>document.getElementById(id), money=n=>Number(n||0).toLocaleString('en-US');
 let spinning=false,balance=0,accountConnected=false,accountLoading=false;
+let reelSpinTicker=null,leavingPage=false;
 const soundKey='jojoworldArcadeSound';
 let soundOn=false,audioCtx=null,tickCount=0;
 function playSound(kind='tap'){
@@ -75,15 +76,15 @@ async function loadAccount({quiet=false}={}){
  $('spin').disabled=true;accountLoading=false;return false;
 }
 $('spin').addEventListener('click',async()=>{
- if(spinning||!token)return;playSound('start');spinning=true;$('spin').disabled=true;$('reels').classList.add('spinning');$('result').classList.remove('reveal');$('result').innerHTML='SPINNING...<small>Waiting for the server-confirmed result</small>';
- const els=[$('r1'),$('r2'),$('r3')];let ticker=setInterval(()=>{els.forEach(e=>setReelSymbol(e.id,symbols[Math.floor(Math.random()*symbols.length)]));if(++tickCount%2===0)playSound('tick')},100);
+ if(spinning||leavingPage||!token)return;playSound('start');spinning=true;$('spin').disabled=true;$('reels').classList.add('spinning');$('result').classList.remove('reveal');$('result').innerHTML='SPINNING...<small>Waiting for the server-confirmed result</small>';
+ const els=[$('r1'),$('r2'),$('r3')];if(reelSpinTicker)clearInterval(reelSpinTicker);reelSpinTicker=setInterval(()=>{if(leavingPage)return;els.forEach(e=>setReelSymbol(e.id,symbols[Math.floor(Math.random()*symbols.length)]));if(++tickCount%2===0)playSound('tick')},100);
  try{
   const req=fetch('/api/scatter-spin/spin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token})});
-  const response=await req;const d=await response.json();clearInterval(ticker);$('reels').classList.remove('spinning');
+  const response=await req;const d=await response.json();if(reelSpinTicker){clearInterval(reelSpinTicker);reelSpinTicker=null}$('reels').classList.remove('spinning');
   if(!response.ok||!d.ok){playSound('lose');if(d.balance!==undefined)setBalance(d.balance);$('result').classList.remove('win-result','jackpot-result');$('result').classList.add('loss-result');$('result').innerHTML='SPIN NOT COMPLETED<small>'+(d.error||'Please try again.')+'</small>';return}
   playSound(d.jackpotWin?'jackpot':d.win>0?'win':'lose');d.symbols.forEach((v,i)=>setReelSymbol(els[i].id,v));els.forEach(e=>{e.classList.remove('win');if(d.win>0){void e.offsetWidth;e.classList.add('win')}});setBalance(d.balance);setJackpot(d.jackpot);
   $('result').classList.remove('win-result','jackpot-result','loss-result');$('result').classList.add(d.jackpotWin?'jackpot-result':d.win>0?'win-result':'loss-result');$('result').innerHTML=(d.jackpotWin?'🏆 GRAND JACKPOT!':d.win>0?'✨ '+d.message:'💣 NO WIN — SPIN AGAIN!')+'<small>'+(d.jackpotWin?'You won '+money(d.win)+' coins!':d.win>0?'+'+money(d.win)+' coins • '+d.message:'No prize on this spin. Better luck next time! Your result is confirmed.')+'</small>';$('result').classList.add('reveal');
- }catch(e){playSound('lose');clearInterval(ticker);$('reels').classList.remove('spinning');$('result').innerHTML='SPIN RESULT UNCONFIRMED<small>The server did not return a result, so we can’t safely call this a win or loss. Refresh your balance before spinning again.</small>';document.querySelector('.status').innerHTML='<i class="dot"></i>RECONNECT NEEDED';}
+ }catch(e){playSound('lose');if(reelSpinTicker){clearInterval(reelSpinTicker);reelSpinTicker=null}$('reels').classList.remove('spinning');$('result').innerHTML='SPIN RESULT UNCONFIRMED<small>The server did not return a result, so we can’t safely call this a win or loss. Refresh your balance before spinning again.</small>';document.querySelector('.status').innerHTML='<i class="dot"></i>RECONNECT NEEDED';}
  finally{spinning=false;$('spin').disabled=!(token&&accountConnected)}
 });
 $('refresh').addEventListener('click',e=>{e.preventDefault();loadAccount()});
@@ -92,5 +93,7 @@ loadAccount();
 
 // [FIXED] Release the PixiJS renderer/WebGL resources when leaving Reel Spin.
 window.addEventListener('pagehide',()=>{
+ leavingPage=true;
+ if(reelSpinTicker){clearInterval(reelSpinTicker);reelSpinTicker=null}
  if(reelPixi){reelPixi.destroy(true,{children:true});reelPixi=null;reelVisuals.clear()}
 });
