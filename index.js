@@ -883,12 +883,11 @@ function tetrisApplyAction(board, action) {
   if(board.gameOver||!board.piece)return;
   const p=board.piece;
   if(action==='left'||action==='right'){const dx=action==='left'?-1:1;if(!tetrisCollide(board,dx,0))p.x+=dx;}
-  else if(action==='down'){if(!tetrisCollide(board,0,1)){p.y++;board.score+=1;}else tetrisLock(board);}
+  else if(action==='down'){if(!tetrisCollide(board,0,1)){p.y++;board.score+=1;board.lastDropAt=Date.now();}else tetrisLock(board);}
   else if(action==='rotate'){
     const shape=p.shape[0].map((_,i)=>p.shape.map(row=>row[i]).reverse());
     for(const kick of [0,-1,1,-2,2])if(!tetrisCollide(board,kick,0,shape)){p.x+=kick;p.shape=shape;break;}
   } else if(action==='drop'){while(!tetrisCollide(board,0,1)){p.y++;board.score+=2;}tetrisLock(board);}
-  board.lastDropAt=Date.now();
 }
 function tetrisAdvanceGravity(board) {
   if(board.gameOver||!board.piece)return;
