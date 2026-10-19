@@ -1005,8 +1005,8 @@ app.get('/api/tetris/battle/state',async(req,res)=>{
     return await TetrisBattleStatsModel.countDocuments({$or:[{wins:{$gt:Number(stat.wins||0)}},{wins:Number(stat.wins||0),highestScore:{$gt:Number(stat.highestScore||0)}},{wins:Number(stat.wins||0),highestScore:Number(stat.highestScore||0),losses:{$lt:Number(stat.losses||0)}}]})+1;
    }
    const [myRank,rivalRank]=await Promise.all([battleRankFor(myStats),battleRankFor(rivalStats)]);
-   Object.assign(publicState.you,{rank:myRank,wins:Number(myStats?.wins)||0,losses:Number(myStats?.losses)||0,highestScore:Number(myStats?.highestScore)||0});
-   Object.assign(publicState.opponent,{rank:rivalRank,wins:Number(rivalStats?.wins)||0,losses:Number(rivalStats?.losses)||0,highestScore:Number(rivalStats?.highestScore)||0});
+   Object.assign(publicState.you,{rank:myRank,wins:Number(myStats?.wins)||0,losses:Number(myStats?.losses)||0,highestScore:Number(myStats?.highestScore)||0,coinsWon:Number(myStats?.coinsWon)||0});
+   Object.assign(publicState.opponent,{rank:rivalRank,wins:Number(rivalStats?.wins)||0,losses:Number(rivalStats?.losses)||0,highestScore:Number(rivalStats?.highestScore)||0,coinsWon:Number(rivalStats?.coinsWon)||0});
   }
   res.set('Cache-Control','no-store');return res.json(publicState);
   });
