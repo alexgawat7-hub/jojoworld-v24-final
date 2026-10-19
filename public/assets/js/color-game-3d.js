@@ -198,25 +198,30 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
   const pull = new THREE.Mesh(new THREE.CylinderGeometry(.15,.18,.28,20),gold);pull.position.set(0,-1.27,.16);rig.add(pull);
   const redButton = new THREE.Mesh(new THREE.SphereGeometry(.09,16,12),mat(0xff424f,.15,.2,{emissive:0x991020,emissiveIntensity:1}));redButton.position.set(.22,-1.27,.18);rig.add(redButton);
 
-  let lastColors='', wasDropping=false, rollingUntil=0, dropStart=0, lastTime=0;
+  let lastColors='', wasDropping=false, rollingUntil=0, dropStart=0, lastTime=0, lockedResultColors=null;
   const clock=new THREE.Clock();
   function syncState(now) {
-    const names=dice.map((d,i)=>{
+    const dropping=stage.classList.contains('dice-drop');
+    const bettingOpen=stage.classList.contains('betting-open');
+    const readDomColors=()=>dice.map((d,i)=>{
       const el=document.getElementById('die'+i);
       return el ? [...el.classList].find(c=>colors[c]!==undefined) || 'red' : 'red';
     });
+    // [FIXED] Lock the server result colors at the start of the banker pull so later polling/placeholder dice cannot recolor the 3D dice.
+    if(bettingOpen) lockedResultColors=null;
+    if(dropping&&!wasDropping) lockedResultColors=readDomColors();
+    const names=(lockedResultColors&&(dropping||(!bettingOpen&&stage.classList.contains('revealed'))))?lockedResultColors:readDomColors();
     const signature=names.join(',');
     if(signature!==lastColors) {
       names.forEach((name,i)=>{
         dice[i].target=colors[name]??colors.red;
         dice[i].body.material.color.setHex(dice[i].target);
         dice[i].topPlate.material.color.setHex(dice[i].target);
-        // [FIXED] Keep every visible face the server-confirmed color; no leftover placeholder side colors.
+        // [FIXED] Match the body and all visible enamel faces to the exact server-confirmed result color.
         dice[i].sidePlate.material.color.setHex(dice[i].target);
       });
       lastColors=signature;
     }
-    const dropping=stage.classList.contains('dice-drop');
     const rolling=stage.classList.contains('rolling') || dropping;
     if(dropping&&!wasDropping){
       dropStart=now;rollingUntil=now+1.05;
