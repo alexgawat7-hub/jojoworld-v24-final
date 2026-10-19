@@ -30,7 +30,7 @@ function renderPixiDice(){
  });
 }
 drawDie('die1',3);drawDie('die2',5);initDicePixi();
-let bet=100,pred='ODD',rolling=false,accountConnected=false,accountLoading=false,resultUnconfirmed=false,statsPollTimer=null,leavingPage=false;
+let bet=100,pred='ODD',rolling=false,accountConnected=false,accountLoading=false,resultUnconfirmed=false,statsPollTimer=null,flicker=null,leavingPage=false;
 const soundKey='jojoworldArcadeSound';
 let soundOn=false,audioCtx=null,rollTick=0;
 function playSound(kind='tap'){
@@ -121,7 +121,7 @@ document.getElementById('roll').addEventListener('click',async()=>{
   playSound('start');
   rolling=true;
   const btn=document.getElementById('roll'),area=document.getElementById('dicearea'),res=document.getElementById('result');
-  let flicker=null;
+  if(flicker)clearInterval(flicker);flicker=null;
   btn.disabled=true;area.classList.add('rolling');res.innerHTML='ROLLING...<small>Server is rolling your dice</small>';
   try{
     flicker=setInterval(()=>{drawDie('die1',1+Math.floor(Math.random()*6));drawDie('die2',1+Math.floor(Math.random()*6));if(++rollTick%2===0)playSound('tick')},120);
