@@ -424,3 +424,14 @@ body.crazy-color-page{height:100dvh}
   .crazy-app .quick-bets button { min-height:30px;padding:4px 2px; }
   .crazy-app { padding-bottom:100px !important; }
 }
+
+
+/* [FIXED] Keep the 3D golden shaker visible; use a small readable status plaque instead of masking the whole 3D stage. */
+.crazy-app .dice-stage.betting-open:not(.dice-drop)::after {
+  left:8%;right:8%;top:auto;bottom:9px;height:34px;
+  min-height:34px;padding:5px 8px;
+  border-width:2px;border-radius:8px;
+  background:linear-gradient(180deg,#3b2314ed,#1a100bed);
+  box-shadow:inset 0 1px 0 #fff4,0 3px 7px #0009;
+  font-size:clamp(10px,2.8vw,14px);
+}
