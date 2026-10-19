@@ -353,13 +353,16 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
         // [FIXED] Keep idle dice centered beneath the golden shaker; when revealed, place all three full-size dice clearly on the tray.
         const showingResult=stage.classList.contains('revealed')&&!stage.classList.contains('dice-drop');
         if(showingResult){
-          d.root.position.set([-1.45,0,1.45][i],.30,0);
+          // [FIXED] Gently bounce the previous confirmed result in place during the next betting round.
+          const bettingBounce=stage.classList.contains('betting-open');
+          d.root.position.set([-1.45,0,1.45][i],.30+(bettingBounce?Math.abs(Math.sin(now*.0065+i*.9))*.16:0),0);
         }else{
           d.root.position.set([-.48,0,.48][i],.30,-.45);
         }
-        d.root.rotation.x+=(showingResult?0:.06-d.root.rotation.x)*Math.min(1,dt*4);
+        const bettingBounce=showingResult&&stage.classList.contains('betting-open');
+        d.root.rotation.x+=(bettingBounce?Math.sin(now*.004+i*.7)*.09:showingResult?0:.06-d.root.rotation.x)*Math.min(1,dt*4);
         d.root.rotation.z+=(0-d.root.rotation.z)*Math.min(1,dt*4);
-        d.root.rotation.y+=((showingResult?0:.15+i*.28)-d.root.rotation.y)*Math.min(1,dt*4);
+        d.root.rotation.y+=((bettingBounce?Math.sin(now*.003+i*.8)*.10:showingResult?0:.15+i*.28)-d.root.rotation.y)*Math.min(1,dt*4);
       }
     });
     rig.position.y=rig.userData.pulled? .83:1.1;
