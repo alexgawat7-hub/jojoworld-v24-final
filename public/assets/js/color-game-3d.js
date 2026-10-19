@@ -261,7 +261,7 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
     const shakerEase=shakerLift*shakerLift*(3-2*shakerLift);
     shaker.position.y=-.03+shakerEase*2.85;
     shaker.rotation.z=activeDrop?Math.sin(shakerLift*Math.PI)*.10:0;
-    shaker.visible=shakerLift<1;
+    shaker.visible=true;
 
     if(activeDrop){
       for(let a=0;a<dice.length;a++)for(let b=a+1;b<dice.length;b++){
