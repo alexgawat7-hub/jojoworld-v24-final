@@ -304,7 +304,7 @@ async function loadState(showErrors=false){
   if(!response.ok||!data.ok)throw new Error(data.error||'Could not connect');
   if(leavingPage)return;
   renderState(data);setNotice('● LIVE CONNECTED');
- }catch(error){setNotice('RECONNECT NEEDED');if(showErrors)setMessage('LIVE CONNECTION LOST',String(error.message||'Please reopen Game Lobby from Messenger.'));}
+ }catch(error){if(!leavingPage){setNotice('RECONNECT NEEDED');if(showErrors)setMessage('LIVE CONNECTION LOST',String(error.message||'Please reopen Game Lobby from Messenger.'));}}
  finally{loading=false;}
 }
 $('placeBet').addEventListener('click',async()=>{
@@ -316,10 +316,11 @@ $('placeBet').addEventListener('click',async()=>{
  try{
   const response=await fetch('/api/color-game/bet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,color:selectedColor,bet:amount})});
   const data=await response.json();
+  if(leavingPage)return;
   if(!response.ok||!data.ok)throw new Error(data.error||'Bet not confirmed');
   renderState(data);setMessage('BET CONFIRMED · '+selectedColor,money(amount)+' coins locked for round #'+data.roundNumber+'.');
- }catch(error){setMessage('BET NOT CONFIRMED',String(error.message||'Refresh and check your balance before trying again.'));await loadState();}
- finally{working=false;renderControls();}
+ }catch(error){if(!leavingPage){setMessage('BET NOT CONFIRMED',String(error.message||'Refresh and check your balance before trying again.'));await loadState();}}
+ finally{if(!leavingPage){working=false;renderControls();}}
 });
 if(!token){setNotice('OPEN FROM MESSENGER');$('balance').textContent='—';setMessage('SECURE SESSION REQUIRED','Open Game Lobby from JojoWorld Messenger to play with your real coin balance.');$('placeBet').disabled=true;}
 else{loadState(true);statePollTimer=setInterval(()=>loadState(false),1000);}
