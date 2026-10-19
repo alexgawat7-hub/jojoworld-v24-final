@@ -21,12 +21,13 @@ function battleBurst(kind='impact'){
  for(let i=0;i<22;i++){const a=Math.random()*Math.PI*2,s=1.5+Math.random()*4;battleParticles.push({x:cx,y:cy,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.45+Math.random()*.35,max:.8,color,size:1.5+Math.random()*3})}
 }
 function drawBattleFx(delta){
- if(!battleFx||!battlePixi)return;
+ if(pageLeaving||!battleFx||!battlePixi)return;
  const g=battleFx;g.clear();const w=battlePixi.screen.width,h=battlePixi.screen.height,t=battlePixi.ticker.lastTime||0;
  g.lineStyle(1,0x78fff0,.09);g.drawCircle(w*.27,h*.48,22+Math.sin(t*.006)*3);g.lineStyle(1,0xff9bdd,.09);g.drawCircle(w*.73,h*.48,22+Math.cos(t*.006)*3);
  const dt=Math.min(.05,(delta||1)/60);
  battleParticles=battleParticles.filter(p=>p.life>0);
  for(const p of battleParticles){p.x+=p.vx*dt*60;p.y+=p.vy*dt*60;p.life-=dt;g.beginFill(p.color,Math.max(0,p.life/p.max));g.drawCircle(p.x,p.y,p.size*Math.max(.2,p.life/p.max));g.endFill()}
+ if(battleParticles.length===0&&mode!=='active'&&mode!=='racing')g.clear();
 }
 initBattlePixi();
 const battleSoundKey='jojoworldBattleSound';
