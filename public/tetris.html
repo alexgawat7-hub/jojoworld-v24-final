@@ -1,199 +1,172 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#090b1b"><title>JojoWorld • Tetris</title><style>
-:root{color-scheme:dark;--gold:#ffe39b;--muted:#aab6d3;--panel:#121a31;--line:#354267}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -10%,#473078,#11162c 48%,#070a15 90%);color:#f7f8ff;font-family:Inter,system-ui,sans-serif}.app{max-width:900px;margin:auto;padding:16px}.top{display:flex;justify-content:space-between;align-items:center;gap:8px}.brand{font-weight:1000;letter-spacing:2px;color:var(--gold);font-size:12px}.back{color:#dbe4ff;text-decoration:none;border:1px solid var(--line);padding:8px 11px;border-radius:12px;font-size:12px}.hero{text-align:center;padding:16px 0}.hero h1{font-size:clamp(36px,9vw,60px);line-height:1;margin:10px 0;background:linear-gradient(#fff,#b5a1ff 55%,#ffdc87);color:transparent;background-clip:text}.hero p{color:var(--muted);font-size:13px}.wallet,.panel,.leader{background:linear-gradient(140deg,#171e38,#0f1528);border:1px solid var(--line);border-radius:18px;padding:14px;margin:12px 0}.wallet{display:flex;justify-content:space-between;gap:10px;align-items:center}.wallet small{display:block;color:var(--muted);font-size:10px}.wallet strong{color:var(--gold);font-size:20px}.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tab,.btn{border:1px solid #4a5680;background:#1a2340;color:#f5f7ff;border-radius:13px;padding:13px;font-weight:900;cursor:pointer}.tab.active,.btn.primary{background:linear-gradient(100deg,#ffe49a,#b5a1ff);color:#1a1530;border:0}.game-layout{display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:12px;align-items:start}.board-wrap{display:flex;justify-content:center;background:#070b18;border:2px solid #475482;border-radius:15px;padding:8px;box-shadow:inset 0 0 25px #5c48b533}.board-wrap canvas{display:block;width:min(100%,300px);height:auto;image-rendering:pixelated}.stats{display:grid;gap:8px}.stat{padding:10px;border-radius:12px;background:#0a1021;border:1px solid #273251}.stat small{display:block;color:var(--muted);font-size:10px}.stat strong{font-size:19px}.next{width:100%;height:auto}.controls{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.controls button{padding:13px 4px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.notice{font-size:12px;color:#ffe2a5;line-height:1.5;margin:8px 0}.leader-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.leader h2{margin:0;font-size:18px}.search{width:100%;margin:10px 0;padding:11px;border-radius:11px;border:1px solid var(--line);background:#090f20;color:white}.row{display:grid;grid-template-columns:42px 1fr auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid #ffffff12;font-size:12px}.row:last-child{border-bottom:0}.rank{font-weight:1000;color:var(--gold)}.muted{color:var(--muted);font-size:11px}.hidden{display:none!important}.pill{display:inline-block;background:#142c32;border:1px solid #2c766d;color:#9dffe2;border-radius:20px;padding:5px 8px;font-size:10px}@media(max-width:600px){.game-layout{grid-template-columns:minmax(0,1fr) 105px;gap:7px}.panel{padding:9px}.stat{padding:7px}.stat strong{font-size:16px}.app{padding:10px}.controls button{font-size:12px}.wallet strong{font-size:17px}}
-
-/* [FIXED] Disable long-press text selection and copy menus in the game UI. */
-html,body,.app,.app *:not(input):not(textarea){-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#080b18">
+<title>JojoWorld • Tetris</title>
+<style>
+:root{color-scheme:dark;--gold:#ffe39b;--muted:#aab6d3;--panel:#111a31;--line:#344367;--bg:#080b18}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;overscroll-behavior:none}
+body{background:radial-gradient(ellipse at 50% 0,#30235a 0,#11162c 45%,#070a15 100%);color:#f7f8ff;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+button,input{font:inherit}
+button{touch-action:manipulation}
+.app{height:100dvh;width:100%;padding:env(safe-area-inset-top) 7px env(safe-area-inset-bottom);display:flex;flex-direction:column;gap:5px;overflow:hidden}
+.top{display:flex;align-items:center;justify-content:space-between;gap:5px;min-height:34px;flex:0 0 auto}
+.brand{color:var(--gold);font-size:11px;font-weight:1000;letter-spacing:1px;white-space:nowrap}
+.top-actions{display:flex;gap:4px;align-items:center}
+.back,.btn,.tab{border:1px solid #46557e;background:#192340;color:#f7f8ff;border-radius:10px;font-size:10px;font-weight:900;padding:8px 7px;cursor:pointer;white-space:nowrap}
+.back{padding:7px 6px;text-decoration:none}
+.btn.primary,.tab.active{border-color:transparent;background:linear-gradient(105deg,#ffe49a,#b5a1ff);color:#19142d}
+.wallet{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--line);border-radius:12px;background:#111a31;flex:0 0 auto;min-height:42px}
+.wallet small{display:block;color:var(--muted);font-size:9px}.wallet strong{font-size:15px;color:var(--gold)}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:5px;flex:0 0 auto}.tab{padding:8px 4px}
+.panel{display:none;min-height:0;flex:1;border:1px solid var(--line);border-radius:13px;background:linear-gradient(145deg,#141d36,#0b1122);padding:7px;overflow:hidden}
+.panel.active{display:flex;flex-direction:column;gap:5px}
+.game-layout{display:grid;grid-template-columns:minmax(0,1fr) 84px;gap:6px;align-items:center;flex:1;min-height:0}
+.board-column{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;min-height:0}
+.board-wrap{display:flex;align-items:center;justify-content:center;min-height:0;width:100%;padding:3px;background:#060916;border:1px solid #475482;border-radius:9px;box-shadow:inset 0 0 18px #5c48b533}
+canvas.board{display:block;height:min(48dvh,440px);width:auto;max-width:100%;aspect-ratio:1/2;image-rendering:pixelated}
+.controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;width:100%;max-width:330px}
+.controls .btn{min-height:35px;padding:5px 2px;font-size:11px}
+.stats{display:grid;grid-template-columns:1fr;gap:5px;align-content:center;min-width:0}
+.stat{border:1px solid #273451;background:#080f20;border-radius:9px;padding:5px}
+.stat small{display:block;color:var(--muted);font-size:8px}.stat strong{font-size:14px;overflow-wrap:anywhere}
+.muted{color:var(--muted);font-size:9px;line-height:1.4}.actions{display:flex;gap:5px;flex-wrap:wrap;flex:0 0 auto}.actions .btn{min-height:34px;padding:7px 9px}
+.notice{color:#ffe2a5;font-size:10px;line-height:1.35;margin:0;overflow-wrap:anywhere;max-height:36px;overflow:auto}
+.leader{display:none;position:fixed;z-index:50;inset:43px 6px 6px;overflow:auto;padding:10px;background:#0c1225;border:1px solid #475482;border-radius:13px;box-shadow:0 0 0 100vmax #000b}
+.leader.open{display:block}.leader-head{display:flex;align-items:center;justify-content:space-between;gap:6px}.leader-head h2{font-size:15px;margin:0}
+.search{width:100%;margin:8px 0;padding:10px;border-radius:9px;border:1px solid var(--line);background:#080e1f;color:white;font-size:14px}
+.row{display:grid;grid-template-columns:35px minmax(0,1fr) auto;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid #ffffff14;font-size:11px}.rank{font-weight:1000;color:var(--gold)}.row .muted{grid-column:2/4}
+.battle-title{margin:0;font-size:14px}.battle-intro{margin:0}.stake-row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex:0 0 auto}.stake-row label{font-size:9px;color:var(--muted);display:block}.stake-row input{width:112px;max-width:40vw;padding:7px;border:1px solid var(--line);border-radius:8px;background:#070c1a;color:var(--gold);font-weight:900}
+.battle-boards{display:grid;grid-template-columns:1fr 1fr;gap:5px;min-height:0;flex:1}.battle-side{min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px}.battle-side .board-wrap{flex:0 1 auto}.battle-side canvas{height:min(28dvh,240px);width:auto;max-width:100%;aspect-ratio:1/2}.battle-side .controls{gap:3px}.battle-side .controls .btn{min-height:29px;font-size:10px}
+.battle-metrics{display:flex;justify-content:space-between;gap:3px;width:100%;font-size:9px;color:var(--muted)}.battle-metrics strong{color:var(--gold)}
+#battleRanks{min-height:0;max-height:90px;overflow:auto}
+button:disabled{opacity:.45}
+html,body,.app,.app *:not(input):not(textarea){-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 input,textarea{-webkit-user-select:text!important;user-select:text!important;-webkit-touch-callout:default}
-canvas{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
-/* [UPGRADED] Fullscreen arcade layout: lock page scrolling and fit game controls to viewport. */
-html{height:100%;overscroll-behavior:none}body{height:100%;height:100dvh;overflow:hidden;overscroll-behavior:none;touch-action:pan-x pan-y}
-.app{width:100%;max-width:none;height:100%;height:100dvh;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:5px;padding:7px}
-.top{flex:0 0 auto;min-height:30px}.top-actions{display:flex;align-items:center;gap:5px}.top-actions .back{padding:7px 8px;font-size:10px;white-space:nowrap}
-.hero{display:none}.wallet{flex:0 0 auto;margin:0;padding:7px 11px;min-height:44px;border-radius:12px}.wallet small{font-size:9px}.wallet strong{font-size:16px}
-.tabs{flex:0 0 auto;gap:6px}.tab{padding:9px 6px;font-size:12px}
-.panel{margin:0;padding:8px;border-radius:13px;min-height:0}
-#soloPanel{flex:1;display:flex;flex-direction:column;gap:5px;overflow:hidden}
-#soloPanel .game-layout{flex:1;min-height:0;grid-template-columns:minmax(0,1fr) 100px;gap:7px;align-items:center}
-#soloPanel .game-layout>div:first-child{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
-.board-wrap{min-height:0;padding:4px;border-radius:10px}
-#board{height:min(43dvh,430px);width:auto;max-width:100%;aspect-ratio:1/2;object-fit:contain}
-#soloPanel .stats{grid-template-columns:1fr;gap:5px;align-content:center}
-#soloPanel .stat{padding:6px 7px}.stat small{font-size:9px}.stat strong{font-size:16px}
-#soloPanel .stats .muted{font-size:9px;line-height:1.35;margin:0}
-.controls{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:4px;width:100%;max-width:340px}
-.controls .btn{min-height:39px;padding:7px 3px;border-radius:10px;font-size:11px;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
-.actions{flex:0 0 auto;gap:6px;margin-top:3px}.actions .btn{padding:9px 10px;font-size:11px;min-height:36px;touch-action:manipulation}
-.notice{font-size:10px;line-height:1.3;margin:0;max-height:30px;overflow:hidden}
-#soloPanel #gameNotice{flex:0 0 auto}
-.leader{display:none;position:absolute;z-index:30;inset:48px 7px 7px;margin:0;overflow:auto;background:#0d1328f7;box-shadow:0 0 0 100vmax #02040bd9}
-.app.ranks-open .leader{display:block}
-.app.ranks-open #soloPanel,.app.ranks-open #battlePanel{visibility:hidden}
-#battlePanel{flex:1;overflow:hidden;display:flex;flex-direction:column;gap:5px}
-#battlePanel h2{font-size:16px;margin:0}
-#battlePanel>.muted{margin:0;font-size:10px}
-#battlePanel .wallet{padding:5px 8px}
-#battlePanel .game-layout{flex:1;min-height:0;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px}
-#battlePanel .game-layout>div{min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px}
-#battlePanel .board-wrap{width:100%;justify-content:center}
-#battleYouBoard,#battleOpponentBoard{height:min(29dvh,270px);width:auto;max-width:100%;aspect-ratio:1/2}
-#battlePanel .controls{gap:4px;margin-top:2px}
-#battlePanel .controls .btn{min-height:34px;font-size:10px}
-#battlePanel .stats{grid-template-columns:1fr;gap:3px;width:100%}
-#battlePanel .stat{padding:4px 6px}
-#battlePanel .stat strong{font-size:13px}
-#battlePanel .leader-head{flex:0 0 auto}
-#battleRankRows{overflow:auto;min-height:0;font-size:10px}
-button:disabled{opacity:.42;filter:saturate(.55)}
-@media(max-width:600px){
- .app{padding:5px;gap:4px}.top-actions{gap:3px}.top-actions .back{padding:6px 5px;font-size:9px}.brand{font-size:10px;letter-spacing:1px}
- #soloPanel{padding:6px}.wallet{min-height:40px}.wallet strong{font-size:14px}
- #soloPanel .game-layout{grid-template-columns:minmax(0,1fr) 82px;gap:5px}
- #board{height:min(42dvh,390px)}
- #soloPanel .stat{padding:5px}.stat strong{font-size:14px}
- #soloPanel .controls .btn{min-height:36px;font-size:10px}
- #soloPanel .actions .btn{font-size:10px;padding:8px 7px}
- #battlePanel{padding:6px}#battleYouBoard,#battleOpponentBoard{height:min(25dvh,220px)}
- #battlePanel .game-layout{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
- #battlePanel .controls .btn{min-height:32px;padding:5px 1px}
- #battlePanel .notice{max-height:34px}
-}
-@media(max-height:650px){
- .app{gap:3px;padding:4px}.wallet{padding:4px 8px;min-height:34px}.tabs .tab{padding:7px 5px}
- #board{height:min(37dvh,300px)}#soloPanel .controls .btn{min-height:30px;padding:4px 2px}
- #soloPanel .stat{padding:3px 5px}.actions .btn{min-height:30px;padding:6px}
- #battleYouBoard,#battleOpponentBoard{height:min(22dvh,180px)}
- #battlePanel .controls .btn{min-height:27px}
-}
-</style></head><body><main class="app">
-<header class="top"><div class="brand">✦ JOJOWORLD ARCADE</div><div class="top-actions"><button id="soundBtn" class="back" type="button" aria-pressed="true">🔊 SOUND ON</button><button id="fullscreenBtn" class="back" type="button">⛶ FULL SCREEN</button><button id="ranksBtn" class="back" type="button">🏆 RANKS</button><a id="lobby" class="back" href="/live-games">← LOBBY</a></div></header>
-<section class="hero"><span class="pill">GLOBAL RANKED SKILL GAME</span><h1>TETRIS</h1><p>Clear lines. Beat your personal best. Climb the global leaderboard.</p></section>
-<div class="wallet"><div><small>YOUR JOJOWORLD COINS</small><strong id="balance">Connecting…</strong></div><div style="text-align:right"><small>YOUR SOLO RANK</small><strong id="myRank">—</strong></div></div>
-<div class="tabs"><button class="tab active" id="soloTab">🧩 SOLO TETRIS</button><button class="tab" id="battleTab">⚔️ 1v1 COIN BATTLE</button></div>
-<section id="soloPanel" class="panel"><div class="game-layout"><div><div class="board-wrap"><canvas id="board" width="300" height="600" aria-label="Tetris board"></canvas></div><div class="controls"><button class="btn" id="left">◀</button><button class="btn" id="rotate">⟳ ROTATE</button><button class="btn" id="right">▶</button><button class="btn" id="down">▼ DROP</button><button class="btn" id="hardDrop">⬇ HARD</button><button class="btn" id="pause">Ⅱ PAUSE</button></div></div><aside class="stats"><div class="stat"><small>SCORE</small><strong id="score">0</strong></div><div class="stat"><small>LINES</small><strong id="lines">0</strong></div><div class="stat"><small>LEVEL</small><strong id="level">1</strong></div><div class="stat"><small>BEST SCORE</small><strong id="best">0</strong></div><div class="stat"><small>BEST RANK</small><strong id="bestRank">—</strong></div><p class="muted">← → move<br>↑ rotate<br>↓ soft drop<br>Space hard drop</p></aside></div><div class="actions"><button class="btn primary" id="start">▶ START / RESTART</button><button class="btn" id="submit" disabled>UPLOAD SCORE</button></div><p class="notice" id="gameNotice">Start a game. Valid completed scores update your Solo Global Rank. Solo mode has no coin wager.</p></section>
-<section id="battlePanel" class="panel hidden"><h2>⚔️ 1v1 Tetris Coin Battle</h2><p class="muted">Same-stake matchmaking · server-owned boards · automatic coin escrow and payout</p><div class="wallet"><div><small>YOUR STAKE (COINS)</small><input id="stake" type="number" min="10" max="100000" step="10" value="100" style="width:120px;padding:8px;border-radius:9px;border:1px solid #354267;background:#080d1c;color:#ffe39b;font-weight:900"></div><div style="text-align:right"><small>MATCH POT</small><strong id="battlePot">—</strong></div></div><div id="battleStatus" class="notice">Choose your stake, then tap Find Rival. Both players must have enough coins and the same stake.</div><div class="game-layout"><div><div class="muted" id="youLabel">YOU · SCORE 0</div><div class="board-wrap"><canvas id="battleYouBoard" width="200" height="400" aria-label="Your battle Tetris board"></canvas></div><div class="controls"><button class="btn" data-move="left">◀</button><button class="btn" data-move="rotate">⟳</button><button class="btn" data-move="right">▶</button><button class="btn" data-move="down">▼</button><button class="btn" data-move="drop">⬇ DROP</button><button class="btn" id="battleRefresh">↻</button></div></div><div><div class="muted" id="opponentLabel">RIVAL · WAITING</div><div class="board-wrap"><canvas id="battleOpponentBoard" width="200" height="400" aria-label="Opponent battle Tetris board"></canvas></div><div class="stats"><div class="stat"><small>RIVAL SCORE</small><strong id="rivalScore">0</strong></div><div class="stat"><small>RIVAL RANK</small><strong id="rivalRank">—</strong></div><div class="stat"><small>WINS / LOSSES</small><strong id="battleRecord">0 / 0</strong></div></div></div></div><div class="actions"><button class="btn primary" id="findRival">⚔ FIND RIVAL</button><button class="btn" id="leaveBattle">CANCEL / LEAVE</button></div><p class="notice">The server controls each board and the match result. Coins are reserved only when two matching stakes are paired. A completed match pays the winner the pot; an exact-score draw refunds both stakes.</p><div class="leader-head"><h3>⚔ BATTLE GLOBAL RANKING</h3><span class="muted">Wins · Losses · Best score</span></div><div id="battleRankRows"><p class="muted">Loading battle ranking…</p></div></section>
-<section class="leader"><div class="leader-head"><h2>🏆 SOLO GLOBAL LEADERBOARD</h2><span class="muted">All ranked players</span></div><input id="search" class="search" placeholder="Search player name or rank (e.g. 1537)" autocomplete="off"><div id="leaderRows"><p class="muted">Loading leaderboard…</p></div><div class="actions"><button class="btn" id="refresh">↻ REFRESH RANKS</button></div></section>
-</main><script>
-const token=new URLSearchParams(location.search).get('token')||'';const q='?token='+encodeURIComponent(token);document.getElementById('lobby').href='/live-games'+q;
-// [FIXED] Stop long-press selection/copy menus on game text while keeping inputs editable.
-document.addEventListener('contextmenu',e=>{if(!e.target.closest('input,textarea'))e.preventDefault()});
-document.addEventListener('selectstart',e=>{if(!e.target.closest('input,textarea'))e.preventDefault()});
-document.addEventListener('dragstart',e=>e.preventDefault());
-// [ADDED] Native fullscreen and an in-place leaderboard overlay keep the game viewport fixed.
-$('fullscreenBtn').onclick=async()=>{try{if(!document.fullscreenElement){await document.documentElement.requestFullscreen();$('fullscreenBtn').textContent='⤢ EXIT FULL';}else{await document.exitFullscreen();$('fullscreenBtn').textContent='⛶ FULL SCREEN';}}catch(e){$('gameNotice').textContent='Use your browser menu to enter fullscreen on this device.'}};
-document.addEventListener('fullscreenchange',()=>{$('fullscreenBtn').textContent=document.fullscreenElement?'⤢ EXIT FULL':'⛶ FULL SCREEN'});
-$('ranksBtn').onclick=()=>{const opened=document.querySelector('.app').classList.toggle('ranks-open');$('ranksBtn').textContent=opened?'✕ CLOSE RANKS':'🏆 RANKS';if(opened){loadLeaderboard();loadBattleRanks()}};
-const $=id=>document.getElementById(id);let myBest=0, myRank=null, runStart=0, gameStarted=false, gameOver=false, paused=false, raf=0, dropTimer=0, lastTime=0, score=0, lines=0, level=1;
-// [ADDED] Lightweight arcade sound effects generated locally with Web Audio; no downloads or paid APIs.
-let soundEnabled=true,audioCtx=null;
-function playBeatThump(offset=0){
- if(!soundEnabled)return;
+canvas{touch-action:manipulation}
+@media(max-height:650px){.app{gap:3px;padding-left:4px;padding-right:4px}.wallet{min-height:33px;padding:4px 7px}.tabs .tab{padding:6px 3px}canvas.board{height:min(40dvh,320px)}.controls .btn{min-height:28px;font-size:10px}.stat{padding:3px}.actions .btn{min-height:28px;padding:5px}.battle-side canvas{height:min(22dvh,175px)}.battle-side .controls .btn{min-height:25px}.notice{max-height:30px}}
+@media(min-width:700px){.app{max-width:900px;margin:auto;padding-top:8px}.game-layout{grid-template-columns:minmax(0,1fr) 125px}.stats{gap:8px}.stat{padding:8px}.stat strong{font-size:18px}canvas.board{height:min(55dvh,500px)}.battle-side canvas{height:min(36dvh,320px)}}
+</style>
+</head>
+<body>
+<main class="app" id="app">
+<header class="top">
+ <div class="brand">✦ JOJOWORLD TETRIS</div>
+ <div class="top-actions">
+  <button class="back" id="soundBtn" type="button" aria-pressed="true">🔊 SOUND ON</button>
+  <button class="back" id="fullBtn" type="button">⛶ FULL</button>
+  <button class="back" id="ranksBtn" type="button">🏆 RANKS</button>
+  <a class="back" id="lobbyBtn" href="/live-games">← LOBBY</a>
+ </div>
+</header>
+<section class="wallet">
+ <div><small>JOJOWORLD COINS</small><strong id="balance">Connecting…</strong></div>
+ <div style="text-align:right"><small>YOUR SOLO RANK</small><strong id="myRank">—</strong></div>
+</section>
+<nav class="tabs"><button class="tab active" id="soloTab" type="button">🧩 SOLO TETRIS</button><button class="tab" id="battleTab" type="button">⚔️ 1v1 BATTLE</button></nav>
+<section class="panel active" id="soloPanel">
+ <div class="game-layout">
+  <div class="board-column">
+   <div class="board-wrap"><canvas class="board" id="board" width="300" height="600" aria-label="Tetris game board"></canvas></div>
+   <div class="controls">
+    <button class="btn" id="left" type="button">◀ LEFT</button><button class="btn" id="rotate" type="button">⟳ ROTATE</button><button class="btn" id="right" type="button">RIGHT ▶</button>
+    <button class="btn" id="down" type="button">▼ DOWN</button><button class="btn" id="hardDrop" type="button">⬇ DROP</button><button class="btn" id="pause" type="button">Ⅱ PAUSE</button>
+   </div>
+  </div>
+  <aside class="stats">
+   <div class="stat"><small>SCORE</small><strong id="score">0</strong></div><div class="stat"><small>LINES</small><strong id="lines">0</strong></div><div class="stat"><small>LEVEL</small><strong id="level">1</strong></div><div class="stat"><small>BEST</small><strong id="best">0</strong></div><div class="stat"><small>RANK</small><strong id="bestRank">—</strong></div>
+   <p class="muted">← → move<br>↑ rotate<br>↓ soft drop<br>Space hard drop</p>
+  </aside>
+ </div>
+ <div class="actions"><button class="btn primary" id="start" type="button">▶ START / RESTART</button><button class="btn" id="submit" type="button" disabled>SAVE SCORE</button></div>
+ <p class="notice" id="gameNotice">Connecting your JojoWorld account. Solo play has no coin wager.</p>
+</section>
+<section class="panel" id="battlePanel">
+ <h2 class="battle-title">⚔️ 1v1 Tetris Coin Battle</h2><p class="muted battle-intro">Find a rival with the same stake. Coins are reserved by the server when matched.</p>
+ <div class="stake-row"><div><label for="stake">YOUR STAKE (10–100,000 COINS)</label><input id="stake" type="number" min="10" max="100000" step="10" value="100"></div><div style="text-align:right"><small class="muted">MATCH POT</small><br><strong id="pot">—</strong></div></div>
+ <p class="notice" id="battleNotice">Choose a stake and tap Find Rival.</p>
+ <div class="battle-boards">
+  <div class="battle-side"><div class="muted" id="youLabel">YOU · WAITING</div><div class="board-wrap"><canvas id="youBoard" width="200" height="400"></canvas></div><div class="controls"><button class="btn" data-action="left" type="button">◀</button><button class="btn" data-action="rotate" type="button">⟳</button><button class="btn" data-action="right" type="button">▶</button><button class="btn" data-action="down" type="button">▼</button><button class="btn" data-action="drop" type="button">⬇</button><button class="btn" id="battleRefresh" type="button">↻</button></div></div>
+  <div class="battle-side"><div class="muted" id="rivalLabel">RIVAL · WAITING</div><div class="board-wrap"><canvas id="rivalBoard" width="200" height="400"></canvas></div><div class="battle-metrics"><span>Score <strong id="rivalScore">0</strong></span><span>Rank <strong id="rivalRank">—</strong></span></div><div class="battle-metrics"><span>W/L <strong id="record">0/0</strong></span><span>Pot <strong id="won">0</strong></span></div></div>
+ </div>
+ <div class="actions"><button class="btn primary" id="findRival" type="button">⚔ FIND RIVAL</button><button class="btn" id="leaveBattle" type="button">CANCEL / LEAVE</button></div>
+ <div class="leader-head"><h2>⚔ BATTLE RANKING</h2><span class="muted">Wins · losses · best</span></div><div id="battleRanks" class="muted">Loading ranking…</div>
+</section>
+<section class="leader" id="leader">
+ <div class="leader-head"><h2>🏆 SOLO GLOBAL RANKING</h2><button class="btn" id="closeRanks" type="button">✕ CLOSE</button></div>
+ <input id="search" class="search" placeholder="Search player or rank, e.g. #1537" autocomplete="off">
+ <div class="muted" id="rankSummary">Top ranked players</div><div id="leaderRows">Loading leaderboard…</div>
+ <div class="actions"><button class="btn" id="refreshRanks" type="button">↻ REFRESH</button></div>
+</section>
+</main>
+<script>
+(function(){
+'use strict';
+const $=function(id){return document.getElementById(id)};
+const token=new URLSearchParams(location.search).get('token')||'';
+const q='?token='+encodeURIComponent(token);
+$('lobbyBtn').href='/live-games'+q;
+document.addEventListener('contextmenu',function(e){if(!e.target.closest('input,textarea'))e.preventDefault()});
+document.addEventListener('selectstart',function(e){if(!e.target.closest('input,textarea'))e.preventDefault()});
+document.addEventListener('dragstart',function(e){e.preventDefault()});
+let soundOn=true,audio=null;
+function sfx(kind){
+ if(!soundOn)return;
  try{
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
-  if(!audioCtx)audioCtx=new AC();if(audioCtx.state==='suspended')audioCtx.resume();
-  const t=audioCtx.currentTime+offset,o=audioCtx.createOscillator(),g=audioCtx.createGain();
-  o.type='sine';o.frequency.setValueAtTime(105,t);o.frequency.exponentialRampToValueAtTime(58,t+.11);
-  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.16,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+.14);
-  o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+.15);
+  if(!audio)audio=new AC();if(audio.state==='suspended')audio.resume();
+  const notes={move:[[220,.04,'sine']],rotate:[[390,.06,'triangle'],[520,.05,'triangle']],drop:[[150,.08,'triangle'],[95,.1,'sine']],lock:[[180,.05,'square']],clear:[[523,.07,'triangle'],[659,.07,'triangle'],[784,.12,'triangle']],over:[[330,.1,'triangle'],[247,.12,'triangle'],[165,.2,'sawtooth']],win:[[523,.08,'triangle'],[659,.08,'triangle'],[784,.08,'triangle'],[1047,.18,'triangle']],lose:[[260,.1,'sine'],[196,.16,'sine']]};
+  const list=notes[kind]||notes.move,now=audio.currentTime;
+  list.forEach(function(n,i){const o=audio.createOscillator(),g=audio.createGain(),t=now+i*.075;o.type=n[2];o.frequency.setValueAtTime(n[0],t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.1,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+n[1]);o.connect(g);g.connect(audio.destination);o.start(t);o.stop(t+n[1]+.02)});
  }catch(e){}
 }
-// [FIXED] Removed the continuous tug-tug background beat that was added before the Tetris freeze reports.
-function playSfx(kind){
- if(!soundEnabled)return;
- try{
-  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
-  if(!audioCtx)audioCtx=new AC();if(audioCtx.state==='suspended')audioCtx.resume();
-  const now=audioCtx.currentTime;
-  const notes={move:[[240,.045,'sine']],rotate:[[390,.07,'triangle'],[520,.055,'triangle']],drop:[[150,.09,'triangle'],[95,.12,'sine']],lock:[[180,.055,'square']],clear:[[523,.08,'triangle'],[659,.08,'triangle'],[784,.14,'triangle']],level:[[440,.08,'sine'],[660,.08,'sine'],[880,.16,'sine']],over:[[330,.12,'triangle'],[247,.14,'triangle'],[165,.24,'sawtooth']],win:[[523,.09,'triangle'],[659,.09,'triangle'],[784,.09,'triangle'],[1047,.22,'triangle']],lose:[[260,.12,'sine'],[196,.2,'sine']]};
-  (notes[kind]||notes.move).forEach((n,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=n[2];o.frequency.setValueAtTime(n[0],now+i*.085);g.gain.setValueAtTime(.0001,now+i*.085);g.gain.exponentialRampToValueAtTime(.12,now+i*.085+.012);g.gain.exponentialRampToValueAtTime(.0001,now+i*.085+n[1]);o.connect(g);g.connect(audioCtx.destination);o.start(now+i*.085);o.stop(now+i*.085+n[1]+.02)});
- }catch(e){}
-}
-$('soundBtn').onclick=()=>{soundEnabled=!soundEnabled;$('soundBtn').textContent=soundEnabled?'🔊 SOUND ON':'🔇 SOUND OFF';$('soundBtn').setAttribute('aria-pressed',String(soundEnabled));if(soundEnabled){playSfx('rotate');}else stopGameBeat()};
-const canvas=$('board'),ctx=canvas.getContext('2d');const COLS=10,ROWS=20,S=30;const colors=['#000','#54d8ff','#ffd166','#bb86fc','#7cffb2','#ff6b9a','#ff9f43','#f5f7ff'];const shapes=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]],[[0,1,1],[1,1,0]],[[1,1,0],[0,1,1]]];let grid,piece,bag=[];
-function emptyGrid(){return Array.from({length:ROWS},()=>Array(COLS).fill(0))}
-function nextPiece(){if(!bag.length)bag=shapes.map((_,i)=>i).sort(()=>Math.random()-.5);const type=bag.pop(),shape=shapes[type].map(r=>r.slice());return {type,shape,x:Math.floor((COLS-shape[0].length)/2),y:0}}
-function collide(p,dx=0,dy=0,shape=p.shape){for(let y=0;y<shape.length;y++)for(let x=0;x<shape[y].length;x++)if(shape[y][x]){const nx=p.x+x+dx,ny=p.y+y+dy;if(nx<0||nx>=COLS||ny>=ROWS||(ny>=0&&grid[ny][nx]))return true}return false}
-function drawCell(x,y,color){ctx.fillStyle=color;ctx.fillRect(x*S+1,y*S+1,S-2,S-2);ctx.fillStyle='#ffffff25';ctx.fillRect(x*S+3,y*S+3,S-6,3);ctx.strokeStyle='#ffffff25';ctx.strokeRect(x*S+1.5,y*S+1.5,S-3,S-3)}
-function draw(){ctx.fillStyle='#080d1c';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.strokeStyle='#ffffff0d';for(let x=0;x<=COLS;x++){ctx.beginPath();ctx.moveTo(x*S,0);ctx.lineTo(x*S,ROWS*S);ctx.stroke()}for(let y=0;y<=ROWS;y++){ctx.beginPath();ctx.moveTo(0,y*S);ctx.lineTo(COLS*S,y*S);ctx.stroke()}grid.forEach((row,y)=>row.forEach((v,x)=>{if(v)drawCell(x,y,colors[v])}));if(piece)piece.shape.forEach((row,y)=>row.forEach((v,x)=>{if(v)drawCell(piece.x+x,piece.y+y,colors[piece.type+1])}));}
-function updateStats(){$('score').textContent=score.toLocaleString();$('lines').textContent=lines;$('level').textContent=level}
-function spawn(){piece=nextPiece();if(collide(piece)){endGame()}}
-function rotate(){const shape=piece.shape[0].map((_,i)=>piece.shape.map(row=>row[i]).reverse());if(!collide(piece,0,0,shape))piece.shape=shape}
-function lock(){piece.shape.forEach((row,y)=>row.forEach((v,x)=>{if(v&&piece.y+y>=0)grid[piece.y+y][piece.x+x]=piece.type+1}));let cleared=0;for(let y=ROWS-1;y>=0;y--)if(grid[y].every(Boolean)){grid.splice(y,1);grid.unshift(Array(COLS).fill(0));cleared++;y++}if(cleared){const oldLevel=level;lines+=cleared;score+=[0,100,300,500,800][cleared]*level;level=1+Math.floor(lines/10);playSfx(cleared>=4?"level":"clear");if(level>oldLevel)playSfx("level")}else playSfx("lock");spawn();updateStats()}
-function tick(now){if(!gameStarted||paused||gameOver)return;if(now-lastTime>Math.max(90,700-(level-1)*55)){if(!collide(piece,0,1))piece.y++;else lock();lastTime=now}draw();raf=requestAnimationFrame(tick)}
-function start(){cancelAnimationFrame(raf);grid=emptyGrid();score=0;lines=0;level=1;gameOver=false;paused=false;gameStarted=true;runStart=Date.now();lastTime=0;bag=[];spawn();updateStats();$('gameNotice').textContent='Game in progress — clear lines and avoid topping out.';$('submit').disabled=true;$('pause').textContent='Ⅱ PAUSE';raf=requestAnimationFrame(tick)}
-function endGame(){gameOver=true;gameStarted=false;piece=null;cancelAnimationFrame(raf);playSfx("over");draw();$('gameNotice').textContent='GAME OVER — score '+score.toLocaleString()+'. Upload your completed score to update your global rank.';$('submit').disabled=score<=0}
-function move(dx,dy=0){if(!gameStarted||paused||gameOver)return;if(!collide(piece,dx,dy)){piece.x+=dx;piece.y+=dy;if(dx!==0)playSfx("move");else playSfx("lock")}else if(dy)lock();draw()}
-function hardDrop(){if(!gameStarted||paused||gameOver)return;while(!collide(piece,0,1))piece.y++;playSfx("drop");lock();draw()}
-$('start').onclick=start;$('left').onclick=()=>move(-1);$('right').onclick=()=>move(1);$('down').onclick=()=>move(0,1);$('rotate').onclick=()=>{if(gameStarted&&!paused&&!gameOver){rotate();playSfx("rotate")}draw()};$('hardDrop').onclick=hardDrop;$('pause').onclick=()=>{if(!gameStarted||gameOver)return;paused=!paused;$('pause').textContent=paused?'▶ RESUME':'Ⅱ PAUSE';if(!paused){lastTime=performance.now();raf=requestAnimationFrame(tick)}else cancelAnimationFrame(raf)};
-document.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight','ArrowDown','ArrowUp',' '].includes(e.key))e.preventDefault();if(battleMode){const a={'ArrowLeft':'left','ArrowRight':'right','ArrowDown':'down','ArrowUp':'rotate',' ':'drop'}[e.key];if(a)battleAction(a);return}if(e.key==='ArrowLeft')move(-1);if(e.key==='ArrowRight')move(1);if(e.key==='ArrowDown')move(0,1);if(e.key==='ArrowUp'&&gameStarted&&!paused&&!gameOver){rotate();playSfx("rotate");draw()}if(e.key===' ')hardDrop()});
-function setMode(battle){$('soloTab').classList.toggle('active',!battle);$('battleTab').classList.toggle('active',battle);$('soloPanel').classList.toggle('hidden',battle);$('battlePanel').classList.toggle('hidden',!battle)}$('soloTab').onclick=()=>setMode(false);$('battleTab').onclick=()=>setMode(true);
-async function api(url,opts={}){const res=await fetch(url,{...opts,headers:{'Content-Type':'application/json',...(opts.headers||{})},cache:'no-store'});const d=await res.json();if(!res.ok||!d.ok)throw Error(d.error||'Request failed');return d}
-async function loadSession(){if(!token){$('balance').textContent='Not connected';$('gameNotice').textContent='ACCOUNT NOT CONNECTED — Return to JojoWorld Messenger, open Game Lobby again, then reopen Tetris using the fresh secure link.';return} $('balance').textContent='Connecting…';try{const d=await api('/api/tetris/session'+q);$('balance').textContent=Number(d.balance||0).toLocaleString()+' coins';$('myRank').textContent=d.rank?'#'+d.rank:'Unranked';myBest=d.highestScore||0;myRank=d.rank;$('best').textContent=myBest.toLocaleString();$('bestRank').textContent=d.rank?'#'+d.rank:'—';$('gameNotice').textContent='ACCOUNT CONNECTED — JojoWorld coins and rankings are ready.'}catch(e){$('balance').textContent='Connection failed';$('gameNotice').textContent='COIN CONNECTION FAILED — '+e.message+' Reopen Game Lobby from Messenger to refresh your secure account link. If it still fails, the server or MongoDB connection may be unavailable.'}}
-async function loadLeaderboard(){try{const term=$('search').value.trim();const d=await api('/api/tetris/leaderboard'+q+'&search='+encodeURIComponent(term));$('leaderRows').innerHTML='';if(!d.players.length){$('leaderRows').innerHTML='<p class="muted">No matching ranked players yet.</p>';return}for(const p of d.players){const row=document.createElement('div');row.className='row';const rank=document.createElement('div');rank.className='rank';rank.textContent='#'+p.rank;const name=document.createElement('div');name.textContent=p.name;const details=document.createElement('div');details.className='muted';details.textContent='Best '+Number(p.highestScore).toLocaleString()+' · '+p.gamesPlayed+' games';const score=document.createElement('strong');score.textContent=Number(p.highestScore).toLocaleString();row.append(rank,name,score);row.appendChild(details);$('leaderRows').appendChild(row)}}catch(e){$('leaderRows').textContent=e.message}}
-$('submit').onclick=async()=>{if(!gameOver||score<=0)return;try{const d=await api('/api/tetris/score'+q,{method:'POST',body:JSON.stringify({score,lines,durationMs:Date.now()-runStart})});myBest=d.highestScore;myRank=d.rank;$('best').textContent=myBest.toLocaleString();$('bestRank').textContent=d.rank?'#'+d.rank:'—';$('myRank').textContent=d.rank?'#'+d.rank:'Unranked';$('gameNotice').textContent='Score saved. Solo Global Rank: '+(d.rank?'#'+d.rank:'Unranked')+'.';$('submit').disabled=true;await loadLeaderboard()}catch(e){$('gameNotice').textContent=e.message}};
-$('refresh').onclick=()=>{loadSession();loadLeaderboard()};let searchTimer; $('search').addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(loadLeaderboard,220)});
-
-// [ADDED] Server-controlled 1v1 Tetris client controls and live opponent pressure panel.
-let battleMode=false,battlePoll=null,battleBusy=false,lastBattle=null;
-const battleColors=colors;
-function drawRemoteBoard(id,state){
- const cv=$(id),cx=cv.getContext('2d'),cw=cv.width/10,ch=cv.height/20,grid=state?.grid||Array.from({length:20},()=>Array(10).fill(0));
- cx.fillStyle='#080d1c';cx.fillRect(0,0,cv.width,cv.height);cx.strokeStyle='#ffffff12';
- for(let x=0;x<=10;x++){cx.beginPath();cx.moveTo(x*cw,0);cx.lineTo(x*cw,cv.height);cx.stroke()}
- for(let y=0;y<=20;y++){cx.beginPath();cx.moveTo(0,y*ch);cx.lineTo(cv.width,y*ch);cx.stroke()}
- const cell=(x,y,v)=>{if(y<0||x<0||x>=10||y>=20)return;cx.fillStyle=battleColors[v]||'#fff';cx.fillRect(x*cw+1,y*ch+1,cw-2,ch-2);cx.fillStyle='#ffffff28';cx.fillRect(x*cw+2,y*ch+2,cw-4,2)};
- grid.forEach((row,y)=>row.forEach((v,x)=>{if(v)cell(x,y,v)}));
- const p=state?.piece;if(p&&!state.gameOver)p.shape.forEach((row,y)=>row.forEach((v,x)=>{if(v)cell(p.x+x,p.y+y,p.type+1)}));
- if(state?.gameOver){cx.fillStyle='#050711bb';cx.fillRect(0,cv.height/2-20,cv.width,40);cx.fillStyle='#ffe39b';cx.font='bold 12px sans-serif';cx.textAlign='center';cx.fillText('TOP OUT',cv.width/2,cv.height/2+4)}
-}
-async function refreshBattle(){
- if(!token)return;
- try{
-  const d=await api('/api/tetris/battle/state'+q);lastBattle=d;
-  if(d.status==='idle'){$('battleStatus').textContent='Choose a stake and find a rival with the same stake.';return}
-  if(d.status==='waiting'){$('battleStatus').textContent='WAITING FOR RIVAL · '+Number(d.stake).toLocaleString()+' coins stake. Another player must choose the same amount.';return}
-  $('battlePot').textContent=Number(d.pot||0).toLocaleString()+' coins';
-  $('balance').textContent=Number(d.balance||0).toLocaleString()+' coins';
-  $('youLabel').textContent=(d.you.name||'YOU')+' · RANK '+(d.you.rank?'#'+d.you.rank:'—')+' · W/L '+Number(d.you.wins||0)+'/'+Number(d.you.losses||0)+' · SCORE '+Number(d.you.score||0).toLocaleString()+' · L'+(d.you.level||1);
-  $('opponentLabel').textContent=(d.opponent.name||'RIVAL')+' · RANK '+(d.opponent.rank?'#'+d.opponent.rank:'—')+' · '+(d.status==='active'?'LIVE':'FINISHED');$('rivalRank').textContent=d.opponent.rank?'#'+d.opponent.rank:'—';$('battleRecord').textContent=Number(d.opponent.wins||0)+' / '+Number(d.opponent.losses||0);
-  $('rivalScore').textContent=Number(d.opponent.score||0).toLocaleString();
-  drawRemoteBoard('battleYouBoard',d.you);drawRemoteBoard('battleOpponentBoard',d.opponent);
-  const mine=d.winner==='you'?'YOU WON THE BATTLE! Pot paid: '+Number(d.pot||0).toLocaleString()+' coins.':d.winner==='opponent'?'YOU LOST THIS MATCH. Review your score and challenge again.':d.status==='refunded'?'DRAW — both stakes refunded.':'MATCH LIVE — clear lines, avoid topping out, and watch the rival score.';
-  $('battleStatus').textContent=mine;
-  document.querySelectorAll('[data-move]').forEach(b=>b.disabled=d.status!=='active'||battleBusy);
-  $('findRival').disabled=d.status==='active';$('leaveBattle').textContent=d.status==='active'?'FORFEIT MATCH':'CANCEL / LEAVE';
-  if(d.status!=='active'&&d.status!=='waiting'){await loadSession();await loadBattleRanks()}
- }catch(e){$('battleStatus').textContent=e.message}
-}
-async function battleAction(action){
- if(battleBusy||!lastBattle||lastBattle.status!=='active')return;
- battleBusy=true;document.querySelectorAll('[data-move]').forEach(b=>b.disabled=true);
- try{const before=lastBattle;await api('/api/tetris/battle/action'+q,{method:'POST',body:JSON.stringify({action})});await refreshBattle();if(lastBattle?.status==='finished'){playSfx(lastBattle.winner==='you'?'win':lastBattle.winner==='opponent'?'lose':'over')}else if(action==='drop')playSfx('drop');else if(action==='rotate')playSfx('rotate');else playSfx('move')}
- catch(e){$('battleStatus').textContent=e.message}
- finally{battleBusy=false;document.querySelectorAll('[data-move]').forEach(b=>b.disabled=!lastBattle||lastBattle.status!=='active')}
-}
-async function findRival(){
- if(!token){$('battleStatus').textContent='Open Tetris from the JojoWorld Messenger Game Lobby first.';return}
- const stake=Number($('stake').value);
- if(!Number.isSafeInteger(stake)||stake<10||stake>100000){$('battleStatus').textContent='Enter a whole-number stake from 10 to 100,000 coins.';return}
- $('findRival').disabled=true;
- try{const d=await api('/api/tetris/battle/join'+q,{method:'POST',body:JSON.stringify({stake})});$('battleStatus').textContent=d.status==='waiting'?d.message||'Waiting for a matching rival…':'Rival found! Battle starting.';if(d.balance!==undefined)$('balance').textContent=Number(d.balance).toLocaleString()+' coins';await refreshBattle();await loadBattleRanks()}
- catch(e){$('battleStatus').textContent=e.message}
- finally{$('findRival').disabled=false}
-}
-async function leaveBattle(){
- try{await api('/api/tetris/battle/leave'+q,{method:'POST',body:'{}'});lastBattle=null;$('battlePot').textContent='—';$('battleStatus').textContent='You left the queue or match.';document.querySelectorAll('[data-move]').forEach(b=>b.disabled=true);await loadSession();await refreshBattle()}
- catch(e){$('battleStatus').textContent=e.message}
-}
-async function loadBattleRanks(){
- if(!token)return;
- try{const term=$('search').value.trim();const d=await api('/api/tetris/battle/leaderboard'+q+'&search='+encodeURIComponent(term));$('battleRankRows').innerHTML='';
- if(!d.players.length){$('battleRankRows').textContent='No completed battles yet.';return}
- for(const p of d.players){const row=document.createElement('div');row.className='row';const rank=document.createElement('div');rank.className='rank';rank.textContent='#'+p.rank;const name=document.createElement('div');name.textContent=p.name;const detail=document.createElement('div');detail.className='muted';detail.textContent='Wins '+p.wins+' · Losses '+p.losses+' · Best '+Number(p.highestScore).toLocaleString();const scoreEl=document.createElement('strong');scoreEl.textContent=Number(p.coinsWon).toLocaleString()+' coins won';row.append(rank,name,scoreEl);row.appendChild(detail);$('battleRankRows').appendChild(row)}
- }catch(e){$('battleRankRows').textContent=e.message}
-}
-function setMode(battle){battleMode=battle;$('soloTab').classList.toggle('active',!battle);$('battleTab').classList.toggle('active',battle);$('soloPanel').classList.toggle('hidden',battle);$('battlePanel').classList.toggle('hidden',!battle);if(battle){cancelAnimationFrame(raf);drawRemoteBoard('battleYouBoard',lastBattle?.you);drawRemoteBoard('battleOpponentBoard',lastBattle?.opponent);refreshBattle();loadBattleRanks();if(!battlePoll)battlePoll=setInterval(()=>{if(battleMode)refreshBattle()},900)}else{if(battlePoll){clearInterval(battlePoll);battlePoll=null}if(gameStarted&&!paused&&!gameOver){lastTime=performance.now();raf=requestAnimationFrame(tick)}}}
-$('findRival').onclick=findRival;$('leaveBattle').onclick=leaveBattle;$('battleRefresh').onclick=refreshBattle;
-document.querySelectorAll('[data-move]').forEach(b=>b.onclick=()=>battleAction(b.dataset.move));
-grid=emptyGrid();piece=nextPiece();draw();loadSession();loadLeaderboard();
-</script></body></html>
+$('soundBtn').addEventListener('click',function(){soundOn=!soundOn;$('soundBtn').textContent=soundOn?'🔊 SOUND ON':'🔇 SOUND OFF';$('soundBtn').setAttribute('aria-pressed',String(soundOn));if(soundOn)sfx('rotate')});
+$('fullBtn').addEventListener('click',async function(){try{if(!document.fullscreenElement){await document.documentElement.requestFullscreen();}else{await document.exitFullscreen()}}catch(e){$('gameNotice').textContent='Use your browser menu to enter fullscreen on this device.'}});
+document.addEventListener('fullscreenchange',function(){$('fullBtn').textContent=document.fullscreenElement?'⤢ EXIT':'⛶ FULL'});
+let balance=0,myBest=0,myRank=null,runStart=0,started=false,over=false,paused=false,raf=0,lastTime=0,score=0,lines=0,level=1,grid=[],piece=null,bag=[];
+const COLS=10,ROWS=20,S=30,colors=['#000','#55d9ff','#ffd166','#bb86fc','#7cffb2','#ff6b9a','#ff9f43','#f7f8ff'];
+const shapes=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]],[[0,1,1],[1,1,0]],[[1,1,0],[0,1,1]]];
+function emptyGrid(){return Array.from({length:ROWS},function(){return Array(COLS).fill(0)})}
+function nextPiece(){if(!bag.length)bag=shapes.map(function(_,i){return i}).sort(function(){return Math.random()-.5});const type=bag.pop(),shape=shapes[type].map(function(r){return r.slice()});return{type:type,shape:shape,x:Math.floor((COLS-shape[0].length)/2),y:0}}
+function collide(p,dx,dy,shape){dx=dx||0;dy=dy||0;shape=shape||p.shape;for(let y=0;y<shape.length;y++)for(let x=0;x<shape[y].length;x++)if(shape[y][x]){const nx=p.x+x+dx,ny=p.y+y+dy;if(nx<0||nx>=COLS||ny>=ROWS||(ny>=0&&grid[ny][nx]))return true}return false}
+const canvas=$('board'),ctx=canvas.getContext('2d');
+function cell(c,x,y,color,size){c.fillStyle=color;c.fillRect(x*size+1,y*size+1,size-2,size-2);c.fillStyle='#ffffff28';c.fillRect(x*size+3,y*size+3,size-6,2);c.strokeStyle='#ffffff22';c.strokeRect(x*size+1.5,y*size+1.5,size-3,size-3)}
+function draw(){if(!ctx)return;ctx.fillStyle='#070b18';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.strokeStyle='#ffffff10';for(let x=0;x<=COLS;x++){ctx.beginPath();ctx.moveTo(x*S,0);ctx.lineTo(x*S,ROWS*S);ctx.stroke()}for(let y=0;y<=ROWS;y++){ctx.beginPath();ctx.moveTo(0,y*S);ctx.lineTo(canvas.width,y*S);ctx.stroke()}grid.forEach(function(row,y){row.forEach(function(v,x){if(v)cell(ctx,x,y,colors[v],S)})});if(piece)piece.shape.forEach(function(row,y){row.forEach(function(v,x){if(v)cell(ctx,piece.x+x,piece.y+y,colors[piece.type+1],S)})});if(!started){overlay(ctx,'TAP START')}else if(paused){overlay(ctx,'PAUSED')}else if(over){overlay(ctx,'GAME OVER')}}
+function overlay(c,text){c.fillStyle='#050711c9';c.fillRect(0,canvas.height/2-25,canvas.width,50);c.fillStyle='#ffe39b';c.font='bold 20px sans-serif';c.textAlign='center';c.fillText(text,canvas.width/2,canvas.height/2+7)}
+function stats(){ $('score').textContent=score.toLocaleString();$('lines').textContent=String(lines);$('level').textContent=String(level)}
+function spawn(){piece=nextPiece();if(collide(piece,0,0)){endGame()}}
+function rotate(){if(!piece)return;const shape=piece.shape[0].map(function(_,i){return piece.shape.map(function(row){return row[i]}).reverse()});for(const kick of [0,-1,1,-2,2])if(!collide(piece,kick,0,shape)){piece.x+=kick;piece.shape=shape;sfx('rotate');break}}
+function lock(){if(!piece)return;piece.shape.forEach(function(row,y){row.forEach(function(v,x){if(v){const gy=piece.y+y;if(gy<0){endGame();return}grid[gy][piece.x+x]=piece.type+1}})});if(over)return;let cleared=0;for(let y=ROWS-1;y>=0;y--)if(grid[y].every(Boolean)){grid.splice(y,1);grid.unshift(Array(COLS).fill(0));cleared++;y++}if(cleared){lines+=cleared;score+=[0,100,300,500,800][cleared]*level;level=1+Math.floor(lines/10);sfx('clear')}else sfx('lock');stats();spawn()}
+function endGame(){if(over)return;over=true;started=false;paused=false;cancelAnimationFrame(raf);$('pause').textContent='Ⅱ PAUSE';$('submit').disabled=score<1;$('gameNotice').textContent='Game over. Save your completed score to update your global rank.';sfx('over');draw()}
+function move(dx,dy){if(!started||paused||over||!piece)return;if(!collide(piece,dx,dy)){piece.x+=dx;piece.y+=dy;if(dy)sfx('move');draw()}else if(dy>0){lock();draw()}}
+function hardDrop(){if(!started||paused||over||!piece)return;while(!collide(piece,0,1)){piece.y++;score+=2}lock();stats();sfx('drop');draw()}
+function tick(now){if(!started||paused||over)return;if(!lastTime)lastTime=now;const interval=Math.max(100,760-(level-1)*55);if(now-lastTime>=interval){lastTime=now;if(!collide(piece,0,1))piece.y++;else lock();draw()}raf=requestAnimationFrame(tick)}
+function startGame(){cancelAnimationFrame(raf);grid=emptyGrid();bag=[];piece=nextPiece();score=0;lines=0;level=1;started=true;over=false;paused=false;runStart=Date.now();lastTime=0;$('submit').disabled=true;$('pause').textContent='Ⅱ PAUSE';$('gameNotice').textContent='Game running — clear lines and save your score when you finish.';stats();draw();raf=requestAnimationFrame(tick)}
+$('start').addEventListener('click',startGame);
+$('left').addEventListener('click',function(){move(-1,0)});$('right').addEventListener('click',function(){move(1,0)});$('down').addEventListener('click',function(){move(0,1)});$('rotate').addEventListener('click',function(){if(started&&!paused&&!over){rotate();draw()}});$('hardDrop').addEventListener('click',hardDrop);
+$('pause').addEventListener('click',function(){if(!started||over)return;paused=!paused;$('pause').textContent=paused?'▶ RESUME':'Ⅱ PAUSE';if(paused)cancelAnimationFrame(raf);else{lastTime=0;raf=requestAnimationFrame(tick)}draw()});
+document.addEventListener('keydown',function(e){if(e.target.closest('input,textarea'))return;if(['ArrowLeft','ArrowRight','ArrowDown','ArrowUp',' '].includes(e.key))e.preventDefault();if(battleMode){const action={'ArrowLeft':'left','ArrowRight':'right','ArrowDown':'down','ArrowUp':'rotate',' ':'drop'}[e.key];if(action)battleAction(action);return}if(e.key==='ArrowLeft')move(-1,0);else if(e.key==='ArrowRight')move(1,0);else if(e.key==='ArrowDown')move(0,1);else if(e.key==='ArrowUp'){if(started&&!paused&&!over){rotate();draw()}}else if(e.key===' ')hardDrop()});
+async function api(url,opts){opts=opts||{};const res=await fetch(url,{...opts,headers:{'Content-Type':'application/json',...(opts.headers||{})},cache:'no-store'});let data;try{data=await res.json()}catch(e){throw Error('Server returned an invalid response ('+res.status+').')}if(!res.ok||!data.ok)throw Error(data.error||'Request failed ('+res.status+').');return data}
+async function loadSession(){if(!token){$('balance').textContent='Not connected';$('gameNotice').textContent='Open Messenger → Game Lobby → Tetris to get a secure account link.';return}try{const d=await api('/api/tetris/session'+q);balance=Number(d.balance)||0;myBest=Number(d.highestScore)||0;myRank=d.rank||null;$('balance').textContent=balance.toLocaleString()+' coins';$('myRank').textContent=myRank?'#'+myRank:'Unranked';$('best').textContent=myBest.toLocaleString();$('bestRank').textContent=myRank?'#'+myRank:'—';if(!over)$('gameNotice').textContent='Account connected. Solo Tetris does not use coins.'}catch(e){$('balance').textContent='Connection failed';$('gameNotice').textContent='COIN CONNECTION FAILED: '+e.message+' Reopen Tetris from Game Lobby in Messenger for a fresh secure link.'}}
+async function loadLeaderboard(){try{const term=$('search').value.trim();const d=await api('/api/tetris/leaderboard'+q+'&search='+encodeURIComponent(term));$('leaderRows').replaceChildren();$('rankSummary').textContent=Number(d.totalRanked||0).toLocaleString()+' ranked players · Search by name or exact rank';if(!d.players.length){$('leaderRows').textContent='No matching ranked players yet.';return}d.players.forEach(function(p){const row=document.createElement('div');row.className='row';const rank=document.createElement('div');rank.className='rank';rank.textContent='#'+p.rank;const name=document.createElement('div');name.textContent=p.name;const scoreEl=document.createElement('strong');scoreEl.textContent=Number(p.highestScore||0).toLocaleString();const detail=document.createElement('div');detail.className='muted';detail.textContent=Number(p.gamesPlayed||0)+' games played';row.append(rank,name,scoreEl,detail);$('leaderRows').appendChild(row)})}catch(e){$('leaderRows').textContent=e.message}}
+$('ranksBtn').addEventListener('click',function(){$('leader').classList.add('open');loadLeaderboard()});$('closeRanks').addEventListener('click',function(){$('leader').classList.remove('open')});$('refreshRanks').addEventListener('click',loadLeaderboard);
+let searchTimer=0;$('search').addEventListener('input',function(){clearTimeout(searchTimer);searchTimer=setTimeout(loadLeaderboard,250)});
+$('submit').addEventListener('click',async function(){if(!over||score<1)return;if(Date.now()-runStart<10000){$('gameNotice').textContent='Play a little longer before saving this score.';return} $('submit').disabled=true;try{const d=await api('/api/tetris/score'+q,{method:'POST',body:JSON.stringify({score:score,lines:lines,durationMs:Date.now()-runStart})});myBest=Number(d.highestScore)||0;myRank=d.rank||null;$('best').textContent=myBest.toLocaleString();$('bestRank').textContent=myRank?'#'+myRank:'—';$('myRank').textContent=myRank?'#'+myRank:'Unranked';$('gameNotice').textContent='Score saved successfully. Your solo rank is '+(myRank?'#'+myRank:'Unranked')+'.';await loadLeaderboard()}catch(e){$('gameNotice').textContent='Score was not saved: '+e.message;$('submit').disabled=false}});
+function setMode(battle){battleMode=battle;$('soloTab').classList.toggle('active',!battle);$('battleTab').classList.toggle('active',battle);$('soloPanel').classList.toggle('active',!battle);$('battlePanel').classList.toggle('active',battle);if(battle){cancelAnimationFrame(raf);refreshBattle();loadBattleRanks();if(!battlePoll)battlePoll=setInterval(function(){if(battleMode)refreshBattle()},1100)}else{if(battlePoll){clearInterval(battlePoll);battlePoll=0}if(started&&!paused&&!over){lastTime=0;raf=requestAnimationFrame(tick)}}}
+$('soloTab').addEventListener('click',function(){setMode(false)});$('battleTab').addEventListener('click',function(){setMode(true)});
+function drawRemote(id,state){const cv=$(id),c=cv.getContext('2d'),cw=cv.width/10,ch=cv.height/20;c.fillStyle='#070b18';c.fillRect(0,0,cv.width,cv.height);c.strokeStyle='#ffffff12';for(let x=0;x<=10;x++){c.beginPath();c.moveTo(x*cw,0);c.lineTo(x*cw,cv.height);c.stroke()}for(let y=0;y<=20;y++){c.beginPath();c.moveTo(0,y*ch);c.lineTo(cv.width,y*ch);c.stroke()}const g=state&&state.grid?state.grid:Array.from({length:20},function(){return Array(10).fill(0)});g.forEach(function(row,y){row.forEach(function(v,x){if(v)cell(c,x,y,colors[v]||'#fff',cw)})});const p=state&&state.piece;if(p&&!state.gameOver)p.shape.forEach(function(row,y){row.forEach(function(v,x){if(v)cell(c,p.x+x,p.y+y,colors[p.type+1]||'#fff',cw)})});if(state&&state.gameOver)overlay(c,'TOP OUT')}
+let battleMode=false,battlePoll=0,battleBusy=false,lastBattle=null;
+async function refreshBattle(){if(!token)return;try{const d=await api('/api/tetris/battle/state'+q);lastBattle=d;if(d.status==='idle'){$('battleNotice').textContent='Choose a stake and find a rival.';$('pot').textContent='—';return}if(d.status==='waiting'){$('battleNotice').textContent='WAITING FOR RIVAL · '+Number(d.stake||0).toLocaleString()+' coins. A second player must choose the same stake.';return}balance=Number(d.balance)||0;$('balance').textContent=balance.toLocaleString()+' coins';$('pot').textContent=Number(d.pot||0).toLocaleString()+' coins';const you=d.you||{},r=d.opponent||{};$('youLabel').textContent=(you.name||'YOU')+' · '+Number(you.score||0).toLocaleString()+' pts · '+(you.rank?'#'+you.rank:'—');$('rivalLabel').textContent=(r.name||'RIVAL')+' · '+(d.status==='active'?'LIVE':'FINISHED');$('rivalScore').textContent=Number(r.score||0).toLocaleString();$('rivalRank').textContent=r.rank?'#'+r.rank:'—';$('record').textContent=Number(you.wins||0)+'/'+Number(you.losses||0);$('won').textContent=Number(you.coinsWon||0).toLocaleString();drawRemote('youBoard',you);drawRemote('rivalBoard',r);if(d.status==='active')$('battleNotice').textContent='MATCH LIVE — clear lines and avoid topping out.';else if(d.status==='finished'&&d.winner==='you'){$('battleNotice').textContent='YOU WON! Match pot: '+Number(d.pot||0).toLocaleString()+' coins.';sfx('win')}else if(d.status==='finished'){$('battleNotice').textContent='MATCH FINISHED. Check your balance and challenge again.';sfx('lose')}else if(d.status==='refunded')$('battleNotice').textContent='DRAW — both stakes were refunded.';document.querySelectorAll('[data-action]').forEach(function(b){b.disabled=d.status!=='active'||battleBusy});$('findRival').disabled=d.status==='active';$('leaveBattle').textContent=d.status==='active'?'FORFEIT MATCH':'CANCEL / LEAVE';if(d.status!=='active'&&d.status!=='waiting'){loadSession();loadBattleRanks()}}catch(e){$('battleNotice').textContent=e.message}}
+async function battleAction(action){if(battleBusy||!lastBattle||lastBattle.status!=='active')return;battleBusy=true;document.querySelectorAll('[data-action]').forEach(function(b){b.disabled=true});try{await api('/api/tetris/battle/action'+q,{method:'POST',body:JSON.stringify({action:action})});await refreshBattle();sfx(action==='drop'?'drop':action==='rotate'?'rotate':'move')}catch(e){$('battleNotice').textContent=e.message}finally{battleBusy=false;document.querySelectorAll('[data-action]').forEach(function(b){b.disabled=!lastBattle||lastBattle.status!=='active'})}}
+async function findRival(){if(!token){$('battleNotice').textContent='Open Tetris from the JojoWorld Messenger Game Lobby first.';return}const stake=Number($('stake').value);if(!Number.isSafeInteger(stake)||stake<10||stake>100000){$('battleNotice').textContent='Enter a whole-number stake from 10 to 100,000 coins.';return}$('findRival').disabled=true;try{const d=await api('/api/tetris/battle/join'+q,{method:'POST',body:JSON.stringify({stake:stake})});$('battleNotice').textContent=d.message|| (d.status==='waiting'?'Waiting for a matching rival…':'Rival found!');await refreshBattle();await loadBattleRanks()}catch(e){$('battleNotice').textContent=e.message}finally{$('findRival').disabled=false}}
+async function leaveBattle(){try{await api('/api/tetris/battle/leave'+q,{method:'POST',body:'{}'});lastBattle=null;$('pot').textContent='—';$('battleNotice').textContent='You left the queue or match.';await loadSession();await refreshBattle()}catch(e){$('battleNotice').textContent=e.message}}
+async function loadBattleRanks(){if(!token)return;try{const term=$('search').value.trim();const d=await api('/api/tetris/battle/leaderboard'+q+'&search='+encodeURIComponent(term));$('battleRanks').replaceChildren();if(!d.players.length){$('battleRanks').textContent='No completed battles yet.';return}d.players.slice(0,12).forEach(function(p){const row=document.createElement('div');row.className='row';const rank=document.createElement('div');rank.className='rank';rank.textContent='#'+p.rank;const name=document.createElement('div');name.textContent=p.name;const stat=document.createElement('strong');stat.textContent=Number(p.wins||0)+'W / '+Number(p.losses||0)+'L';const detail=document.createElement('div');detail.className='muted';detail.textContent='Best '+Number(p.highestScore||0).toLocaleString()+' · '+Number(p.coinsWon||0).toLocaleString()+' coins won';row.append(rank,name,stat,detail);$('battleRanks').appendChild(row)})}catch(e){$('battleRanks').textContent=e.message}}
+$('findRival').addEventListener('click',findRival);$('leaveBattle').addEventListener('click',leaveBattle);$('battleRefresh').addEventListener('click',refreshBattle);document.querySelectorAll('[data-action]').forEach(function(b){b.addEventListener('click',function(){battleAction(b.dataset.action)})});
+grid=emptyGrid();piece=nextPiece();draw();drawRemote('youBoard',null);drawRemote('rivalBoard',null);loadSession();loadLeaderboard();
+})();
+</script>
+</body>
+</html>
