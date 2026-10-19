@@ -200,7 +200,7 @@ function beginCordPull(){
  if(!roundState||roundState.status!=='complete'||!Array.isArray(roundState.result)||revealedRoundNumber===Number(roundState.roundNumber)||pullInProgress)return false;
  if(autoPullTimer){clearTimeout(autoPullTimer);autoPullTimer=null;}
  pullInProgress=true;pullCord.classList.add('pulled');pullCord.classList.remove('ready');cordRig.classList.add('pulled');cordHint.textContent='DICE DROPPING…';
- const stage=$('colorStage');stage.classList.remove('revealed','rolling');stage.classList.add('dice-drop');renderDice(roundState.result,true);
+ const stage=$('colorStage');stage.classList.remove('revealed','rolling');stage.classList.add('dice-drop');renderDice(['WHITE','WHITE','WHITE'],true,false);
  playCordPull();playRoll();
  if(pullTimer)clearTimeout(pullTimer);
  pullTimer=setTimeout(()=>{pullInProgress=false;revealedRoundNumber=Number(pendingResultState?.roundNumber||roundState.roundNumber);pullCord.classList.remove('pulled');cordRig.classList.remove('pulled');stage.classList.remove('dice-drop');if(pendingResultState)renderState(pendingResultState);},2400);
@@ -212,10 +212,10 @@ function normalizeResultColors(value){
  if(typeof value==='string')return value.split(/[,·|]/).map(c=>c.trim().toUpperCase()).filter(c=>colors.includes(c)).slice(0,3);
  return [];
 }
-function renderDice(diceColors,rolling=false){
+function renderDice(diceColors,rolling=false,remember=true){
  const stage=$('colorStage');stage.classList.toggle('rolling',rolling);stage.classList.toggle('revealed',!rolling);
  const validColors=normalizeResultColors(diceColors);
- if(validColors.length===3)lastKnownDiceColors=validColors;
+ if(validColors.length===3&&remember)lastKnownDiceColors=validColors;
  const displayColors=validColors.length===3?validColors:lastKnownDiceColors;
  document.querySelectorAll('.color-die').forEach((die,i)=>{
   die.className='color-die '+String(displayColors[i]||'WHITE').toLowerCase();
@@ -237,15 +237,14 @@ function renderState(state){
   if(String(lastCountdownSecond).split(':')[0]!==String(state.roundNumber))lastCountdownSecond='';
   if(soundEnabled){speakPlaceYourBet(state.roundNumber);const seconds=Math.ceil(time/1000),countdownKey=String(state.roundNumber)+':'+seconds;if(seconds<=10&&seconds>0&&lastCountdownSecond!==countdownKey){lastCountdownSecond=countdownKey;playCountdown(seconds);}if(seconds===1&&time>0&&lastCountdownBeepRound!==String(state.roundNumber)){lastCountdownBeepRound=String(state.roundNumber);tone(1180,.12,.13,'square');tone(820,.16,.11,'triangle',.13);}}
   // [FIXED] Keep the exact previous server result visible in the tray while the next round is open.
-  const previousResult=normalizeResultColors(state.lastResult);
-  if(previousResult.length===3)renderDice(previousResult,false);
-  else renderDice(lastKnownDiceColors,true);
+  // [FIXED] Hide every result color during betting; neutral white dice bounce without revealing the next outcome.
+  renderDice(['WHITE','WHITE','WHITE'],false,false);
   if(time<=3500&&time>0&&lastRollRound!==String(state.roundNumber)){lastRollRound=String(state.roundNumber);playRoll();}
  } else if(state.status==='settling'){
   if(lastRollRound!==String(state.roundNumber)){lastRollRound=String(state.roundNumber);playRoll();}
-  renderDice(lastKnownDiceColors,true);
+  renderDice(['WHITE','WHITE','WHITE'],true,false);
  } else if(state.status==='complete'&&Array.isArray(state.result)&&revealedRoundNumber===Number(state.roundNumber))renderDice(state.result,false);
- else if(state.status==='complete'&&Array.isArray(state.result))renderDice(lastKnownDiceColors,true);
+ else if(state.status==='complete'&&Array.isArray(state.result))renderDice(['WHITE','WHITE','WHITE'],true,false);
  else renderDice(lastKnownDiceColors,true);
  if(state.status==='complete'&&state.result){
   pendingResultState=state;
