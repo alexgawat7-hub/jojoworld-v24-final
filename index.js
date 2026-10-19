@@ -843,6 +843,182 @@ app.post('/api/tetris/score', async (req, res) => {
   }
 });
 
+
+// [ADDED] Server-authoritative Tetris Battle. Client sends input commands, never final scores.
+const TETRIS_SHAPES = [
+  [[1,1,1,1]], [[1,1],[1,1]], [[0,1,0],[1,1,1]],
+  [[1,0,0],[1,1,1]], [[0,0,1],[1,1,1]], [[0,1,1],[1,1,0]], [[1,1,0],[0,1,1]]
+];
+function tetrisNewBoard() {
+  return { grid: Array.from({length:20},()=>Array(10).fill(0)), piece: null, score:0, lines:0, level:1, gameOver:false, lastDropAt:Date.now(), pieces:0 };
+}
+function tetrisSpawn(board) {
+  const type=crypto.randomInt(0,TETRIS_SHAPES.length), shape=TETRIS_SHAPES[type].map(row=>row.slice());
+  board.piece={type,shape,x:Math.floor((10-shape[0].length)/2),y:0};
+  board.pieces++;
+  if(tetrisCollide(board,0,0)) board.gameOver=true;
+}
+function tetrisCollide(board,dx=0,dy=0,shape=board.piece?.shape) {
+  if(!board.piece||!shape)return true;
+  for(let y=0;y<shape.length;y++)for(let x=0;x<shape[y].length;x++)if(shape[y][x]){
+    const nx=board.piece.x+x+dx,ny=board.piece.y+y+dy;
+    if(nx<0||nx>=10||ny>=20||(ny>=0&&board.grid[ny][nx]))return true;
+  }
+  return false;
+}
+function tetrisLock(board) {
+  if(!board.piece)return;
+  board.piece.shape.forEach((row,y)=>row.forEach((v,x)=>{if(v){const gy=board.piece.y+y;if(gy<0)board.gameOver=true;else board.grid[gy][board.piece.x+x]=board.piece.type+1;}}));
+  let cleared=0;
+  for(let y=19;y>=0;y--)if(board.grid[y].every(Boolean)){board.grid.splice(y,1);board.grid.unshift(Array(10).fill(0));cleared++;y++;}
+  if(cleared){board.lines+=cleared;board.score+=[0,100,300,500,800][cleared]*board.level;board.level=1+Math.floor(board.lines/10);}
+  board.piece=null;
+  if(!board.gameOver)tetrisSpawn(board);
+}
+function tetrisApplyAction(board, action) {
+  if(board.gameOver||!board.piece)return;
+  const p=board.piece;
+  if(action==='left'||action==='right'){const dx=action==='left'?-1:1;if(!tetrisCollide(board,dx,0))p.x+=dx;}
+  else if(action==='down'){if(!tetrisCollide(board,0,1)){p.y++;board.score+=1;}else tetrisLock(board);}
+  else if(action==='rotate'){
+    const shape=p.shape[0].map((_,i)=>p.shape.map(row=>row[i]).reverse());
+    for(const kick of [0,-1,1,-2,2])if(!tetrisCollide(board,kick,0,shape)){p.x+=kick;p.shape=shape;break;}
+  } else if(action==='drop'){while(!tetrisCollide(board,0,1)){p.y++;board.score+=2;}tetrisLock(board);}
+  board.lastDropAt=Date.now();
+}
+function tetrisAdvanceGravity(board) {
+  if(board.gameOver||!board.piece)return;
+  const now=Date.now(),interval=Math.max(120,750-(board.level-1)*55);
+  const steps=Math.min(8,Math.floor((now-(board.lastDropAt||now))/interval));
+  for(let i=0;i<steps&&!board.gameOver;i++){
+    if(!tetrisCollide(board,0,1))board.piece.y++;else tetrisLock(board);
+    board.lastDropAt+=interval;
+  }
+}
+function tetrisPublicBoard(board) { return {grid:board.grid,piece:board.piece,score:board.score,lines:board.lines,level:board.level,gameOver:board.gameOver}; }
+async function tetrisSettleBattle(matchId) {
+  const session=await mongoose.startSession();
+  try {
+    await session.withTransaction(async()=>{
+      const match=await TetrisBattleMatchModel.findOne({matchId,status:'active',settlementApplied:false}).session(session);
+      if(!match)return;
+      const a=match.board1||{},b=match.board2||{};
+      const winner= a.gameOver&&!b.gameOver ? String(match.player2.psid) : b.gameOver&&!a.gameOver ? String(match.player1.psid) : (Number(a.score)>Number(b.score)?String(match.player1.psid):Number(b.score)>Number(a.score)?String(match.player2.psid):null);
+      if(!winner) {
+        for(const psid of [String(match.player1.psid),String(match.player2.psid)]) {
+          const u=await UserModel.updateOne({psid,'data.coins':{$gte:0}},{$inc:{'data.coins':Number(match.stake)}},{session});
+          if(!u.matchedCount)throw new Error('Tetris draw refund account missing');
+        }
+        match.status='refunded';match.winnerPsid=null;
+      } else {
+        const pay=await UserModel.updateOne({psid:winner},{$inc:{'data.coins':Number(match.pot)}},{session});
+        if(!pay.matchedCount)throw new Error('Tetris winner account missing during payout');
+        for(const player of [{psid:String(match.player1.psid),name:match.player1.name,won:String(match.player1.psid)===winner,score:Number(a.score)||0},{psid:String(match.player2.psid),name:match.player2.name,won:String(match.player2.psid)===winner,score:Number(b.score)||0}]) {
+          await TetrisBattleStatsModel.findOneAndUpdate({psid:player.psid},{$set:{displayName:player.name,updatedAt:new Date()},$inc:{wins:player.won?1:0,losses:player.won?0:1,gamesPlayed:1},$max:{highestScore:player.score},$inc:{wins:player.won?1:0,losses:player.won?0:1,gamesPlayed:1,coinsWon:player.won?Number(match.pot):0}},{upsert:true,new:true,session,setDefaultsOnInsert:true});
+        }
+        match.status='finished';match.winnerPsid=winner;
+      }
+      match.settlementApplied=true;match.updatedAt=new Date();await match.save({session});
+    });
+  } catch(err) { console.error('[TETRIS BATTLE] Settlement failed:',err.message); }
+  finally { await session.endSession(); }
+}
+function tetrisBattlePublicState(match,psid,balance) {
+  const first=String(match.player1.psid)===String(psid),mine=first?match.board1:match.board2,rival=first?match.board2:match.board1;
+  return {ok:true,status:match.status,matchId:match.matchId,stake:match.stake,pot:match.pot,balance,you:{name:first?match.player1.name:match.player2.name,...tetrisPublicBoard(mine)},opponent:{name:first?match.player2.name:match.player1.name,...tetrisPublicBoard(rival)},winner:match.winnerPsid===String(psid)?'you':match.winnerPsid?'opponent':null};
+}
+app.post('/api/tetris/battle/join',async(req,res)=>{
+ try {
+  const session=await getDiceWebSession(req);
+  if(!session)return res.status(mongoose.connection.readyState===1?401:503).json({ok:false,error:'Open Tetris from Messenger to connect your account.'});
+  const psid=String(session.psid),stake=Number(req.body?.stake);
+  if(!Number.isSafeInteger(stake)||stake<10||stake>100000)return res.status(400).json({ok:false,error:'Stake must be a whole number from 10 to 100,000 coins.'});
+  return await withDiceUserQueue(psid,async()=>{
+   const user=await loadUserFromDB(psid);if(!user)return res.status(404).json({ok:false,error:'JojoWorld account not found.'});
+   const old=await TetrisBattleQueueModel.findOne({psid}).lean();
+   if(old?.status==='matched'&&old.matchId){const m=await TetrisBattleMatchModel.findOne({matchId:old.matchId}).lean();if(m&&m.status==='active')return res.json(tetrisBattlePublicState(m,psid,Math.max(0,Math.floor(Number(user.coins)||0))));}
+   if(Number(user.coins||0)<stake)return res.status(400).json({ok:false,error:'Not enough coins for that stake.'});
+   const name=String(user.name||user.displayName||'Jojo Player').replace(/[<>\u0000-\u001f]/g,'').slice(0,32)||'Jojo Player';
+   await TetrisBattleQueueModel.findOneAndUpdate({psid},{$set:{displayName:name,stake,status:'waiting',matchId:null,createdAt:new Date(),updatedAt:new Date()}},{upsert:true,new:true,setDefaultsOnInsert:true});
+   await TetrisBattleQueueModel.deleteMany({status:'waiting',updatedAt:{$lt:new Date(Date.now()-90000)},psid:{$ne:psid}});
+   const rival=await TetrisBattleQueueModel.findOneAndUpdate({psid:{$ne:psid},stake,status:'waiting',updatedAt:{$gte:new Date(Date.now()-90000)}},{$set:{status:'matching',updatedAt:new Date()}},{new:true,sort:{createdAt:1}});
+   if(!rival)return res.json({ok:true,status:'waiting',stake,balance:Math.max(0,Math.floor(Number(user.coins)||0)),message:'Waiting for a player with the same stake.'});
+   const matchId=crypto.randomUUID(),dbSession=await mongoose.startSession();
+   try {
+    await dbSession.withTransaction(async()=>{
+     const p1=await UserModel.findOne({psid:rival.psid}).session(dbSession),p2=await UserModel.findOne({psid}).session(dbSession);
+     if(!p1?.data||!p2?.data)throw new Error('One player account could not be loaded.');
+     if(Number(p1.data.coins||0)<stake||Number(p2.data.coins||0)<stake)throw new Error('A player no longer has enough coins.');
+     const debit1=await UserModel.updateOne({psid:rival.psid,'data.coins':{$gte:stake}},{$inc:{'data.coins':-stake}},{session:dbSession});
+     const debit2=await UserModel.updateOne({psid,'data.coins':{$gte:stake}},{$inc:{'data.coins':-stake}},{session:dbSession});
+     if(!debit1.modifiedCount||!debit2.modifiedCount)throw new Error('Stake reservation failed; no match was started.');
+     const board1=tetrisNewBoard(),board2=tetrisNewBoard();tetrisSpawn(board1);tetrisSpawn(board2);
+     await TetrisBattleMatchModel.create([{matchId,player1:{psid:rival.psid,name:rival.displayName},player2:{psid,name},stake,pot:stake*2,status:'active',board1,board2}],{session:dbSession});
+     await TetrisBattleQueueModel.updateOne({psid:rival.psid,status:'matching'},{$set:{status:'matched',matchId,updatedAt:new Date()}},{session:dbSession});
+     await TetrisBattleQueueModel.updateOne({psid},{$set:{status:'matched',matchId,updatedAt:new Date()}},{session:dbSession});
+    });
+   }catch(err){await TetrisBattleQueueModel.updateOne({psid:rival.psid,status:'matching'},{$set:{status:'waiting',updatedAt:new Date()}});await TetrisBattleQueueModel.deleteOne({psid,status:'waiting'});throw err;}
+   finally{await dbSession.endSession();}
+   const match=await TetrisBattleMatchModel.findOne({matchId}).lean();
+   const me=await loadUserFromDB(psid);
+   return res.json(tetrisBattlePublicState(match,psid,Math.max(0,Math.floor(Number(me?.coins)||0))));
+  });
+ }catch(err){console.error('[TETRIS BATTLE] Join failed:',err.message);return res.status(503).json({ok:false,error:err.message.includes('enough coins')?err.message:'Could not join a Tetris match. Please try again.'});}
+});
+app.get('/api/tetris/battle/state',async(req,res)=>{
+ try {
+  const session=await getDiceWebSession(req);if(!session)return res.status(mongoose.connection.readyState===1?401:503).json({ok:false,error:'Reopen Tetris from Messenger.'});
+  const psid=String(session.psid),queue=await TetrisBattleQueueModel.findOne({psid}).lean();
+  if(!queue)return res.json({ok:true,status:'idle'});
+  if(queue.status==='waiting')return res.json({ok:true,status:'waiting',stake:queue.stake});
+  const match=await TetrisBattleMatchModel.findOne({matchId:queue.matchId}).lean();if(!match)return res.json({ok:true,status:'idle'});
+  if(match.status==='active'){
+   const field=String(match.player1.psid)===psid?'board1':'board2',board=match[field];
+   tetrisAdvanceGravity(board);
+   if(board.gameOver){await TetrisBattleMatchModel.updateOne({matchId:match.matchId,status:'active'},{$set:{[field]:board,updatedAt:new Date()}});await tetrisSettleBattle(match.matchId);}
+   else await TetrisBattleMatchModel.updateOne({matchId:match.matchId,status:'active'},{$set:{[field]:board,updatedAt:new Date()}});
+  }
+  const latest=await TetrisBattleMatchModel.findOne({matchId:queue.matchId}).lean(),user=await loadUserFromDB(psid);
+  res.set('Cache-Control','no-store');return res.json(tetrisBattlePublicState(latest,psid,Math.max(0,Math.floor(Number(user?.coins)||0))));
+ }catch(err){console.error('[TETRIS BATTLE] State failed:',err.message);return res.status(503).json({ok:false,error:'Battle state unavailable.'});}
+});
+app.post('/api/tetris/battle/action',async(req,res)=>{
+ try{
+  const session=await getDiceWebSession(req);if(!session)return res.status(mongoose.connection.readyState===1?401:503).json({ok:false,error:'Reopen Tetris from Messenger.'});
+  const psid=String(session.psid),action=String(req.body?.action||'');
+  if(!['left','right','down','rotate','drop'].includes(action))return res.status(400).json({ok:false,error:'Invalid Tetris move.'});
+  const queue=await TetrisBattleQueueModel.findOne({psid,status:'matched'}).lean();if(!queue?.matchId)return res.status(404).json({ok:false,error:'No active match.'});
+  const match=await TetrisBattleMatchModel.findOne({matchId:queue.matchId,status:'active',$or:[{'player1.psid':psid},{'player2.psid':psid}]}).lean();
+  if(!match)return res.status(409).json({ok:false,error:'This match has finished.'});
+  const field=String(match.player1.psid)===psid?'board1':'board2',board=match[field];
+  tetrisAdvanceGravity(board);tetrisApplyAction(board,action);
+  const updated=await TetrisBattleMatchModel.findOneAndUpdate({matchId:match.matchId,status:'active'},{$set:{[field]:board,updatedAt:new Date()}},{new:true}).lean();
+  if(!updated)return res.status(409).json({ok:false,error:'Match already finished.'});
+  if(board.gameOver)await tetrisSettleBattle(match.matchId);
+  const latest=await TetrisBattleMatchModel.findOne({matchId:match.matchId}).lean(),user=await loadUserFromDB(psid);
+  res.set('Cache-Control','no-store');return res.json(tetrisBattlePublicState(latest,psid,Math.max(0,Math.floor(Number(user?.coins)||0))));
+ }catch(err){console.error('[TETRIS BATTLE] Action failed:',err.message);return res.status(503).json({ok:false,error:'Could not apply Tetris move.'});}
+});
+app.post('/api/tetris/battle/leave',async(req,res)=>{
+ try{
+  const session=await getDiceWebSession(req);if(!session)return res.status(mongoose.connection.readyState===1?401:503).json({ok:false,error:'Reopen Tetris from Messenger.'});
+  const psid=String(session.psid),queue=await TetrisBattleQueueModel.findOne({psid}).lean();
+  if(queue?.status==='waiting'){await TetrisBattleQueueModel.deleteOne({psid,status:'waiting'});return res.json({ok:true,status:'idle'});}
+  if(queue?.status==='matched'&&queue.matchId){const match=await TetrisBattleMatchModel.findOne({matchId:queue.matchId,status:'active'}).lean();if(match){const winner=String(match.player1.psid)===psid?String(match.player2.psid):String(match.player1.psid);await TetrisBattleMatchModel.updateOne({matchId:match.matchId,status:'active'},{$set:{winnerPsid:winner,status:'finished',updatedAt:new Date()}});await tetrisSettleBattle(match.matchId);}}
+  res.set('Cache-Control','no-store');return res.json({ok:true,status:'idle'});
+ }catch(err){console.error('[TETRIS BATTLE] Leave failed:',err.message);return res.status(503).json({ok:false,error:'Could not leave Tetris battle.'});}
+});
+app.get('/api/tetris/battle/leaderboard',async(req,res)=>{
+ try{
+  const session=await getDiceWebSession(req);if(!session)return res.status(mongoose.connection.readyState===1?401:503).json({ok:false,error:'Open Tetris from Messenger.'});
+  const rows=await TetrisBattleStatsModel.find({}).sort({wins:-1,highestScore:-1,losses:1,updatedAt:1}).limit(10000).lean();
+  const ranked=rows.map((r,i)=>({rank:i+1,name:r.displayName||'Jojo Player',wins:r.wins||0,losses:r.losses||0,highestScore:r.highestScore||0,gamesPlayed:r.gamesPlayed||0,coinsWon:r.coinsWon||0,psid:String(r.psid)}));
+  const term=String(req.query.search||'').trim().slice(0,60);
+  const selected=!term?ranked.slice(0,50):/^#?\d+$/.test(term)?ranked.filter(r=>r.rank===Number(term.replace('#',''))):ranked.filter(r=>r.name.toLowerCase().includes(term.toLowerCase())).slice(0,50);
+  return res.json({ok:true,totalRanked:ranked.length,players:selected.map(({psid,...r})=>r)});
+ }catch(err){console.error('[TETRIS BATTLE] Leaderboard failed:',err.message);return res.status(503).json({ok:false,error:'Battle leaderboard unavailable.'});}
+});
+
 app.get('/live-games', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'live-games.html'), err => {
     if (err && !res.headersSent) {
@@ -917,6 +1093,43 @@ const TetrisStatsSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now }
 }, { strict: true });
 const TetrisStatsModel = mongoose.models.JTetrisStats || mongoose.model('JTetrisStats', TetrisStatsSchema);
+// [ADDED] Server-owned 1v1 Tetris queue, escrow match and battle records.
+const TetrisBattleQueueSchema = new mongoose.Schema({
+  psid: { type: String, required: true, unique: true },
+  displayName: { type: String, default: 'Jojo Player' },
+  stake: { type: Number, required: true, min: 10, max: 100000 },
+  status: { type: String, enum: ['waiting', 'matching', 'matched'], default: 'waiting', index: true },
+  matchId: { type: String, default: null },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+}, { strict: true });
+const TetrisBattleQueueModel = mongoose.models.JTetrisBattleQueue || mongoose.model('JTetrisBattleQueue', TetrisBattleQueueSchema);
+const TetrisBattleMatchSchema = new mongoose.Schema({
+  matchId: { type: String, required: true, unique: true },
+  player1: { psid: String, name: String },
+  player2: { psid: String, name: String },
+  stake: { type: Number, required: true },
+  pot: { type: Number, required: true },
+  status: { type: String, enum: ['active', 'finished', 'refunded'], default: 'active', index: true },
+  board1: { type: mongoose.Schema.Types.Mixed, required: true },
+  board2: { type: mongoose.Schema.Types.Mixed, required: true },
+  winnerPsid: { type: String, default: null },
+  settlementApplied: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+}, { strict: true });
+const TetrisBattleMatchModel = mongoose.models.JTetrisBattleMatch || mongoose.model('JTetrisBattleMatch', TetrisBattleMatchSchema);
+const TetrisBattleStatsSchema = new mongoose.Schema({
+  psid: { type: String, required: true, unique: true },
+  displayName: { type: String, default: 'Jojo Player' },
+  wins: { type: Number, default: 0 },
+  losses: { type: Number, default: 0 },
+  highestScore: { type: Number, default: 0 },
+  gamesPlayed: { type: Number, default: 0 },
+  coinsWon: { type: Number, default: 0 },
+  updatedAt: { type: Date, default: Date.now }
+}, { strict: true });
+const TetrisBattleStatsModel = mongoose.models.JTetrisBattleStats || mongoose.model('JTetrisBattleStats', TetrisBattleStatsSchema);
 
 const UserSchema = new mongoose.Schema({ psid: { type: String, required: true, unique: true }, data: Object }, { strict: false });
 const UserModel = mongoose.models.JUser || mongoose.model('JUser', UserSchema);
