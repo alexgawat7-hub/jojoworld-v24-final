@@ -979,7 +979,19 @@ app.get('/api/tetris/battle/state',async(req,res)=>{
    else await TetrisBattleMatchModel.updateOne({matchId:match.matchId,status:'active'},{$set:{[field]:board,updatedAt:new Date()}});
   }
   const latest=await TetrisBattleMatchModel.findOne({matchId:queue.matchId}).lean(),user=await loadUserFromDB(psid);
-  res.set('Cache-Control','no-store');return res.json(tetrisBattlePublicState(latest,psid,Math.max(0,Math.floor(Number(user?.coins)||0))));
+  const publicState=tetrisBattlePublicState(latest,psid,Math.max(0,Math.floor(Number(user?.coins)||0)));
+  if(latest){
+   const myPsid=String(psid),rivalPsid=String(latest.player1.psid)===myPsid?String(latest.player2.psid):String(latest.player1.psid);
+   const [myStats,rivalStats]=await Promise.all([TetrisBattleStatsModel.findOne({psid:myPsid}).lean(),TetrisBattleStatsModel.findOne({psid:rivalPsid}).lean()]);
+   async function battleRankFor(stat){
+    if(!stat)return null;
+    return await TetrisBattleStatsModel.countDocuments({$or:[{wins:{$gt:Number(stat.wins||0)}},{wins:Number(stat.wins||0),highestScore:{$gt:Number(stat.highestScore||0)}},{wins:Number(stat.wins||0),highestScore:Number(stat.highestScore||0),losses:{$lt:Number(stat.losses||0)}}]})+1;
+   }
+   const [myRank,rivalRank]=await Promise.all([battleRankFor(myStats),battleRankFor(rivalStats)]);
+   Object.assign(publicState.you,{rank:myRank,wins:Number(myStats?.wins)||0,losses:Number(myStats?.losses)||0,highestScore:Number(myStats?.highestScore)||0});
+   Object.assign(publicState.opponent,{rank:rivalRank,wins:Number(rivalStats?.wins)||0,losses:Number(rivalStats?.losses)||0,highestScore:Number(rivalStats?.highestScore)||0});
+  }
+  res.set('Cache-Control','no-store');return res.json(publicState);
  }catch(err){console.error('[TETRIS BATTLE] State failed:',err.message);return res.status(503).json({ok:false,error:'Battle state unavailable.'});}
 });
 app.post('/api/tetris/battle/action',async(req,res)=>{
