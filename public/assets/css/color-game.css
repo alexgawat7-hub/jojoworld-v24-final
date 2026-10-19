@@ -287,3 +287,17 @@ body.crazy-color-page{height:100dvh}
   user-select: text;
   -webkit-touch-callout: default;
 }
+
+
+/* [FIXED] Make the wager amount and selected stake controls clearly visible on mobile. */
+.crazy-app .bet-controls{display:grid;grid-template-columns:minmax(0,1fr);gap:7px;padding:8px;background:linear-gradient(145deg,#26190d,#100b07);border:1px solid #d5a34d;border-radius:7px;}
+.crazy-app .bet-entry{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;}
+.crazy-app .bet-entry label{font-size:12px;font-weight:1000;letter-spacing:1px;color:#ffe0a0;}
+.crazy-app .bet-entry input{width:100%;min-width:0;height:42px;padding:7px 10px;border:2px solid #e5b85d;border-radius:6px;background:#fff7df;color:#241607;font-size:20px;font-weight:1000;text-align:center;}
+.crazy-app .bet-entry .max{height:42px;min-width:54px;padding:0 10px;border:1px solid #f2cc78;border-radius:6px;background:linear-gradient(#f6d98c,#a76a1d);color:#201205;font-size:12px;font-weight:1000;}
+.crazy-app .quick-bets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0;}
+.crazy-app .quick-bets button{min-height:34px;padding:7px 3px;border:1px solid #a77b3f;border-radius:5px;background:linear-gradient(#47311b,#211409);color:#ffe1a3;font-size:13px;font-weight:1000;}
+.crazy-app .quick-bets button:active{background:linear-gradient(#f6d98c,#a76a1d);color:#201205;}
+.crazy-app .crazy-bet-panel .place-bet{min-height:40px;margin-top:0;padding:9px;font-size:12px;font-weight:1000;letter-spacing:.5px;}
+.crazy-app .board-totals{font-size:11px;font-weight:900;}
+@media(max-height:740px){.crazy-app .bet-entry input{height:36px;font-size:18px}.crazy-app .bet-entry .max{height:36px}.crazy-app .quick-bets button{min-height:30px;padding:5px 2px}.crazy-app .crazy-bet-panel .place-bet{min-height:35px;padding:7px}}
