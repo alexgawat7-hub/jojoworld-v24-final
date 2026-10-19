@@ -11,3 +11,10 @@ input, textarea, [contenteditable="true"] {
   user-select: text;
   -webkit-touch-callout: default;
 }
+
+
+/* [UPGRADED] PixiJS renders lightweight arena energy and combat-hit particles behind the live DOM controls. */
+.arena{isolation:isolate;overflow:hidden}
+.neon-battle-pixi{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.arena:after{z-index:0}
+.arena>.fighter,.arena>.vs{position:relative;z-index:1}
