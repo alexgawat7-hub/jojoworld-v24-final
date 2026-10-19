@@ -1037,8 +1037,12 @@ app.post('/api/tetris/battle/leave',async(req,res)=>{
   const session=await getDiceWebSession(req);if(!session)return res.status(mongoose.connection.readyState===1?401:503).json({ok:false,error:'Reopen Tetris from Messenger.'});
   const psid=String(session.psid);
   return await withDiceUserQueue(psid,async()=>{
-  const queue=await TetrisBattleQueueModel.findOne({psid}).lean();
-  if(queue?.status==='waiting'||queue?.status==='matching'){await TetrisBattleQueueModel.deleteOne({psid,status:queue.status});return res.json({ok:true,status:'idle'});}
+  let queue=await TetrisBattleQueueModel.findOne({psid}).lean();
+  if(queue?.status==='waiting'||queue?.status==='matching'){
+   const removed=await TetrisBattleQueueModel.deleteOne({psid,status:queue.status});
+   if(removed.deletedCount)return res.json({ok:true,status:'idle'});
+   queue=await TetrisBattleQueueModel.findOne({psid}).lean();
+  }
   if(queue?.status==='matched'&&queue.matchId){const match=await TetrisBattleMatchModel.findOne({matchId:queue.matchId,status:'active'}).lean();if(match){const field=String(match.player1.psid)===psid?'board1':'board2';const board=match[field]||tetrisNewBoard();board.gameOver=true;await TetrisBattleMatchModel.updateOne({matchId:match.matchId,status:'active'},{$set:{[field]:board,updatedAt:new Date()}});await tetrisSettleBattle(match.matchId);}}
   res.set('Cache-Control','no-store');return res.json({ok:true,status:'idle'});
   });
