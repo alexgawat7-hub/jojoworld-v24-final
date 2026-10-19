@@ -132,3 +132,16 @@ html,body{overflow:hidden!important;touch-action:pan-x}
 @media(max-height:620px){.sub{display:none}.arena-banner small{display:none}.recent{gap:2px!important}.recent-die{min-width:22px!important;padding:2px!important}}
 
 .game-nav .shop-link{border-color:#b59a54;background:linear-gradient(100deg,#3a2d22,#292040);color:#ffe49a;white-space:nowrap}
+
+
+/* [ADDED] Prevent mobile long-press text selection across JojoWorld game screens; form fields remain editable. */
+body, body * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
