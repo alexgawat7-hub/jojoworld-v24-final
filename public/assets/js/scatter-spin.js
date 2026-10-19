@@ -27,7 +27,7 @@ function setBalance(n){balance=Number(n)||0;$('balance').textContent=money(balan
 function setJackpot(n){$('jackpot').textContent=money(n)+' coins'}
 async function loadAccount({quiet=false}={}){
  if(accountLoading)return;accountLoading=true;
- if(!token){accountConnected=false;$('result').innerHTML='OPEN FROM MESSENGER<small>Type SPIN in JojoWorld Messenger and open the Scatter Spin button.</small>';$('spin').disabled=true;accountLoading=false;return}
+ if(!token){accountConnected=false;$('result').innerHTML='OPEN FROM MESSENGER<small>Type SPIN in JojoWorld Messenger and open the Reel Spin button.</small>';$('spin').disabled=true;accountLoading=false;return}
  $('spin').disabled=true;
  let lastError=null;
  for(let attempt=0;attempt<3;attempt++){
