@@ -8,7 +8,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     $('lobby').href = '/live-games?token=' + encodeURIComponent(token);
     $('multiplayer').href = '/neon-racing-multiplayer?token=' + encodeURIComponent(token);
   }
-  let running=false, sound=false, audio=null, audioRig=null, last=0, progress=0, rivalProgress=0, rafId=0;
+  let running=false, sound=false, audio=null, audioRig=null, last=0, progress=0, rivalProgress=0, rafId=0, pageLeaving=false;
   let speed=0, steer=0, nitro=0, rivalBoost=0, braking=false, keys={}, edgeHitCooldown=0;
   let best=Number(localStorage.getItem('jojoworldNeonRacingBest')||0);
   $('best').textContent=best;
@@ -232,6 +232,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
   }
 
   function resize(){
+    if(pageLeaving)return;
     const w=Math.max(300,mount.clientWidth),h=Math.max(250,mount.clientHeight);
     renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
   }
@@ -293,6 +294,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     if(sound&&audio){try{const o=audio.createOscillator(),g=audio.createGain();o.type='sawtooth';o.frequency.setValueAtTime(180,audio.currentTime);o.frequency.exponentialRampToValueAtTime(850,audio.currentTime+.28);g.gain.setValueAtTime(.0001,audio.currentTime);g.gain.exponentialRampToValueAtTime(.11,audio.currentTime+.025);g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+.34);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+.35);}catch{}}
   }
   function draw(){
+    if(pageLeaving)return;
     const playerX=steer*6.55;
     const slide=driftAmount*(steer<0?1:-1)*.52;
     const targetX=playerX+slide;
@@ -342,6 +344,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
   }
   function frame(t){
     rafId=0;
+    if(pageLeaving)return;
     if(!running){draw();return;}
     const dt=Math.min(40,t-last||16);last=t;const sec=dt/1000;
     if(nitro>0)nitro=Math.max(0,nitro-sec);
@@ -363,6 +366,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     rafId=requestAnimationFrame(frame);
   }
   function start(){
+    if(pageLeaving)return;
     running=true;progress=0;rivalProgress=0;speed=0;steer=0;nitro=0;rivalBoost=0;braking=false;driftAmount=0;edgeHitCooldown=0;last=0;keys={};player.position.x=0;
     nitroPickups.forEach((p,i)=>{p.position.set([-3.6,0,3.6,0,-3.6][i],.95,-34-i*43);});
     for(const p of smoke){p.life=0;p.mesh.visible=false;}
@@ -379,6 +383,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
   $('start').addEventListener('click',start);$('restart').addEventListener('click',start);
   $('sound').addEventListener('click',()=>{sound=!sound;$('sound').textContent=sound?'🔊 SOUND: ON':'🔊 SOUND: OFF';if(sound){ensureAudio();beep(600);}else if(audioRig&&audio){audioRig.engineGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.harmonicGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.motorGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.windGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.tireGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);}});
   window.addEventListener('pagehide',()=>{
+    pageLeaving=true;
     running=false;keys={};
     if(rafId){cancelAnimationFrame(rafId);rafId=0;}
     try{renderer.dispose();}catch(e){}
