@@ -330,14 +330,14 @@ app.post('/api/color-game/bet', async (req, res) => {
 app.get('/api/scatter-spin/session', async (req, res) => {
   try {
     const session = await getDiceWebSession(req);
-    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Open Scatter Spin from Messenger to reconnect your account.' });
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Open Reel Spin from Messenger to reconnect your account.' });
     const user = await loadUserFromDB(session.psid);
     if (!user) return res.status(404).json({ ok: false, error: 'JojoWorld account not found.' });
     res.set('Cache-Control', 'no-store');
     return res.json({ ok: true, balance: Math.max(0, Math.floor(Number(user.coins) || 0)), jackpot: Math.max(0, Math.floor(Number(db.jackpotPool) || 1500)) });
   } catch (err) {
     console.error('[SCATTER SPIN] Session read failed:', err.message);
-    return res.status(503).json({ ok: false, error: 'Scatter Spin account is temporarily unavailable.' });
+    return res.status(503).json({ ok: false, error: 'Reel Spin account is temporarily unavailable.' });
   }
 });
 app.post('/api/scatter-spin/spin', async (req, res) => {
@@ -348,7 +348,7 @@ app.post('/api/scatter-spin/spin', async (req, res) => {
       const user = await loadUserFromDB(String(session.psid));
       if (!user) return res.status(404).json({ ok: false, error: 'JojoWorld account not found.' });
       const balance = Math.max(0, Math.floor(Number(user.coins) || 0));
-      if (balance < 10) return res.status(400).json({ ok: false, error: 'Scatter Spin costs 10 coins.', balance });
+      if (balance < 10) return res.status(400).json({ ok: false, error: 'Reel Spin costs 10 coins.', balance });
       const oldCoins = user.coins, oldJackpot = db.jackpotPool;
       user.coins = balance - 10;
       db.jackpotPool = Math.max(0, Math.floor(Number(db.jackpotPool) || 1500)) + 5;
@@ -3274,7 +3274,7 @@ A new user successfully registered using your link! 🎁
               await axios.post('https://graph.facebook.com/v19.0/me/messages?access_token=' + PAGE_TOKEN, {
                 recipient: { id: psid },
                 message: { attachment: { type: 'template', payload: { template_type: 'button',
-                  text: '🎮 JOJOWORLD GAME LOBBY\nPindutin ang Game Lobby para makita ang lahat ng available na laro, kabilang ang Scatter Spin at Dice Arena.',
+                  text: '🎮 JOJOWORLD GAME LOBBY\nPindutin ang Game Lobby para makita ang lahat ng available na laro, kabilang ang Reel Spin at Dice Arena.',
                   buttons: [
                     { type: 'web_url', url: lobbyUrl, title: '🎮 Game Lobby' }
                   ]
@@ -3292,7 +3292,7 @@ A new user successfully registered using your link! 🎁
         // Legacy Messenger dice buttons/commands should no longer place bets in text chat.
         if (dicePayload === "DICE_CANCEL" || dicePayload.startsWith("DICE_BET_") ||
             dicePayload.startsWith("DICE_ROLL_") || /^DICE\s+\S+/i.test(dicePayload)) {
-          send(psid, '🎰 Para maglaro, pindutin ang Scatter Spin sa menu at buksan ang browser game button. Hindi na available ang text-based mode.');
+          send(psid, '🎰 Para maglaro, pindutin ang Reel Spin sa menu at buksan ang browser game button. Hindi na available ang text-based mode.');
           continue;
         }
 
@@ -4257,7 +4257,7 @@ ${renderGiftCatalog()}
               continue;
             }
             send(psid, `🎁 DAILY REWARD CLAIMED!\n💰 +35 Coins added!\n💎 Balance: ${user.coins} coins`, [
-              { content_type: "text", title: "🎡 Scatter Spin", payload: "SPIN" },
+              { content_type: "text", title: "🎡 Reel Spin", payload: "SPIN" },
               { content_type: "text", title: "↩️ Menu", payload: "MENU" }
             ]);
           }
