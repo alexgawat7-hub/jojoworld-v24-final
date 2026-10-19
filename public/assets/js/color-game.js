@@ -246,7 +246,7 @@ function renderState(state){
   renderDice(lastKnownDiceColors,true);
  } else if(state.status==='complete'&&Array.isArray(state.result)&&revealedRoundNumber===Number(state.roundNumber))renderDice(state.result,false);
  else if(state.status==='complete'&&Array.isArray(state.result))renderDice(lastKnownDiceColors,true);
- else renderDice(['GREEN','RED','GREEN'],true);
+ else renderDice(lastKnownDiceColors,true);
  if(state.status==='complete'&&state.result){
   pendingResultState=state;
   if(revealedRoundNumber!==Number(state.roundNumber)){
