@@ -7,7 +7,7 @@
 <div class="wallet"><div><small>YOUR JOJOWORLD COINS</small><strong id="balance">Connecting…</strong></div><div style="text-align:right"><small>YOUR SOLO RANK</small><strong id="myRank">—</strong></div></div>
 <div class="tabs"><button class="tab active" id="soloTab">🧩 SOLO TETRIS</button><button class="tab" id="battleTab">⚔️ 1v1 COIN BATTLE</button></div>
 <section id="soloPanel" class="panel"><div class="game-layout"><div><div class="board-wrap"><canvas id="board" width="300" height="600" aria-label="Tetris board"></canvas></div><div class="controls"><button class="btn" id="left">◀</button><button class="btn" id="rotate">⟳ ROTATE</button><button class="btn" id="right">▶</button><button class="btn" id="down">▼ DROP</button><button class="btn" id="hardDrop">⬇ HARD</button><button class="btn" id="pause">Ⅱ PAUSE</button></div></div><aside class="stats"><div class="stat"><small>SCORE</small><strong id="score">0</strong></div><div class="stat"><small>LINES</small><strong id="lines">0</strong></div><div class="stat"><small>LEVEL</small><strong id="level">1</strong></div><div class="stat"><small>BEST SCORE</small><strong id="best">0</strong></div><div class="stat"><small>BEST RANK</small><strong id="bestRank">—</strong></div><p class="muted">← → move<br>↑ rotate<br>↓ soft drop<br>Space hard drop</p></aside></div><div class="actions"><button class="btn primary" id="start">▶ START / RESTART</button><button class="btn" id="submit" disabled>UPLOAD SCORE</button></div><p class="notice" id="gameNotice">Start a game. Valid completed scores update your Solo Global Rank. Solo mode has no coin wager.</p></section>
-<section id="battlePanel" class="panel hidden"><h2>⚔️ 1v1 Tetris Coin Battle</h2><p>Match another JojoWorld player, agree on the same coin stake, then compete on separate boards. Both players' global rank, current score, wins and losses should remain visible during a match.</p><p class="notice">The live coin-stake matchmaking and secure winner payout need their own server-side escrow implementation. This control is shown as planned and will not deduct coins or claim to match you until that backend is implemented.</p><button class="btn" disabled>1v1 BET MATCHMAKING — NOT LIVE YET</button></section>
+<section id="battlePanel" class="panel hidden"><h2>⚔️ 1v1 Tetris Coin Battle</h2><p class="muted">Same-stake matchmaking · server-owned boards · automatic coin escrow and payout</p><div class="wallet"><div><small>YOUR STAKE (COINS)</small><input id="stake" type="number" min="10" max="100000" step="10" value="100" style="width:120px;padding:8px;border-radius:9px;border:1px solid #354267;background:#080d1c;color:#ffe39b;font-weight:900"></div><div style="text-align:right"><small>MATCH POT</small><strong id="battlePot">—</strong></div></div><div id="battleStatus" class="notice">Choose your stake, then tap Find Rival. Both players must have enough coins and the same stake.</div><div class="game-layout"><div><div class="muted" id="youLabel">YOU · SCORE 0</div><div class="board-wrap"><canvas id="battleYouBoard" width="200" height="400" aria-label="Your battle Tetris board"></canvas></div><div class="controls"><button class="btn" data-move="left">◀</button><button class="btn" data-move="rotate">⟳</button><button class="btn" data-move="right">▶</button><button class="btn" data-move="down">▼</button><button class="btn" data-move="drop">⬇ DROP</button><button class="btn" id="battleRefresh">↻</button></div></div><div><div class="muted" id="opponentLabel">RIVAL · WAITING</div><div class="board-wrap"><canvas id="battleOpponentBoard" width="200" height="400" aria-label="Opponent battle Tetris board"></canvas></div><div class="stats"><div class="stat"><small>RIVAL SCORE</small><strong id="rivalScore">0</strong></div><div class="stat"><small>RIVAL RANK</small><strong id="rivalRank">—</strong></div><div class="stat"><small>WINS / LOSSES</small><strong id="battleRecord">0 / 0</strong></div></div></div></div><div class="actions"><button class="btn primary" id="findRival">⚔ FIND RIVAL</button><button class="btn" id="leaveBattle">CANCEL / LEAVE</button></div><p class="notice">The server controls each board and the match result. Coins are reserved only when two matching stakes are paired. A completed match pays the winner the pot; an exact-score draw refunds both stakes.</p><div class="leader-head"><h3>⚔ BATTLE GLOBAL RANKING</h3><span class="muted">Wins · Losses · Best score</span></div><div id="battleRankRows"><p class="muted">Loading battle ranking…</p></div></section>
 <section class="leader"><div class="leader-head"><h2>🏆 SOLO GLOBAL LEADERBOARD</h2><span class="muted">All ranked players</span></div><input id="search" class="search" placeholder="Search player name or rank (e.g. 1537)" autocomplete="off"><div id="leaderRows"><p class="muted">Loading leaderboard…</p></div><div class="actions"><button class="btn" id="refresh">↻ REFRESH RANKS</button></div></section>
 </main><script>
 const token=new URLSearchParams(location.search).get('token')||'';const q='?token='+encodeURIComponent(token);document.getElementById('lobby').href='/live-games'+q;
@@ -35,5 +35,68 @@ async function loadSession(){if(!token){$('balance').textContent='Open from Mess
 async function loadLeaderboard(){try{const term=$('search').value.trim();const d=await api('/api/tetris/leaderboard'+q+'&search='+encodeURIComponent(term));$('leaderRows').innerHTML='';if(!d.players.length){$('leaderRows').innerHTML='<p class="muted">No matching ranked players yet.</p>';return}for(const p of d.players){const row=document.createElement('div');row.className='row';const rank=document.createElement('div');rank.className='rank';rank.textContent='#'+p.rank;const name=document.createElement('div');name.textContent=p.name;const details=document.createElement('div');details.className='muted';details.textContent='Best '+Number(p.highestScore).toLocaleString()+' · '+p.gamesPlayed+' games';const score=document.createElement('strong');score.textContent=Number(p.highestScore).toLocaleString();row.append(rank,name,score);row.appendChild(details);$('leaderRows').appendChild(row)}}catch(e){$('leaderRows').textContent=e.message}}
 $('submit').onclick=async()=>{if(!gameOver||score<=0)return;try{const d=await api('/api/tetris/score'+q,{method:'POST',body:JSON.stringify({score,lines,durationMs:Date.now()-runStart})});myBest=d.highestScore;myRank=d.rank;$('best').textContent=myBest.toLocaleString();$('bestRank').textContent=d.rank?'#'+d.rank:'—';$('myRank').textContent=d.rank?'#'+d.rank:'Unranked';$('gameNotice').textContent='Score saved. Solo Global Rank: '+(d.rank?'#'+d.rank:'Unranked')+'.';$('submit').disabled=true;await loadLeaderboard()}catch(e){$('gameNotice').textContent=e.message}};
 $('refresh').onclick=()=>{loadSession();loadLeaderboard()};let searchTimer; $('search').addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(loadLeaderboard,220)});
+
+// [ADDED] Server-controlled 1v1 Tetris client controls and live opponent pressure panel.
+let battleMode=false,battlePoll=null,battleBusy=false,lastBattle=null;
+const battleColors=colors;
+function drawRemoteBoard(id,state){
+ const cv=$(id),cx=cv.getContext('2d'),cw=cv.width/10,ch=cv.height/20,grid=state?.grid||Array.from({length:20},()=>Array(10).fill(0));
+ cx.fillStyle='#080d1c';cx.fillRect(0,0,cv.width,cv.height);cx.strokeStyle='#ffffff12';
+ for(let x=0;x<=10;x++){cx.beginPath();cx.moveTo(x*cw,0);cx.lineTo(x*cw,cv.height);cx.stroke()}
+ for(let y=0;y<=20;y++){cx.beginPath();cx.moveTo(0,y*ch);cx.lineTo(cv.width,y*ch);cx.stroke()}
+ const cell=(x,y,v)=>{if(y<0||x<0||x>=10||y>=20)return;cx.fillStyle=battleColors[v]||'#fff';cx.fillRect(x*cw+1,y*ch+1,cw-2,ch-2);cx.fillStyle='#ffffff28';cx.fillRect(x*cw+2,y*ch+2,cw-4,2)};
+ grid.forEach((row,y)=>row.forEach((v,x)=>{if(v)cell(x,y,v)}));
+ const p=state?.piece;if(p&&!state.gameOver)p.shape.forEach((row,y)=>row.forEach((v,x)=>{if(v)cell(p.x+x,p.y+y,p.type+1)}));
+ if(state?.gameOver){cx.fillStyle='#050711bb';cx.fillRect(0,cv.height/2-20,cv.width,40);cx.fillStyle='#ffe39b';cx.font='bold 12px sans-serif';cx.textAlign='center';cx.fillText('TOP OUT',cv.width/2,cv.height/2+4)}
+}
+async function refreshBattle(){
+ if(!token)return;
+ try{
+  const d=await api('/api/tetris/battle/state'+q);lastBattle=d;
+  if(d.status==='idle'){ $('battleStatus').textContent='Choose a stake and find a rival with the same stake.';return}
+  if(d.status==='waiting'){$('battleStatus').textContent='WAITING FOR RIVAL · '+Number(d.stake).toLocaleString()+' coins stake. Another player must choose the same amount.';return}
+  $('battlePot').textContent=Number(d.pot||0).toLocaleString()+' coins';
+  $('balance').textContent=Number(d.balance||0).toLocaleString()+' coins';
+  $('youLabel').textContent=(d.you.name||'YOU')+' · SCORE '+Number(d.you.score||0).toLocaleString()+' · L'+(d.you.level||1);
+  $('opponentLabel').textContent=(d.opponent.name||'RIVAL')+' · '+(d.status==='active'?'LIVE':'FINISHED');
+  $('rivalScore').textContent=Number(d.opponent.score||0).toLocaleString();
+  drawRemoteBoard('battleYouBoard',d.you);drawRemoteBoard('battleOpponentBoard',d.opponent);
+  const mine=d.winner==='you'?'YOU WON THE BATTLE! Pot paid: '+Number(d.pot||0).toLocaleString()+' coins.':d.winner==='opponent'?'YOU LOST THIS MATCH. Review your score and challenge again.':d.status==='refunded'?'DRAW — both stakes refunded.':'MATCH LIVE — clear lines, avoid topping out, and watch the rival score.';
+  $('battleStatus').textContent=mine;
+  document.querySelectorAll('[data-move]').forEach(b=>b.disabled=d.status!=='active'||battleBusy);
+  $('findRival').disabled=d.status==='active';$('leaveBattle').textContent=d.status==='active'?'FORFEIT MATCH':'CANCEL / LEAVE';
+  if(d.status!=='active'&&d.status!=='waiting'){await loadSession();await loadBattleRanks()}
+ }catch(e){$('battleStatus').textContent=e.message}
+}
+async function battleAction(action){
+ if(battleBusy||!lastBattle||lastBattle.status!=='active')return;
+ battleBusy=true;document.querySelectorAll('[data-move]').forEach(b=>b.disabled=true);
+ try{await api('/api/tetris/battle/action'+q,{method:'POST',body:JSON.stringify({action})});await refreshBattle()}
+ catch(e){$('battleStatus').textContent=e.message}
+ finally{battleBusy=false;document.querySelectorAll('[data-move]').forEach(b=>b.disabled=!lastBattle||lastBattle.status!=='active')}
+}
+async function findRival(){
+ if(!token){$('battleStatus').textContent='Open Tetris from the JojoWorld Messenger Game Lobby first.';return}
+ const stake=Number($('stake').value);
+ if(!Number.isSafeInteger(stake)||stake<10||stake>100000){$('battleStatus').textContent='Enter a whole-number stake from 10 to 100,000 coins.';return}
+ $('findRival').disabled=true;
+ try{const d=await api('/api/tetris/battle/join'+q,{method:'POST',body:JSON.stringify({stake})});$('battleStatus').textContent=d.status==='waiting'?d.message||'Waiting for a matching rival…':'Rival found! Battle starting.';if(d.balance!==undefined)$('balance').textContent=Number(d.balance).toLocaleString()+' coins';await refreshBattle();await loadBattleRanks()}
+ catch(e){$('battleStatus').textContent=e.message}
+ finally{$('findRival').disabled=false}
+}
+async function leaveBattle(){
+ try{await api('/api/tetris/battle/leave'+q,{method:'POST',body:'{}'});lastBattle=null;$('battlePot').textContent='—';$('battleStatus').textContent='You left the queue or match.';document.querySelectorAll('[data-move]').forEach(b=>b.disabled=true);await loadSession();await refreshBattle()}
+ catch(e){$('battleStatus').textContent=e.message}
+}
+async function loadBattleRanks(){
+ if(!token)return;
+ try{const term=$('search').value.trim();const d=await api('/api/tetris/battle/leaderboard'+q+'&search='+encodeURIComponent(term));$('battleRankRows').innerHTML='';
+ if(!d.players.length){$('battleRankRows').textContent='No completed battles yet.';return}
+ for(const p of d.players){const row=document.createElement('div');row.className='row';const rank=document.createElement('div');rank.className='rank';rank.textContent='#'+p.rank;const name=document.createElement('div');name.textContent=p.name;const detail=document.createElement('div');detail.className='muted';detail.textContent='Wins '+p.wins+' · Losses '+p.losses+' · Best '+Number(p.highestScore).toLocaleString();const scoreEl=document.createElement('strong');scoreEl.textContent=Number(p.coinsWon).toLocaleString()+' coins won';row.append(rank,name,scoreEl);row.appendChild(detail);$('battleRankRows').appendChild(row)}
+ }catch(e){$('battleRankRows').textContent=e.message}
+}
+function setMode(battle){battleMode=battle;$('soloTab').classList.toggle('active',!battle);$('battleTab').classList.toggle('active',battle);$('soloPanel').classList.toggle('hidden',battle);$('battlePanel').classList.toggle('hidden',!battle);if(battle){cancelAnimationFrame(raf);drawRemoteBoard('battleYouBoard',lastBattle?.you);drawRemoteBoard('battleOpponentBoard',lastBattle?.opponent);refreshBattle();loadBattleRanks();if(!battlePoll)battlePoll=setInterval(()=>{if(battleMode)refreshBattle()},900)}else{if(battlePoll){clearInterval(battlePoll);battlePoll=null}if(gameStarted&&!paused&&!gameOver){lastTime=performance.now();raf=requestAnimationFrame(tick)}}}
+$('findRival').onclick=findRival;$('leaveBattle').onclick=leaveBattle;$('battleRefresh').onclick=refreshBattle;
+document.querySelectorAll('[data-move]').forEach(b=>b.onclick=()=>battleAction(b.dataset.move));
 grid=emptyGrid();piece=nextPiece();draw();loadSession();loadLeaderboard();
 </script></body></html>
