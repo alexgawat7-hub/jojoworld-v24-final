@@ -75,7 +75,11 @@ button:disabled{opacity:.42;filter:saturate(.55)}
 <section class="leader"><div class="leader-head"><h2>🏆 SOLO GLOBAL LEADERBOARD</h2><span class="muted">All ranked players</span></div><input id="search" class="search" placeholder="Search player name or rank (e.g. 1537)" autocomplete="off"><div id="leaderRows"><p class="muted">Loading leaderboard…</p></div><div class="actions"><button class="btn" id="refresh">↻ REFRESH RANKS</button></div></section>
 </main><script>
 const token=new URLSearchParams(location.search).get('token')||'';const q='?token='+encodeURIComponent(token);document.getElementById('lobby').href='/live-games'+q;
-// [FIXED] Stop long-press selection/copy menus on game text while keeping inputs editable.\ndocument.addEventListener('contextmenu',e=>{if(!e.target.closest('input,textarea'))e.preventDefault()});\ndocument.addEventListener('selectstart',e=>{if(!e.target.closest('input,textarea'))e.preventDefault()});\ndocument.addEventListener('dragstart',e=>e.preventDefault());\n// [ADDED] Native fullscreen and an in-place leaderboard overlay keep the game viewport fixed.
+// [FIXED] Stop long-press selection/copy menus on game text while keeping inputs editable.
+document.addEventListener('contextmenu',e=>{if(!e.target.closest('input,textarea'))e.preventDefault()});
+document.addEventListener('selectstart',e=>{if(!e.target.closest('input,textarea'))e.preventDefault()});
+document.addEventListener('dragstart',e=>e.preventDefault());
+// [ADDED] Native fullscreen and an in-place leaderboard overlay keep the game viewport fixed.
 $('fullscreenBtn').onclick=async()=>{try{if(!document.fullscreenElement){await document.documentElement.requestFullscreen();$('fullscreenBtn').textContent='⤢ EXIT FULL';}else{await document.exitFullscreen();$('fullscreenBtn').textContent='⛶ FULL SCREEN';}}catch(e){$('gameNotice').textContent='Use your browser menu to enter fullscreen on this device.'}};
 document.addEventListener('fullscreenchange',()=>{$('fullscreenBtn').textContent=document.fullscreenElement?'⤢ EXIT FULL':'⛶ FULL SCREEN'});
 $('ranksBtn').onclick=()=>{const opened=document.querySelector('.app').classList.toggle('ranks-open');$('ranksBtn').textContent=opened?'✕ CLOSE RANKS':'🏆 RANKS';if(opened){loadLeaderboard();loadBattleRanks()}};
