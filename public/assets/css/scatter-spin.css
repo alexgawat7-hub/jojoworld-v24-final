@@ -152,3 +152,49 @@ input, textarea, [contenteditable="true"] {
  .reel{height:clamp(90px,15vh,125px)!important;font-size:clamp(46px,8vh,64px)!important}
  .reels{padding:6px!important;gap:5px!important}
 }
+
+
+/* [UPGRADED] Premium prize table: remove chance-column styling and emphasize rewards. */
+.prizeboard{
+  padding:clamp(7px,1.1vh,12px)!important;
+  border:1px solid #987344!important;border-radius:16px!important;
+  background:linear-gradient(145deg,#211426,#110d1b 72%,#24152b)!important;
+  box-shadow:inset 0 1px 0 #fff2,0 8px 18px #0005!important;
+}
+.prizehead{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin:0 0 7px!important;padding:0 2px 6px;
+  border-bottom:1px solid #d6b56a55;
+  color:#ffe3a0!important;font-size:clamp(9px,1.5vh,12px)!important;
+  letter-spacing:1.3px!important;
+}
+.prizehead small{color:#a997bd;font-size:8px;letter-spacing:.8px;font-weight:800}
+.prizerow{
+  display:grid!important;grid-template-columns:clamp(24px,4vh,34px) minmax(0,1fr) auto;
+  align-items:center;gap:8px!important;
+  margin:4px 0;padding:clamp(5px,.9vh,9px)!important;
+  border:1px solid #ffffff10;border-radius:10px;
+  background:linear-gradient(100deg,#ffffff08,#ffffff02);
+  font-size:clamp(9px,1.45vh,12px)!important;
+}
+.prizerow:last-child{border-bottom:1px solid #ffffff10!important}
+.prizeicon{display:flex;align-items:center;justify-content:center;width:clamp(24px,4vh,34px);height:clamp(24px,4vh,34px);border-radius:8px;background:#ffffff0d;font-size:clamp(15px,2.5vh,21px);box-shadow:inset 0 0 0 1px #ffffff12}
+.prizename{display:block;min-width:0;color:#f8edff!important;font-weight:900;line-height:1.15}
+.prizename small{display:block;margin-top:3px;color:#ad9cbd;font-size:clamp(7px,1.1vh,9px);font-weight:500;line-height:1.15}
+.prizeamount{white-space:nowrap;color:#ffe28d!important;font-size:clamp(9px,1.5vh,12px)!important;font-weight:1000;text-align:right;text-shadow:0 0 10px #ffcf6b22}
+.prizeamount small{display:block;margin-top:2px;color:#c7b8d5;font-size:7px;letter-spacing:.7px}
+.grand-prize{border-color:#c69a4b;background:linear-gradient(100deg,#674a1e55,#35213a88)!important;box-shadow:inset 0 0 12px #ffcc6b0b}
+.grand-prize .prizeicon{background:linear-gradient(145deg,#ffe5a0,#a87525);box-shadow:0 0 12px #ffcf6b44}
+.grand-prize .prizename{color:#ffe5a0!important}
+.big-prize .prizeicon{background:#44335f}
+.small-prize .prizeicon{background:#4b3b24}
+.no-prize{opacity:.86}
+@media(max-height:700px){
+ .prizeboard{padding:4px 6px!important}
+ .prizehead{margin-bottom:3px!important;padding-bottom:3px;font-size:8px!important}
+ .prizehead small{font-size:7px}
+ .prizerow{margin:2px 0;padding:3px 5px!important;gap:5px!important}
+ .prizeicon{width:22px;height:22px;font-size:14px}
+ .prizename small{margin-top:1px;font-size:7px}
+ .prizeamount small{font-size:6px}
+}
