@@ -170,7 +170,7 @@ async function refreshStats(){
 }
 loadAccount();
 refreshStats();
-setInterval(()=>{refreshStats();if(!rolling)loadAccount({quiet:true})},10000);
+statsPollTimer=setInterval(()=>{if(leavingPage)return;refreshStats();if(!rolling)loadAccount({quiet:true})},10000);
 updateBet();
 
 // [FIXED] Release the PixiJS renderer/WebGL resources when leaving Dice Arena.
