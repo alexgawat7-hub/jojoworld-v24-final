@@ -321,7 +321,7 @@ $('placeBet').addEventListener('click',async()=>{
  finally{working=false;renderControls();}
 });
 if(!token){setNotice('OPEN FROM MESSENGER');$('balance').textContent='—';setMessage('SECURE SESSION REQUIRED','Open Game Lobby from JojoWorld Messenger to play with your real coin balance.');$('placeBet').disabled=true;}
-else{loadState(true);statePollTimer=setInterval(()=>loadState(false),250);}
+else{loadState(true);statePollTimer=setInterval(()=>loadState(false),1000);}
 window.addEventListener('pagehide',()=>{
  if(statePollTimer){clearInterval(statePollTimer);statePollTimer=null;}
  stopDropColorCycle();
