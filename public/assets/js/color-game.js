@@ -106,6 +106,16 @@ function playRoll(){
  tone(92,.2,.14,'sine',.62);tone(138,.13,.085,'triangle',.67);
  tone(740,.1,.02,'triangle',.86);tone(990,.16,.018,'sine',.96);
 }
+function playWin(){
+ if(!soundEnabled)return;
+ // [ADDED] Bright, layered coin/chime reward sound when the player's selected color hits.
+ noiseBurst(.055,.045,0,2800);
+ tone(660,.16,.085,'triangle',.015);
+ tone(880,.19,.095,'sine',.13);
+ tone(1175,.22,.10,'sine',.27);
+ tone(1568,.28,.075,'triangle',.42);
+ tone(988,.18,.055,'sine',.58);
+}
 const placeBetVoice=new Audio('/assets/audio/place-your-bet.mp3?v=20261018a');
 placeBetVoice.preload='auto';placeBetVoice.volume=1;
 let voicePrimed=false;
@@ -215,6 +225,7 @@ function renderState(state){
    const ownBets=Array.isArray(state.myBets)?state.myBets:(state.myBet?[state.myBet]:[]);
    const winningBets=ownBets.filter(b=>(counts[String(b.color).toUpperCase()]||0)>0);
    const totalPayout=ownBets.reduce((sum,b)=>sum+(Number(b.payout)||0),0);
+   if(winningBets.length&&totalPayout>0)playWin();
    setMessage('ROUND #'+state.roundNumber+' · '+state.result.join(' · '),ownBets.length?(winningBets.length?'Winning colors: '+winningBets.map(b=>b.color).join(', ')+'. Total return '+money(totalPayout)+' coins.':'None of your selected colors appeared on the dice.'):'Three-dice result confirmed by the game server.');
    lastResultKey=key;cordHint.textContent='RESULT REVEALED · NEXT ROUND SOON';pullCord.classList.remove('ready');
   }
