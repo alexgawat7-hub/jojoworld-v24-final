@@ -98,3 +98,57 @@ input, textarea, [contenteditable="true"] {
   user-select: text;
   -webkit-touch-callout: default;
 }
+
+
+/* [UPGRADED] Larger, more realistic physical slot-machine cabinet and oversized spinning reels. */
+.machine{
+  flex:1 1 auto!important;min-height:0!important;
+  padding:clamp(10px,2vh,20px) clamp(12px,3vw,22px)!important;
+  border:3px solid #d8b06a!important;border-radius:28px!important;
+  background:
+    radial-gradient(ellipse at 50% 0%,#75416b 0%,transparent 40%),
+    linear-gradient(105deg,#5a321f 0%,#d6a75b 7%,#442344 13%,#1b1027 50%,#45223d 87%,#d6a75b 94%,#4a281d 100%)!important;
+  box-shadow:inset 0 0 0 3px #fff2,inset 0 0 0 7px #3a1e32,inset 0 -18px 30px #000b,0 18px 35px #000b,0 0 24px #ffcf6b20!important;
+}
+.machine:before{inset:7px!important;border:2px solid #f7d99080!important;border-radius:19px!important;box-shadow:inset 0 0 18px #0007!important}
+.machinehead{
+  align-self:center; width:min(100%,420px); padding:clamp(8px,1.7vh,15px) 8px!important;
+  border:2px solid #f4d58d;border-radius:10px;
+  background:linear-gradient(180deg,#2d1636,#100b19 48%,#46203f);
+  box-shadow:inset 0 0 0 2px #fff2,0 0 18px #ffcc6b55,0 5px 0 #39202f;
+  color:#ffe6a0!important;font-size:clamp(12px,2vh,17px)!important;
+  font-weight:1000;text-shadow:0 0 8px #ffcf6b,0 2px 2px #000;letter-spacing:clamp(2px,.6vw,5px)!important;
+}
+.reels{
+  width:100%;max-width:560px;align-self:center;
+  gap:clamp(7px,1.5vw,13px)!important;
+  margin:clamp(12px,2.2vh,24px) auto!important;
+  padding:clamp(9px,1.7vh,16px)!important;
+  border:3px solid #e7c57c;border-radius:17px;
+  background:linear-gradient(180deg,#09070e,#302039 12%,#09070e 50%,#3d2743 88%,#08060c);
+  box-shadow:inset 0 0 0 2px #fff2,inset 0 0 22px #000,0 7px 0 #382337,0 12px 18px #0009;
+  perspective:900px;
+}
+.reel{
+  height:clamp(105px,19vh,190px)!important;
+  min-width:0;font-size:clamp(54px,11vh,92px)!important;
+  border:3px solid #f6dda0!important;border-radius:10px!important;
+  background:linear-gradient(90deg,#927658 0%,#f9f0dc 10%,#fffaf0 25%,#e5d4b6 72%,#fff9e9 90%,#917353 100%)!important;
+  box-shadow:inset 0 0 0 3px #fff9,inset 0 14px 18px #fff8,inset 0 -18px 25px #6c4a383d,0 0 0 2px #27152d,0 8px 12px #000b!important;
+  text-shadow:0 3px 0 #fff9,0 7px 8px #3b233855!important;
+}
+.reel:after{background:linear-gradient(180deg,#fff9 0%,#fff2 12%,transparent 29%,transparent 68%,#0003 100%)!important}
+.spinning .reel{animation:reelBlur .09s linear infinite!important;filter:blur(1px) saturate(1.35)!important}
+.result{font-size:clamp(14px,2.4vh,19px)!important}
+.result small{font-size:clamp(10px,1.7vh,12px)!important}
+@media(max-height:700px){
+ .machine{padding:7px 9px!important}
+ .machinehead{padding:6px!important;font-size:11px!important}
+ .reels{margin:7px auto!important;padding:7px!important;gap:6px!important}
+ .reel{height:clamp(88px,16vh,130px)!important;font-size:clamp(48px,9vh,70px)!important}
+ .result{font-size:12px!important}.result small{font-size:9px!important}
+}
+@media(max-width:380px){
+ .reel{height:clamp(90px,15vh,125px)!important;font-size:clamp(46px,8vh,64px)!important}
+ .reels{padding:6px!important;gap:5px!important}
+}
