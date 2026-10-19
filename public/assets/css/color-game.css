@@ -372,3 +372,55 @@ body.crazy-color-page{height:100dvh}
     box-sizing: border-box;
   }
 }
+
+
+/* [FIXED] Crazy Color requested 3x2 grid, compact wager controls, and betting-open golden shaker overlay. */
+.crazy-app .crazy-color-grid {
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  grid-template-rows:repeat(2,minmax(64px,auto)) !important;
+  grid-auto-rows:minmax(64px,auto) !important;
+  gap:5px !important;
+  align-items:stretch;
+}
+.crazy-app .crazy-color-grid .color-choice {
+  min-width:0;
+  min-height:64px !important;
+  height:64px !important;
+  padding:4px 2px !important;
+  gap:2px !important;
+  border-radius:8px !important;
+  box-sizing:border-box;
+}
+.crazy-app .crazy-color-grid .color-choice .swatch { width:23px;height:23px;flex:0 0 23px; }
+.crazy-app .crazy-color-grid .color-choice b { font-size:10px;line-height:1.05; }
+.crazy-app .crazy-color-grid .color-choice small { font-size:8px;line-height:1; }
+.crazy-app .bet-panel.crazy-bet-panel { padding-bottom:100px !important; }
+.crazy-app .dice-stage.betting-open:not(.dice-drop)::after {
+  content:"BETTING OPEN - PLACE YOUR BETS";
+  position:absolute;
+  z-index:12;
+  left:10px;right:10px;top:10px;bottom:10px;
+  display:flex;align-items:flex-end;justify-content:center;
+  padding:0 8px 13px;
+  border:5px solid #d6aa52;
+  border-radius:12px;
+  background:
+    radial-gradient(ellipse at 50% 95%,#fff1bd22,transparent 52%),
+    linear-gradient(145deg,#f2d38a 0%,#a66c20 16%,#f5d889 30%,#704314 48%,#d3a044 66%,#774619 82%,#e6c16e 100%);
+  box-shadow:inset 0 0 0 3px #5a3516,inset 0 8px 14px #fff5,0 8px 14px #0009;
+  color:#fff0b8;
+  font-weight:1000;font-size:clamp(12px,3.4vw,18px);
+  letter-spacing:1px;text-align:center;
+  text-shadow:0 2px 3px #3b2314,0 0 10px #3b2314;
+  pointer-events:none;
+}
+.crazy-app .dice-stage { position:relative; }
+.crazy-app .dice-stage.betting-open:not(.dice-drop) #machine3d { opacity:1; }
+@media(max-width:480px) {
+  .crazy-app .dice-stage { height:190px;min-height:190px; }
+  .crazy-app .bet-panel.crazy-bet-panel { gap:5px; }
+  .crazy-app .bet-entry-top input { min-width:0; }
+  .crazy-app .quick-bets button { min-height:30px;padding:4px 2px; }
+  .crazy-app { padding-bottom:100px !important; }
+}
