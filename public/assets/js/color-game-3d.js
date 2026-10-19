@@ -221,6 +221,20 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
       lastColors=signature;
     }
     const rolling=stage.classList.contains('rolling') || dropping;
+    // [ADDED] Cycle all six colors during the drop so the animation does not hint at the server result.
+    if(dropping){
+      const palette=['red','green','yellow','pink','white','blue'];
+      const colorStep=Math.floor(now/105);
+      dice.forEach((d,i)=>{
+        const hex=colors[palette[(colorStep+i*2)%palette.length]];
+        d.body.material.color.setHex(hex);
+        d.topPlate.material.color.setHex(hex);
+        d.sidePlate.material.color.setHex(hex);
+      });
+      lastColors='__cycling__';
+    } else if(lastColors==='__cycling__') {
+      lastColors='';
+    }
     if(dropping&&!wasDropping){
       dropStart=now;rollingUntil=now+1.05;
       dice.forEach((d,i)=>{
