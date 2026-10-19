@@ -37,3 +37,16 @@ h1{text-align:center;font-size:clamp(34px,10vw,52px);line-height:1.02;letter-spa
 .color-orbs i:nth-child(2){background:linear-gradient(145deg,#a5eaff,#2586ff 60%,#173d92);transform:translateY(-8px)}
 .color-orbs i:nth-child(3){background:linear-gradient(145deg,#aaffd3,#14c98a 60%,#075947);transform:translateY(4px)}
 .color-game .play{background:linear-gradient(100deg,#c8d1ff,#9dffda);box-shadow:0 5px 0 #484783}
+
+
+/* [ADDED] Prevent mobile long-press text selection across JojoWorld game screens; form fields remain editable. */
+body, body * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
