@@ -176,13 +176,8 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
   for(let i=0;i<3;i++)makeDie(i);
   // [FIXED] Golden cup/shaker removed so the tray and dice remain unobstructed.
 
-  // A banker-operated overhead release arm, cable and weighted brass pull.
-  const rig = new THREE.Group();rig.position.set(0,1.1,-.5);scene.add(rig);
-  const arm = new THREE.Mesh(new THREE.BoxGeometry(3.7,.13,.15),darkMetal);arm.position.set(0,0,0);rig.add(arm);
-  const support = new THREE.Mesh(new THREE.BoxGeometry(.16,.95,.16),gold);support.position.set(0,-.48,-.02);rig.add(support);
-  const cord = new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,1.0,10),brightGold);cord.position.set(0,-.72,.16);rig.add(cord);
-  const pull = new THREE.Mesh(new THREE.CylinderGeometry(.15,.18,.28,20),gold);pull.position.set(0,-1.27,.16);rig.add(pull);
-  const redButton = new THREE.Mesh(new THREE.SphereGeometry(.09,16,12),mat(0xff424f,.15,.2,{emissive:0x991020,emissiveIntensity:1}));redButton.position.set(.22,-1.27,.18);rig.add(redButton);
+  // [FIXED] Remove the overhead brass pull assembly too; it can look like a cup covering the dice.
+  // The existing DOM pull-cord control still starts the round animation.
 
   let lastColors='', wasDropping=false, rollingUntil=0, dropStart=0, lastTime=0;
   const clock=new THREE.Clock();
@@ -236,7 +231,6 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
     if(!rolling&&wasDropping){rollingUntil=0;}
     dice.forEach(d=>d.rolling=rolling && (!dropping || now-dropStart<2200));
     wasDropping=dropping;
-    rig.userData.pulled=document.getElementById('cordRig')?.classList.contains('pulled')||false;
   }
   function resize() {
     const w=Math.max(1,mount.clientWidth),h=Math.max(1,mount.clientHeight);
@@ -356,10 +350,6 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
         d.root.rotation.y+=((bettingBounce?Math.sin(now*.003+i*.8)*.10:showingResult?0:.15+i*.28)-d.root.rotation.y)*Math.min(1,dt*4);
       }
     });
-    rig.position.y=rig.userData.pulled? .83:1.1;
-    cord.scale.y=rig.userData.pulled?1.3:1;
-    cord.position.y=rig.userData.pulled?-.87:-.72;
-    pull.position.y=rig.userData.pulled?-1.45:-1.27;
     renderer.render(scene,camera);
     scheduleFrame();
   }
