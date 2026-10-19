@@ -266,7 +266,8 @@ import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/e
     dice.forEach(d=>d.root.scale.setScalar(diceScale));
 
     // Lift the golden cup after pull, then keep it out of the rolling dice' path.
-    const keepShakerRaised=stage.classList.contains('revealed')&&!stage.classList.contains('betting-open');
+    // [FIXED] Keep the shaker lifted when the previous round's confirmed dice are being shown in the next betting round.
+    const keepShakerRaised=stage.classList.contains('revealed');
     const shakerLift=activeDrop?Math.min(1,Math.max(0,(now-dropStart)/520)):(keepShakerRaised?1:0);
     const shakerEase=shakerLift*shakerLift*(3-2*shakerLift);
     shaker.position.y=-.03+shakerEase*2.85;
