@@ -84,6 +84,7 @@ async function loadAccount({quiet=false}={}) {
       try{
         const r=await fetch('/api/dice-arena/session?token='+encodeURIComponent(token),{cache:'no-store'});
         const body=await r.json();
+        if(leavingPage)return;
         if(!r.ok||!body.ok){const error=Error(body.error||'Session expired');error.status=r.status;throw error}
         data=body;break;
       }catch(error){
@@ -93,6 +94,7 @@ async function loadAccount({quiet=false}={}) {
       }
     }
     if(!data)throw lastError||new Error('Account session unavailable');
+    if(leavingPage)return;
     document.getElementById('balance').textContent=money(data.balance)+' coins';
     applyStats(data.stats);
     if(resultUnconfirmed){accountConnected=false;document.querySelector('.demo').textContent='CHECK RESULT';return;}
@@ -100,12 +102,13 @@ async function loadAccount({quiet=false}={}) {
     document.querySelector('.demo').innerHTML='<span class="live-dot"></span>LIVE ACCOUNT';
     if(!quiet&&!rolling)document.getElementById('result').innerHTML='READY TO ROLL<small>Account connected. Choose your bet and prediction.</small>';
   }catch(e){
+    if(leavingPage)return;
     accountConnected=false;
     if(!quiet)document.getElementById('result').innerHTML='ACCOUNT NOT CONNECTED<small>'+String(e.message||'Session unavailable')+'. Reopen Dice Arena from JojoWorld Messenger to reconnect.</small>';
     document.querySelector('.demo').textContent='RECONNECT NEEDED';
   }finally{
     accountLoading=false;
-    rollButton.disabled=rolling||!accountConnected;
+    if(!leavingPage)rollButton.disabled=rolling||!accountConnected;
   }
 }
 function applyStats(s){
@@ -129,6 +132,7 @@ document.getElementById('roll').addEventListener('click',async()=>{
     const response=await request;
     const data=await response.json();
     clearInterval(flicker);
+    if(leavingPage)return;
     area.classList.remove('rolling');
     if(!response.ok||!data.ok){
       playSound('lose');
@@ -144,13 +148,14 @@ document.getElementById('roll').addEventListener('click',async()=>{
     if(data.stats)applyStats(data.stats);else refreshStats();
     btn.textContent='🎲 ROLL AGAIN';
   }catch(e){
+    if(leavingPage)return;
     playSound('lose');
     if(flicker)clearInterval(flicker);
     area.classList.remove('rolling');
     resultUnconfirmed=true;accountConnected=false;res.classList.remove('win-result');res.classList.add('loss-result');res.innerHTML='ROLL RESULT UNCONFIRMED<small>Do not roll again yet. Reopen Dice Arena from JojoWorld Messenger to start a fresh session and check your balance.</small>';document.querySelector('.demo').textContent='CHECK RESULT';
   }finally{
     rolling=false;
-    btn.disabled=!token||!accountConnected;
+    if(!leavingPage)btn.disabled=!token||!accountConnected;
   }
 });
 async function refreshStats(){
@@ -160,6 +165,7 @@ async function refreshStats(){
     const response=await fetch('/api/dice-arena/stats',{cache:'no-store'});
     if(!response.ok)throw new Error('Stats unavailable');
     const s=await response.json();
+    if(leavingPage)return;
     if(!s.ok)throw new Error('Stats unavailable');
     document.getElementById('players').textContent=money(s.playerCount);
     document.getElementById('rolls').textContent=money(s.totalRolls);
