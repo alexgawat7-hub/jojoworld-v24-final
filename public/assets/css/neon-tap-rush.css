@@ -81,3 +81,10 @@ input, textarea, [contenteditable="true"] {
   user-select: text;
   -webkit-touch-callout: default;
 }
+
+
+/* [UPGRADED] PixiJS draws the animated targets; transparent buttons preserve accessible tap hitboxes. */
+#field{isolation:isolate}
+.tap-rush-pixi{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+#field.pixi-ready .target{z-index:3;color:transparent!important;background:transparent!important;box-shadow:none!important;border-color:transparent!important;opacity:.01!important}
+#field.pixi-ready .target:before{display:none!important}
