@@ -198,3 +198,8 @@ input, textarea, [contenteditable="true"] {
  .prizename small{margin-top:1px;font-size:7px}
  .prizeamount small{font-size:6px}
 }
+
+/* [UPGRADED] PixiJS renders animated reel symbols and glow; DOM symbols remain as fallback. */
+.reels{position:relative;isolation:isolate}
+.reel-pixi{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}
+.reels.pixi-ready .reel{color:transparent!important;text-shadow:none!important}
