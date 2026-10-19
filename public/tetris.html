@@ -1,8 +1,68 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#090b1b"><title>JojoWorld • Tetris</title><style>
 :root{color-scheme:dark;--gold:#ffe39b;--muted:#aab6d3;--panel:#121a31;--line:#354267}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -10%,#473078,#11162c 48%,#070a15 90%);color:#f7f8ff;font-family:Inter,system-ui,sans-serif}.app{max-width:900px;margin:auto;padding:16px}.top{display:flex;justify-content:space-between;align-items:center;gap:8px}.brand{font-weight:1000;letter-spacing:2px;color:var(--gold);font-size:12px}.back{color:#dbe4ff;text-decoration:none;border:1px solid var(--line);padding:8px 11px;border-radius:12px;font-size:12px}.hero{text-align:center;padding:16px 0}.hero h1{font-size:clamp(36px,9vw,60px);line-height:1;margin:10px 0;background:linear-gradient(#fff,#b5a1ff 55%,#ffdc87);color:transparent;background-clip:text}.hero p{color:var(--muted);font-size:13px}.wallet,.panel,.leader{background:linear-gradient(140deg,#171e38,#0f1528);border:1px solid var(--line);border-radius:18px;padding:14px;margin:12px 0}.wallet{display:flex;justify-content:space-between;gap:10px;align-items:center}.wallet small{display:block;color:var(--muted);font-size:10px}.wallet strong{color:var(--gold);font-size:20px}.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tab,.btn{border:1px solid #4a5680;background:#1a2340;color:#f5f7ff;border-radius:13px;padding:13px;font-weight:900;cursor:pointer}.tab.active,.btn.primary{background:linear-gradient(100deg,#ffe49a,#b5a1ff);color:#1a1530;border:0}.game-layout{display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:12px;align-items:start}.board-wrap{display:flex;justify-content:center;background:#070b18;border:2px solid #475482;border-radius:15px;padding:8px;box-shadow:inset 0 0 25px #5c48b533}.board-wrap canvas{display:block;width:min(100%,300px);height:auto;image-rendering:pixelated}.stats{display:grid;gap:8px}.stat{padding:10px;border-radius:12px;background:#0a1021;border:1px solid #273251}.stat small{display:block;color:var(--muted);font-size:10px}.stat strong{font-size:19px}.next{width:100%;height:auto}.controls{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.controls button{padding:13px 4px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.notice{font-size:12px;color:#ffe2a5;line-height:1.5;margin:8px 0}.leader-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.leader h2{margin:0;font-size:18px}.search{width:100%;margin:10px 0;padding:11px;border-radius:11px;border:1px solid var(--line);background:#090f20;color:white}.row{display:grid;grid-template-columns:42px 1fr auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid #ffffff12;font-size:12px}.row:last-child{border-bottom:0}.rank{font-weight:1000;color:var(--gold)}.muted{color:var(--muted);font-size:11px}.hidden{display:none!important}.pill{display:inline-block;background:#142c32;border:1px solid #2c766d;color:#9dffe2;border-radius:20px;padding:5px 8px;font-size:10px}@media(max-width:600px){.game-layout{grid-template-columns:minmax(0,1fr) 105px;gap:7px}.panel{padding:9px}.stat{padding:7px}.stat strong{font-size:16px}.app{padding:10px}.controls button{font-size:12px}.wallet strong{font-size:17px}}
+
+/* [UPGRADED] Fullscreen arcade layout: lock page scrolling and fit game controls to viewport. */
+html{height:100%;overscroll-behavior:none}body{height:100%;height:100dvh;overflow:hidden;overscroll-behavior:none;touch-action:pan-x pan-y}
+.app{width:100%;max-width:none;height:100%;height:100dvh;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:5px;padding:7px}
+.top{flex:0 0 auto;min-height:30px}.top-actions{display:flex;align-items:center;gap:5px}.top-actions .back{padding:7px 8px;font-size:10px;white-space:nowrap}
+.hero{display:none}.wallet{flex:0 0 auto;margin:0;padding:7px 11px;min-height:44px;border-radius:12px}.wallet small{font-size:9px}.wallet strong{font-size:16px}
+.tabs{flex:0 0 auto;gap:6px}.tab{padding:9px 6px;font-size:12px}
+.panel{margin:0;padding:8px;border-radius:13px;min-height:0}
+#soloPanel{flex:1;display:flex;flex-direction:column;gap:5px;overflow:hidden}
+#soloPanel .game-layout{flex:1;min-height:0;grid-template-columns:minmax(0,1fr) 100px;gap:7px;align-items:center}
+#soloPanel .game-layout>div:first-child{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+.board-wrap{min-height:0;padding:4px;border-radius:10px}
+#board{height:min(43dvh,430px);width:auto;max-width:100%;aspect-ratio:1/2;object-fit:contain}
+#soloPanel .stats{grid-template-columns:1fr;gap:5px;align-content:center}
+#soloPanel .stat{padding:6px 7px}.stat small{font-size:9px}.stat strong{font-size:16px}
+#soloPanel .stats .muted{font-size:9px;line-height:1.35;margin:0}
+.controls{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:4px;width:100%;max-width:340px}
+.controls .btn{min-height:39px;padding:7px 3px;border-radius:10px;font-size:11px;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+.actions{flex:0 0 auto;gap:6px;margin-top:3px}.actions .btn{padding:9px 10px;font-size:11px;min-height:36px;touch-action:manipulation}
+.notice{font-size:10px;line-height:1.3;margin:0;max-height:30px;overflow:hidden}
+#soloPanel #gameNotice{flex:0 0 auto}
+.leader{display:none;position:absolute;z-index:30;inset:48px 7px 7px;margin:0;overflow:auto;background:#0d1328f7;box-shadow:0 0 0 100vmax #02040bd9}
+.app.ranks-open .leader{display:block}
+.app.ranks-open #soloPanel,.app.ranks-open #battlePanel{visibility:hidden}
+#battlePanel{flex:1;overflow:hidden;display:flex;flex-direction:column;gap:5px}
+#battlePanel h2{font-size:16px;margin:0}
+#battlePanel>.muted{margin:0;font-size:10px}
+#battlePanel .wallet{padding:5px 8px}
+#battlePanel .game-layout{flex:1;min-height:0;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px}
+#battlePanel .game-layout>div{min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px}
+#battlePanel .board-wrap{width:100%;justify-content:center}
+#battleYouBoard,#battleOpponentBoard{height:min(29dvh,270px);width:auto;max-width:100%;aspect-ratio:1/2}
+#battlePanel .controls{gap:4px;margin-top:2px}
+#battlePanel .controls .btn{min-height:34px;font-size:10px}
+#battlePanel .stats{grid-template-columns:1fr;gap:3px;width:100%}
+#battlePanel .stat{padding:4px 6px}
+#battlePanel .stat strong{font-size:13px}
+#battlePanel .leader-head{flex:0 0 auto}
+#battleRankRows{overflow:auto;min-height:0;font-size:10px}
+button:disabled{opacity:.42;filter:saturate(.55)}
+@media(max-width:600px){
+ .app{padding:5px;gap:4px}.top-actions{gap:3px}.top-actions .back{padding:6px 5px;font-size:9px}.brand{font-size:10px;letter-spacing:1px}
+ #soloPanel{padding:6px}.wallet{min-height:40px}.wallet strong{font-size:14px}
+ #soloPanel .game-layout{grid-template-columns:minmax(0,1fr) 82px;gap:5px}
+ #board{height:min(42dvh,390px)}
+ #soloPanel .stat{padding:5px}.stat strong{font-size:14px}
+ #soloPanel .controls .btn{min-height:36px;font-size:10px}
+ #soloPanel .actions .btn{font-size:10px;padding:8px 7px}
+ #battlePanel{padding:6px}#battleYouBoard,#battleOpponentBoard{height:min(25dvh,220px)}
+ #battlePanel .game-layout{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+ #battlePanel .controls .btn{min-height:32px;padding:5px 1px}
+ #battlePanel .notice{max-height:34px}
+}
+@media(max-height:650px){
+ .app{gap:3px;padding:4px}.wallet{padding:4px 8px;min-height:34px}.tabs .tab{padding:7px 5px}
+ #board{height:min(37dvh,300px)}#soloPanel .controls .btn{min-height:30px;padding:4px 2px}
+ #soloPanel .stat{padding:3px 5px}.actions .btn{min-height:30px;padding:6px}
+ #battleYouBoard,#battleOpponentBoard{height:min(22dvh,180px)}
+ #battlePanel .controls .btn{min-height:27px}
+}
 </style></head><body><main class="app">
-<header class="top"><div class="brand">✦ JOJOWORLD ARCADE</div><a id="lobby" class="back" href="/live-games">← Game Lobby</a></header>
+<header class="top"><div class="brand">✦ JOJOWORLD ARCADE</div><div class="top-actions"><button id="fullscreenBtn" class="back" type="button">⛶ FULL SCREEN</button><button id="ranksBtn" class="back" type="button">🏆 RANKS</button><a id="lobby" class="back" href="/live-games">← LOBBY</a></div></header>
 <section class="hero"><span class="pill">GLOBAL RANKED SKILL GAME</span><h1>TETRIS</h1><p>Clear lines. Beat your personal best. Climb the global leaderboard.</p></section>
 <div class="wallet"><div><small>YOUR JOJOWORLD COINS</small><strong id="balance">Connecting…</strong></div><div style="text-align:right"><small>YOUR SOLO RANK</small><strong id="myRank">—</strong></div></div>
 <div class="tabs"><button class="tab active" id="soloTab">🧩 SOLO TETRIS</button><button class="tab" id="battleTab">⚔️ 1v1 COIN BATTLE</button></div>
@@ -11,6 +71,10 @@
 <section class="leader"><div class="leader-head"><h2>🏆 SOLO GLOBAL LEADERBOARD</h2><span class="muted">All ranked players</span></div><input id="search" class="search" placeholder="Search player name or rank (e.g. 1537)" autocomplete="off"><div id="leaderRows"><p class="muted">Loading leaderboard…</p></div><div class="actions"><button class="btn" id="refresh">↻ REFRESH RANKS</button></div></section>
 </main><script>
 const token=new URLSearchParams(location.search).get('token')||'';const q='?token='+encodeURIComponent(token);document.getElementById('lobby').href='/live-games'+q;
+// [ADDED] Native fullscreen and an in-place leaderboard overlay keep the game viewport fixed.
+$('fullscreenBtn').onclick=async()=>{try{if(!document.fullscreenElement){await document.documentElement.requestFullscreen();$('fullscreenBtn').textContent='⤢ EXIT FULL';}else{await document.exitFullscreen();$('fullscreenBtn').textContent='⛶ FULL SCREEN';}}catch(e){$('gameNotice').textContent='Use your browser menu to enter fullscreen on this device.'}};
+document.addEventListener('fullscreenchange',()=>{$('fullscreenBtn').textContent=document.fullscreenElement?'⤢ EXIT FULL':'⛶ FULL SCREEN'});
+$('ranksBtn').onclick=()=>{const opened=document.querySelector('.app').classList.toggle('ranks-open');$('ranksBtn').textContent=opened?'✕ CLOSE RANKS':'🏆 RANKS';if(opened){loadLeaderboard();loadBattleRanks()}};
 const $=id=>document.getElementById(id);let myBest=0, myRank=null, runStart=0, gameStarted=false, gameOver=false, paused=false, raf=0, dropTimer=0, lastTime=0, score=0, lines=0, level=1;
 const canvas=$('board'),ctx=canvas.getContext('2d');const COLS=10,ROWS=20,S=30;const colors=['#000','#54d8ff','#ffd166','#bb86fc','#7cffb2','#ff6b9a','#ff9f43','#f5f7ff'];const shapes=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]],[[0,1,1],[1,1,0]],[[1,1,0],[0,1,1]]];let grid,piece,bag=[];
 function emptyGrid(){return Array.from({length:ROWS},()=>Array(COLS).fill(0))}
