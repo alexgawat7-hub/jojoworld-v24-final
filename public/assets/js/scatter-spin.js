@@ -23,6 +23,33 @@ window.addEventListener('storage',e=>{if(e.key===soundKey)soundOn=e.newValue==='
 const lobbyLink=$('lobbyLink'),coinShopLink=$('coinShopLink');
 if(token){lobbyLink.href='/live-games?token='+encodeURIComponent(token);if(coinShopLink)coinShopLink.href='/coin-shop?token='+encodeURIComponent(token)}
 const symbols=['💣','❌','🪙','🎁','💎','👑','🍀','⭐'];
+const reelVisuals=new Map();let reelPixi=null;
+function setReelSymbol(id,symbol){const el=$(id);if(el)el.textContent=symbol;const visual=reelVisuals.get(id);if(visual)visual.text.text=String(symbol)}
+function initReelPixi(){
+ const host=$('reels');if(!host||!window.PIXI)return;
+ try{
+  reelPixi=new PIXI.Application({resizeTo:host,backgroundAlpha:0,antialias:true,autoDensity:true,resolution:Math.min(window.devicePixelRatio||1,2)});
+  reelPixi.view.className='reel-pixi';reelPixi.view.setAttribute('aria-hidden','true');host.prepend(reelPixi.view);
+  ['r1','r2','r3'].forEach((id,index)=>{
+   const frame=new PIXI.Graphics();reelPixi.stage.addChild(frame);
+   const glow=new PIXI.Graphics();reelPixi.stage.addChild(glow);
+   const text=new PIXI.Text($(id).textContent,{fontFamily:'Arial, sans-serif',fontSize:54,fontWeight:'bold',fill:0xffffff,align:'center',dropShadow:true,dropShadowColor:'#ffcf6b',dropShadowBlur:8,dropShadowDistance:1});
+   text.anchor.set(.5);reelPixi.stage.addChild(text);reelVisuals.set(id,{frame,glow,text,index});
+  });
+  host.classList.add('pixi-ready');reelPixi.ticker.add(renderReelPixi);renderReelPixi();
+ }catch(error){console.warn('[REEL SPIN PIXI] initialization failed',error);if(reelPixi){reelPixi.destroy(true,{children:true});reelPixi=null}host.classList.remove('pixi-ready');reelVisuals.clear()}
+}
+function renderReelPixi(){
+ if(!reelPixi)return;
+ const host=$('reels'),w=reelPixi.screen.width,h=reelPixi.screen.height,spinning=host.classList.contains('spinning'),t=reelPixi.ticker.lastTime||0;
+ const gap=6,cellW=(w-gap*2)/3,cellH=h;
+ reelVisuals.forEach(v=>{
+  const x=v.index*(cellW+gap);v.frame.clear();v.frame.lineStyle(2,0xffd879,.9);v.frame.beginFill(0x21152c,.12);v.frame.drawRoundedRect(x+1,1,cellW-2,cellH-2,12);v.frame.endFill();
+  v.glow.clear();if(spinning){v.glow.lineStyle(3,0xffd879,.25+Math.abs(Math.sin(t*.02+v.index))*.55);v.glow.drawRoundedRect(x+4,4,cellW-8,cellH-8,10)}
+  v.text.x=x+cellW/2;v.text.y=cellH/2+(spinning?Math.sin(t*.045+v.index*2)*5:0);v.text.rotation=spinning?Math.sin(t*.03+v.index)*.08:0;v.text.style.fontSize=Math.min(cellW*.62,cellH*.64,92);
+ });
+}
+initReelPixi();
 function setBalance(n){balance=Number(n)||0;$('balance').textContent=money(balance)+' coins'}
 function setJackpot(n){$('jackpot').textContent=money(n)+' coins'}
 async function loadAccount({quiet=false}={}){
@@ -49,12 +76,12 @@ async function loadAccount({quiet=false}={}){
 }
 $('spin').addEventListener('click',async()=>{
  if(spinning||!token)return;playSound('start');spinning=true;$('spin').disabled=true;$('reels').classList.add('spinning');$('result').classList.remove('reveal');$('result').innerHTML='SPINNING...<small>Waiting for the server-confirmed result</small>';
- const els=[$('r1'),$('r2'),$('r3')];let ticker=setInterval(()=>{els.forEach(e=>e.textContent=symbols[Math.floor(Math.random()*symbols.length)]);if(++tickCount%2===0)playSound('tick')},100);
+ const els=[$('r1'),$('r2'),$('r3')];let ticker=setInterval(()=>{els.forEach(e=>setReelSymbol(e.id,symbols[Math.floor(Math.random()*symbols.length)]));if(++tickCount%2===0)playSound('tick')},100);
  try{
   const req=fetch('/api/scatter-spin/spin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token})});
   const response=await req;const d=await response.json();clearInterval(ticker);$('reels').classList.remove('spinning');
   if(!response.ok||!d.ok){playSound('lose');if(d.balance!==undefined)setBalance(d.balance);$('result').classList.remove('win-result','jackpot-result');$('result').classList.add('loss-result');$('result').innerHTML='SPIN NOT COMPLETED<small>'+(d.error||'Please try again.')+'</small>';return}
-  playSound(d.jackpotWin?'jackpot':d.win>0?'win':'lose');d.symbols.forEach((v,i)=>els[i].textContent=v);els.forEach(e=>{e.classList.remove('win');if(d.win>0){void e.offsetWidth;e.classList.add('win')}});setBalance(d.balance);setJackpot(d.jackpot);
+  playSound(d.jackpotWin?'jackpot':d.win>0?'win':'lose');d.symbols.forEach((v,i)=>setReelSymbol(els[i].id,v));els.forEach(e=>{e.classList.remove('win');if(d.win>0){void e.offsetWidth;e.classList.add('win')}});setBalance(d.balance);setJackpot(d.jackpot);
   $('result').classList.remove('win-result','jackpot-result','loss-result');$('result').classList.add(d.jackpotWin?'jackpot-result':d.win>0?'win-result':'loss-result');$('result').innerHTML=(d.jackpotWin?'🏆 GRAND JACKPOT!':d.win>0?'✨ '+d.message:'💣 NO WIN — SPIN AGAIN!')+'<small>'+(d.jackpotWin?'You won '+money(d.win)+' coins!':d.win>0?'+'+money(d.win)+' coins • '+d.message:'No prize on this spin. Better luck next time! Your result is confirmed.')+'</small>';$('result').classList.add('reveal');
  }catch(e){playSound('lose');clearInterval(ticker);$('reels').classList.remove('spinning');$('result').innerHTML='SPIN RESULT UNCONFIRMED<small>The server did not return a result, so we can’t safely call this a win or loss. Refresh your balance before spinning again.</small>';document.querySelector('.status').innerHTML='<i class="dot"></i>RECONNECT NEEDED';}
  finally{spinning=false;$('spin').disabled=!(token&&accountConnected)}
