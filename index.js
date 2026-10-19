@@ -858,6 +858,7 @@ function tetrisNewBoard() {
 function tetrisSpawn(board) {
   const type=crypto.randomInt(0,TETRIS_SHAPES.length), shape=TETRIS_SHAPES[type].map(row=>row.slice());
   board.piece={type,shape,x:Math.floor((10-shape[0].length)/2),y:0};
+  board.lastDropAt=Date.now();
   board.pieces++;
   if(tetrisCollide(board,0,0)) board.gameOver=true;
 }
@@ -894,8 +895,14 @@ function tetrisAdvanceGravity(board) {
   const now=Date.now(),interval=Math.max(120,750-(board.level-1)*55);
   const steps=Math.min(8,Math.floor((now-(board.lastDropAt||now))/interval));
   for(let i=0;i<steps&&!board.gameOver;i++){
-    if(!tetrisCollide(board,0,1))board.piece.y++;else tetrisLock(board);
-    board.lastDropAt+=interval;
+    if(!tetrisCollide(board,0,1)) {
+      board.piece.y++;
+      board.lastDropAt+=interval;
+    } else {
+      tetrisLock(board);
+      board.lastDropAt=now;
+      break;
+    }
   }
 }
 function tetrisPublicBoard(board) { return {grid:board.grid,piece:board.piece,score:board.score,lines:board.lines,level:board.level,gameOver:board.gameOver}; }
