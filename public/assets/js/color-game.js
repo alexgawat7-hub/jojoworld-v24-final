@@ -236,9 +236,9 @@ function renderState(state){
  if(state.status==='betting'){
   if(String(lastCountdownSecond).split(':')[0]!==String(state.roundNumber))lastCountdownSecond='';
   if(soundEnabled){speakPlaceYourBet(state.roundNumber);const seconds=Math.ceil(time/1000),countdownKey=String(state.roundNumber)+':'+seconds;if(seconds<=10&&seconds>0&&lastCountdownSecond!==countdownKey){lastCountdownSecond=countdownKey;playCountdown(seconds);}if(seconds===1&&time>0&&lastCountdownBeepRound!==String(state.roundNumber)){lastCountdownBeepRound=String(state.roundNumber);tone(1180,.12,.13,'square');tone(820,.16,.11,'triangle',.13);}}
-  // [FIXED] Keep the exact previous server result visible in the tray while the next round is open.
-  // [FIXED] Hide every result color during betting; neutral white dice bounce without revealing the next outcome.
-  renderDice(['WHITE','WHITE','WHITE'],false,false);
+  // [FIXED] Show the previous round's confirmed dice colors during the next betting phase.
+  // The upcoming result stays hidden until the banker pull animation finishes.
+  renderDice(lastKnownDiceColors,false,false);
   if(time<=3500&&time>0&&lastRollRound!==String(state.roundNumber)){lastRollRound=String(state.roundNumber);playRoll();}
  } else if(state.status==='settling'){
   if(lastRollRound!==String(state.roundNumber)){lastRollRound=String(state.roundNumber);playRoll();}
@@ -249,7 +249,7 @@ function renderState(state){
  if(state.status==='complete'&&state.result){
   pendingResultState=state;
   if(revealedRoundNumber!==Number(state.roundNumber)){
-   if(!pullInProgress){renderDice(state.result,true);$('colorStage').classList.remove('dice-drop');pullCord.classList.add('ready');cordHint.textContent='BETTING CLOSED · BANKER PULLING THE CORD';setMessage('🎰 BANKER IS PULLING THE CORD','The banker triggers the mechanism. The three dice will drop before the server-confirmed result is revealed.');if(!autoPullTimer)autoPullTimer=setTimeout(()=>{autoPullTimer=null;beginCordPull();},850);}
+   if(!pullInProgress){renderDice(['WHITE','WHITE','WHITE'],true,false);$('colorStage').classList.remove('dice-drop');pullCord.classList.add('ready');cordHint.textContent='BETTING CLOSED · BANKER PULLING THE CORD';setMessage('🎰 BANKER IS PULLING THE CORD','The banker triggers the mechanism. The three dice will drop before the server-confirmed result is revealed.');if(!autoPullTimer)autoPullTimer=setTimeout(()=>{autoPullTimer=null;beginCordPull();},850);}
   }else{
    const key=state.roundNumber+':'+state.result.join(',');const counts={};state.result.forEach(c=>counts[c]=(counts[c]||0)+1);
    const ownBets=Array.isArray(state.myBets)?state.myBets:(state.myBet?[state.myBet]:[]);
