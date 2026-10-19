@@ -6,3 +6,16 @@
 .notice{display:none;margin:0 0 12px;padding:11px 12px;border-radius:12px;background:#29233f;border:1px solid #6a568e;color:#e7ddff;font-size:12px;line-height:1.5}.notice.error{display:block;border-color:#956044;background:#39251d;color:#ffe0c5}.notice.good{display:block;border-color:#327e67;background:#133329;color:#a9ffdc}
 .packages{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.package{position:relative;display:flex;flex-direction:column;align-items:center;gap:9px;min-width:0;padding:18px 10px 13px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,#191e38,#111426);box-shadow:0 12px 28px #0003}.package.featured{border-color:#9d78c7;background:linear-gradient(145deg,#302044,#15152d)}.coins{font-size:11px;font-weight:1000;letter-spacing:.3px;color:#d6d9ff}.package strong{font-size:30px;color:var(--gold);letter-spacing:-1px}.package button{width:100%;min-height:42px;border:0;border-radius:12px;background:linear-gradient(100deg,#ffe49a,#ff9bdd);color:#21152c;font-size:12px;font-weight:1000;cursor:pointer}.package.featured button{background:linear-gradient(100deg,#b6ffdd,#76d6ff);color:#102a2c}.package button:disabled{opacity:.55;cursor:wait}.popular{position:absolute;top:-9px;right:8px;background:#ffe39a;color:#291a3b;font-size:8px;font-weight:1000;letter-spacing:.6px;border-radius:20px;padding:5px 7px}.secure{text-align:center;color:#8e9ab8;font-size:10px;line-height:1.7;margin:17px 6px 12px}footer{text-align:center;margin-top:15px}footer a{color:#b7ffdf;text-decoration:none;font-size:12px;font-weight:900}
 @media(max-width:360px){.packages{grid-template-columns:1fr}.package{padding:15px}.hero{padding-top:16px}}
+
+
+/* [ADDED] Prevent mobile long-press text selection across JojoWorld game screens; form fields remain editable. */
+body, body * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
