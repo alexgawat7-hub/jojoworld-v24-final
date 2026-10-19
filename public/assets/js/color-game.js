@@ -10,7 +10,18 @@ const lobby=$('lobby'),shop=$('shop');
 if(token){const q='?token='+encodeURIComponent(token);lobby.href='/live-games'+q;shop.href='/coin-shop'+q;}
 function setMessage(main,sub=''){const el=$('result');el.textContent=main;const small=document.createElement('small');small.textContent=sub;if(sub)el.appendChild(small);}
 function setNotice(message){$('connection').textContent=message;}
-function chooseColor(color){selectedColor=color;document.querySelectorAll('.color-choice').forEach(b=>b.classList.toggle('active',b.dataset.color===color));renderControls();}
+function chooseColor(color){
+ const amountInput=$('betAmount');
+ const current=Math.max(10,Number(amountInput.value)||10);
+ const sameColor=selectedColor===color;
+ selectedColor=color;
+ // [ADDED] Repeated taps on the same color double the pending stake, capped by balance and UI maximum.
+ if(sameColor){
+  amountInput.value=String(Math.min(100000,balance,current*2));
+ }
+ document.querySelectorAll('.color-choice').forEach(b=>b.classList.toggle('active',b.dataset.color===color));
+ renderControls();
+}
 document.querySelectorAll('.color-choice').forEach(b=>b.addEventListener('click',()=>chooseColor(b.dataset.color)));
 document.querySelectorAll('.quick-bets button').forEach(b=>b.addEventListener('click',()=>{$('betAmount').value=b.dataset.amount;renderControls()}));
 $('betAmount').addEventListener('input',renderControls);
