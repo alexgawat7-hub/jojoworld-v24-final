@@ -206,6 +206,11 @@ function beginCordPull(){
  return true;
 }
 
+function normalizeResultColors(value){
+ if(Array.isArray(value))return value.slice(0,3).map(c=>String(c||'').trim().toUpperCase()).filter(c=>colors.includes(c));
+ if(typeof value==='string')return value.split(/[,·|]/).map(c=>c.trim().toUpperCase()).filter(c=>colors.includes(c)).slice(0,3);
+ return [];
+}
 function renderDice(diceColors,rolling=false){
  const stage=$('colorStage');stage.classList.toggle('rolling',rolling);stage.classList.toggle('revealed',!rolling);
  document.querySelectorAll('.color-die').forEach((die,i)=>{
@@ -227,7 +232,10 @@ function renderState(state){
  if(state.status==='betting'){
   if(String(lastCountdownSecond).split(':')[0]!==String(state.roundNumber))lastCountdownSecond='';
   if(soundEnabled){speakPlaceYourBet(state.roundNumber);const seconds=Math.ceil(time/1000),countdownKey=String(state.roundNumber)+':'+seconds;if(seconds<=10&&seconds>0&&lastCountdownSecond!==countdownKey){lastCountdownSecond=countdownKey;playCountdown(seconds);}if(seconds===1&&time>0&&lastCountdownBeepRound!==String(state.roundNumber)){lastCountdownBeepRound=String(state.roundNumber);tone(1180,.12,.13,'square');tone(820,.16,.11,'triangle',.13);}}
-  renderDice(['GREEN','RED','GREEN'],time<=3500);
+  // [FIXED] Keep the exact previous server result visible in the tray while the next round is open.
+  const previousResult=normalizeResultColors(state.lastResult);
+  if(previousResult.length===3)renderDice(previousResult,false);
+  else renderDice(['GREEN','RED','GREEN'],true);
   if(time<=3500&&time>0&&lastRollRound!==String(state.roundNumber)){lastRollRound=String(state.roundNumber);playRoll();}
  } else if(state.status==='settling'){
   if(lastRollRound!==String(state.roundNumber)){lastRollRound=String(state.roundNumber);playRoll();}
