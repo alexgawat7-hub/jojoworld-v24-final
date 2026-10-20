@@ -385,31 +385,57 @@ document.addEventListener('contextmenu',function(e){if(!e.target.closest('input,
 document.addEventListener('selectstart',function(e){if(!e.target.closest('input,textarea'))e.preventDefault()});
 document.addEventListener('dragstart',function(e){e.preventDefault()});
 let soundOn=true,audio=null;
-/* [ADDED] Original looping 8-bit falling-block arcade beat ("tug-tug" rhythm); no external audio file. */
-let bgmTimer=0,bgmStep=0;
-const bgmMelody=[659,0,659,0,659,0,523,659,0,784,0,392,0,523,0,392,0,330,0,440,0,494,0,466,440,0,659,0,784,0,880,0,698,784,0,659,0,523,587,494,0,523,0,392,0,0,0,0];
-function bgmNote(freq,duration,when,type,volume){
+/* [UPGRADED] Korobeiniki-inspired classic Tetris melody with a driving rock beat.
+   Synthesized locally with Web Audio: no external track or paid API. */
+let bgmTimer=0,bgmStep=0,bgmNextAt=0;
+const bgmMelody=[
+ 659,494,523,587,523,494,440,440,523,659,587,523,494,523,587,659,
+ 523,440,440,0,587,698,880,784,698,659,523,659,587,523,494,0,
+ 659,494,523,587,523,494,440,440,523,659,587,523,494,523,587,659,
+ 523,440,440,0,587,698,880,784,698,659,523,659,587,523,494,0
+];
+function bgmNote(freq,duration,when,type,volume,detune){
  if(!audio||!freq)return;
  const osc=audio.createOscillator(),gain=audio.createGain();
  osc.type=type||'square';osc.frequency.setValueAtTime(freq,when);
- gain.gain.setValueAtTime(.0001,when);gain.gain.exponentialRampToValueAtTime(volume||.025,when+.008);
- gain.gain.setValueAtTime(volume||.025,when+duration*.55);gain.gain.exponentialRampToValueAtTime(.0001,when+duration);
- osc.connect(gain);gain.connect(audio.destination);osc.start(when);osc.stop(when+duration+.015);
+ if(detune)osc.detune.setValueAtTime(detune,when);
+ gain.gain.setValueAtTime(.0001,when);gain.gain.exponentialRampToValueAtTime(volume||.025,when+.006);
+ gain.gain.setValueAtTime(volume||.025,when+duration*.62);gain.gain.exponentialRampToValueAtTime(.0001,when+duration);
+ osc.connect(gain);gain.connect(audio.destination);osc.start(when);osc.stop(when+duration+.02);
 }
-function stopBgm(){if(bgmTimer){clearInterval(bgmTimer);bgmTimer=0}}
+function bgmDrum(when,isSnare){
+ if(!audio)return;
+ if(!isSnare){bgmNote(105,.12,when,'sine',.12);bgmNote(58,.16,when,'triangle',.065);return}
+ const length=Math.max(1,Math.floor(audio.sampleRate*.09)),buffer=audio.createBuffer(1,length,audio.sampleRate),data=buffer.getChannelData(0);
+ for(let i=0;i<length;i++)data[i]=(Math.random()*2-1)*(1-i/length);
+ const noise=audio.createBufferSource(),gain=audio.createGain(),filter=audio.createBiquadFilter();
+ noise.buffer=buffer;filter.type='highpass';filter.frequency.value=1300;gain.gain.setValueAtTime(.075,when);gain.gain.exponentialRampToValueAtTime(.0001,when+.085);
+ noise.connect(filter);filter.connect(gain);gain.connect(audio.destination);noise.start(when);noise.stop(when+.09);
+ bgmNote(175,.07,when,'triangle',.035);
+}
+function stopBgm(){if(bgmTimer){clearInterval(bgmTimer);bgmTimer=0}bgmNextAt=0}
 function startBgm(){
  if(!soundOn||!started||paused||over)return;
  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
- try{if(!audio)audio=new AC();if(audio.state==='suspended')audio.resume();if(bgmTimer)return;
-  bgmStep=0;const beatMs=155;
-  const playStep=function(){if(!soundOn||!started||paused||over){stopBgm();return}if(!audio||audio.state!=='running')return;
-   const now=audio.currentTime+.025,idx=bgmStep%bgmMelody.length,f=bgmMelody[idx];
-   if(f)bgmNote(f,.105,now,'square',.022);
-   if(bgmStep%4===0)bgmNote([110,98,82,98][Math.floor(bgmStep/4)%4],.13,now,'triangle',.035);
-   if(bgmStep%2===0)bgmNote(65,.055,now,'square',.012);
-   bgmStep++;
+ try{
+  if(!audio)audio=new AC();if(audio.state==='suspended')audio.resume();if(bgmTimer)return;
+  bgmStep=0;bgmNextAt=0;
+  const playStep=function(){
+   if(!soundOn||!started||paused||over){stopBgm();return}
+   if(!audio||audio.state!=='running')return;
+   const now=audio.currentTime;
+   const beatMs=Math.max(78,158-(Math.max(1,level)-1)*5);
+   if(bgmNextAt&&now<bgmNextAt)return;
+   const at=now+.018,idx=bgmStep%bgmMelody.length,f=bgmMelody[idx],octave=f?f*2:0;
+   /* Distorted sawtooth double gives the lead a punchy rock-guitar edge. */
+   if(f){bgmNote(f,.115,at,'square',.024);bgmNote(octave,.085,at,'sawtooth',.009,idx%2?7:-7)}
+   /* Four-on-the-floor kick with snare backbeat and a low bass pulse. */
+   if(bgmStep%4===0)bgmDrum(at,false);
+   else if(bgmStep%4===2)bgmDrum(at,true);
+   if(bgmStep%2===0)bgmNote([110,98,82,98][Math.floor(bgmStep/8)%4],.13,at,'sawtooth',.025);
+   bgmStep++;bgmNextAt=now+beatMs/1000;
   };
-  playStep();bgmTimer=setInterval(playStep,beatMs);
+  playStep();bgmTimer=setInterval(playStep,25);
  }catch(e){}
 }
 function sfx(kind){
