@@ -388,12 +388,27 @@ let soundOn=true,audio=null;
 /* [UPGRADED] Korobeiniki-inspired classic Tetris melody with a driving rock beat.
    Synthesized locally with Web Audio: no external track or paid API. */
 let bgmTimer=0,bgmStep=0,bgmNextAt=0;
-const bgmMelody=[
+/* Full arranged song: intro, main theme, variation, bridge, reprise and ending.
+   Classic folk/Tetris-style melody arranged as an original browser-synth rock track. */
+const bgmIntro=[659,0,659,0,659,0,523,659,0,784,0,392,0,523,0,392];
+const bgmA=[
  659,494,523,587,523,494,440,440,523,659,587,523,494,523,587,659,
  523,440,440,0,587,698,880,784,698,659,523,659,587,523,494,0,
  659,494,523,587,523,494,440,440,523,659,587,523,494,523,587,659,
  523,440,440,0,587,698,880,784,698,659,523,659,587,523,494,0
 ];
+const bgmB=[
+ 880,0,784,698,659,0,587,523,587,659,698,0,659,587,523,494,
+ 523,587,659,698,784,0,698,659,587,0,523,494,440,494,523,0,
+ 659,0,784,880,784,698,659,587,659,698,784,0,880,784,698,659,
+ 587,523,587,659,523,494,440,0,494,523,587,494,440,0,0,0
+];
+const bgmBridge=[
+ 392,0,392,523,659,0,523,659,784,0,659,784,988,0,784,988,
+ 1047,988,880,784,698,659,587,523,494,523,587,659,698,784,880,0
+];
+const bgmEnding=[659,587,523,494,440,0,523,587,659,0,523,440,392,0,392,0];
+const bgmMelody=bgmIntro.concat(bgmA,bgmA,bgmB,bgmA,bgmBridge,bgmB,bgmA,bgmEnding);
 function bgmNote(freq,duration,when,type,volume,detune){
  if(!audio||!freq)return;
  const osc=audio.createOscillator(),gain=audio.createGain();
@@ -424,7 +439,7 @@ function startBgm(){
    if(!soundOn||!started||paused||over){stopBgm();return}
    if(!audio||audio.state!=='running')return;
    const now=audio.currentTime;
-   const beatMs=Math.max(78,158-(Math.max(1,level)-1)*5);
+   const beatMs=Math.max(72,164-(Math.max(1,level)-1)*6);
    if(bgmNextAt&&now<bgmNextAt)return;
    const at=now+.018,idx=bgmStep%bgmMelody.length,f=bgmMelody[idx],octave=f?f*2:0;
    /* Distorted sawtooth double gives the lead a punchy rock-guitar edge. */
