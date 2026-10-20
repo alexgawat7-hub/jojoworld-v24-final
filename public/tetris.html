@@ -278,7 +278,7 @@ button,.back,.tab,.controls .btn{-webkit-tap-highlight-color:transparent}
  #soloPanel .board-column{display:grid!important;grid-template-columns:minmax(0,1fr) 68px!important;grid-template-rows:minmax(0,1fr) auto!important;align-items:stretch!important;justify-content:stretch!important;column-gap:5px!important;row-gap:3px!important;min-height:0!important}
  #soloPanel .board-column>.solo-board-wrap{grid-column:1!important;grid-row:1!important;justify-self:stretch!important;align-self:stretch!important;width:100%!important;height:100%!important;max-width:none!important;aspect-ratio:auto!important;min-width:0!important;min-height:0!important;overflow:hidden!important}
  #soloPanel .solo-board-wrap>.pixi-board{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;aspect-ratio:auto!important;flex:1 1 auto!important}
- #soloPanel .solo-board-wrap>.pixi-board>.pixi-canvas{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;aspect-ratio:auto!important;object-fit:fill!important}
+ #soloPanel .solo-board-wrap>.pixi-board>.pixi-canvas{width:auto!important;height:100%!important;max-width:100%!important;max-height:100%!important;aspect-ratio:1/2!important;object-fit:contain!important;flex:0 1 auto!important}
  #soloPanel .board-column>.tetris-side-column{grid-column:2!important;grid-row:1!important;align-self:stretch!important}
  #soloPanel .board-column>.controls{grid-column:1/-1!important;grid-row:2!important;width:100%!important}
 }
