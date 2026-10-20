@@ -143,6 +143,21 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 .solo-board-wrap.double-clear{border-color:#c6a0ff;animation:doubleBoardImpact .48s ease-out;box-shadow:inset 0 0 24px #b88cff33,0 0 0 1px #c6a0ff,0 0 16px #b88cff55}
 @keyframes doubleBoardImpact{0%{transform:scale(1)}25%{transform:scale(1.01);filter:brightness(1.5)}55%{transform:scale(.998);filter:brightness(1.2)}100%{transform:scale(1);filter:brightness(1)}}
 @media(prefers-reduced-motion:reduce){.clear-result-banner.show,.clear-result-banner.show::before,.solo-board-wrap.triple-clear,.solo-board-wrap.double-clear{animation-duration:.01ms!important}}
+
+/* [UPGRADED] Punchy arcade-style line-clear popup motion. */
+.clear-result-banner.show{transform-origin:center;will-change:transform,opacity,filter;backface-visibility:hidden}
+.clear-result-banner.single.show{animation:singleImpact .48s cubic-bezier(.16,1.4,.3,1) both}
+.clear-result-banner.double.show{animation:doubleImpact .58s cubic-bezier(.16,1.55,.25,1) both}
+.clear-result-banner.triple.show{animation:tripleKaboom .78s cubic-bezier(.12,1.65,.25,1) both}
+.clear-result-banner.tetris.show{animation:tetrisKaboom .9s cubic-bezier(.12,1.7,.22,1) both}
+.clear-result-banner.triple.show::after,.clear-result-banner.tetris.show::after{content:"";position:absolute;inset:-9px;border-radius:12px;pointer-events:none;background:radial-gradient(ellipse at center,rgba(255,255,255,.5) 0%,rgba(255,191,102,.22) 32%,transparent 72%);animation:impactFlash .42s ease-out both;z-index:-1}
+.clear-result-banner.tetris.show::after{background:radial-gradient(ellipse at center,rgba(255,255,255,.65) 0%,rgba(255,101,158,.3) 34%,transparent 74%);animation-duration:.52s}
+@keyframes singleImpact{0%{opacity:0;transform:translateY(22px) scale(.35) rotate(-8deg);filter:blur(4px) brightness(2)}55%{opacity:1;transform:translateY(-3px) scale(1.13) rotate(2deg);filter:blur(0) brightness(1.7)}75%{transform:translateY(1px) scale(.96) rotate(-1deg)}100%{opacity:1;transform:translateY(0) scale(1) rotate(0);filter:brightness(1)}}
+@keyframes doubleImpact{0%{opacity:0;transform:translateY(28px) scale(.25) rotate(-10deg);filter:blur(5px) brightness(2.5)}42%{opacity:1;transform:translateY(-5px) scale(1.2) rotate(3deg);filter:blur(0) brightness(2)}62%{transform:translateY(2px) scale(.91) rotate(-2deg)}78%{transform:translateY(-1px) scale(1.07) rotate(1deg)}100%{opacity:1;transform:translateY(0) scale(1);filter:brightness(1)}}
+@keyframes tripleKaboom{0%{opacity:0;transform:translateY(38px) scale(.12) rotate(-15deg);filter:blur(7px) brightness(3.5)}28%{opacity:1;transform:translateY(-7px) scale(1.3) rotate(4deg);filter:blur(0) brightness(2.5)}43%{transform:translateY(2px) scale(.88) rotate(-3deg);filter:brightness(1.8)}58%{transform:translateY(-2px) scale(1.12) rotate(2deg)}72%{transform:translateY(1px) scale(.97) rotate(-1deg)}86%{transform:translateY(0) scale(1.04)}100%{opacity:1;transform:translateY(0) scale(1) rotate(0);filter:brightness(1)}}
+@keyframes tetrisKaboom{0%{opacity:0;transform:translateY(48px) scale(.08) rotate(-18deg);filter:blur(9px) brightness(4)}25%{opacity:1;transform:translateY(-9px) scale(1.38) rotate(5deg);filter:blur(0) brightness(3)}40%{transform:translateY(3px) scale(.84) rotate(-4deg);filter:brightness(2)}55%{transform:translateY(-3px) scale(1.16) rotate(2deg)}70%{transform:translateY(1px) scale(.94) rotate(-1deg)}84%{transform:translateY(0) scale(1.07)}100%{opacity:1;transform:translateY(0) scale(1) rotate(0);filter:brightness(1)}}
+@keyframes impactFlash{0%{opacity:0;transform:scale(.45)}28%{opacity:1;transform:scale(1.18)}100%{opacity:0;transform:scale(1.65)}}
+@media(prefers-reduced-motion:reduce){.clear-result-banner.single.show,.clear-result-banner.double.show,.clear-result-banner.triple.show,.clear-result-banner.tetris.show,.clear-result-banner.triple.show::after,.clear-result-banner.tetris.show::after{animation-duration:.01ms!important}}
 </style>
 <script src="/vendor/pixi/pixi.min.js"></script>
 </head>
