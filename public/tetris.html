@@ -168,6 +168,18 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 .clear-result-banner.triple{color:#ffbf66;font-size:clamp(24px,6.5vw,40px);padding:15px 18px;background:linear-gradient(135deg,#5a2608f7,#281326f7);border-color:#ffbf66;box-shadow:0 0 14px #ff8c24cc,0 0 32px #ff5e3677,inset 0 0 18px #ffbf6633;animation:tripleKaboom .78s cubic-bezier(.12,1.65,.25,1) both}
 .clear-result-banner.tetris{color:#ff659e;font-size:clamp(25px,7vw,42px);padding:16px 18px;background:linear-gradient(135deg,#55133ff7,#211641f7 65%,#54240df7);border-color:#ff659e;box-shadow:0 0 18px #ff659ecc,0 0 35px #bb86fc88,inset 0 0 20px #ff659e44;animation:tetrisKaboom .9s cubic-bezier(.12,1.7,.22,1) both}
 @media(max-width:420px){.clear-result-banner{max-width:96%;padding:11px 9px;font-size:clamp(18px,5.3vw,27px)}.clear-result-banner.triple{font-size:clamp(22px,6vw,32px);padding:12px 9px}.clear-result-banner.tetris{font-size:clamp(23px,6.4vw,35px);padding:13px 9px}}
+
+/* [UPGRADED] Oversized, borderless line-clear words centered over the board. */
+.solo-board-wrap .clear-result-banner{display:none;position:absolute!important;z-index:20;left:50%;top:48%;transform:translate(-50%,-50%);width:max-content;max-width:125%;padding:0 6px!important;margin:0;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;text-align:center;font-size:clamp(28px,9vw,58px)!important;font-weight:1000;line-height:1.04;letter-spacing:-1px;white-space:nowrap;overflow:visible;text-shadow:0 4px 0 #090b18,0 0 8px currentColor,0 0 22px currentColor,0 0 42px currentColor;pointer-events:none}
+.solo-board-wrap .clear-result-banner.show{display:block;position:absolute!important;animation:clearWordKaboom .62s cubic-bezier(.16,1.45,.3,1) both}
+.solo-board-wrap .clear-result-banner.show::before{content:none!important}
+.solo-board-wrap .clear-result-banner.single{font-size:clamp(32px,10vw,64px)!important;color:#62e9ff}
+.solo-board-wrap .clear-result-banner.double{font-size:clamp(34px,10.5vw,68px)!important;color:#d0a7ff}
+.solo-board-wrap .clear-result-banner.triple{font-size:clamp(38px,12vw,76px)!important;color:#ffbf66;background:transparent!important;border:0!important;box-shadow:none!important}
+.solo-board-wrap .clear-result-banner.tetris{font-size:clamp(40px,12.5vw,80px)!important;color:#ff659e;background:transparent!important;border:0!important;box-shadow:none!important}
+@keyframes clearWordKaboom{0%{transform:translate(-50%,-50%) scale(.18) rotate(-9deg);opacity:0;filter:brightness(3)}48%{transform:translate(-50%,-50%) scale(1.22) rotate(3deg);opacity:1;filter:brightness(1.8)}68%{transform:translate(-50%,-50%) scale(.92) rotate(-1deg)}84%{transform:translate(-50%,-50%) scale(1.08);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:1;filter:brightness(1)}}
+@media(max-width:380px){.solo-board-wrap .clear-result-banner{letter-spacing:-1.5px}.solo-board-wrap .clear-result-banner.triple{font-size:clamp(34px,11.5vw,58px)!important}.solo-board-wrap .clear-result-banner.tetris{font-size:clamp(36px,12vw,62px)!important}}
+
 </style>
 <script src="/vendor/pixi/pixi.min.js"></script>
 </head>
