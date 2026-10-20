@@ -72,3 +72,17 @@ input, textarea, [contenteditable="true"] {
 .game.coming-soon{border-style:solid!important}
 @media(min-width:560px){.cards{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:16px!important}.game{padding:13px 7px 11px!important}.game .art,.game .coming-icon{width:88px!important;height:88px!important}.game h2{font-size:13px!important}}
 @media(max-width:350px){.cards{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px 6px!important}.game{padding:8px 3px!important}.game .art,.game .coming-icon{width:58px!important;height:58px!important;border-radius:17px!important}.game .play{font-size:8px!important}}
+
+
+/* [UPGRADED] Custom vector game logos for the app-drawer lobby. */
+.game .art{position:relative!important;background:radial-gradient(ellipse at 50% 12%,#ffffff1c,transparent 60%),linear-gradient(145deg,#252e55,#11162d)!important}
+.game .game-logo{position:relative;z-index:1;width:88%;height:88%;display:block;overflow:visible;filter:drop-shadow(0 5px 7px #0008);transition:transform .18s ease,filter .18s ease}
+.game:active .game-logo{transform:scale(.94);filter:drop-shadow(0 2px 4px #0008)}
+.game.scatter .art{background:radial-gradient(ellipse at 50% 85%,#9b4d83,#302147 65%,#15172e)!important}
+.game.color-game .art{background:radial-gradient(ellipse at 50% 85%,#276c91,#1c2349 65%,#14172d)!important}
+.game.rush .art{background:radial-gradient(ellipse at 50% 85%,#1e827f,#1a2547 65%,#12162b)!important}
+.game.dice .art{background:radial-gradient(ellipse at 50% 85%,#91602f,#302448 65%,#15172d)!important}
+.game.battle .art{background:radial-gradient(ellipse at 50% 85%,#9d3c8c,#30204f 65%,#17172e)!important}
+.game.racing .art{background:radial-gradient(ellipse at 50% 85%,#1e7787,#18234b 65%,#14172d)!important}
+.game.tetris .art{background:radial-gradient(ellipse at 50% 85%,#4c53a0,#1c2447 65%,#13172b)!important}
+@media(prefers-reduced-motion:reduce){.game .game-logo{transition:none!important}}
