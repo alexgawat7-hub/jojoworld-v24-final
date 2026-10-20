@@ -392,27 +392,27 @@ function makePixiApp(host,width,height,label){const app=new PIXI.Application({wi
 let nextApp=null,nextGraphics=null,remoteBoards={};
 function makeRemoteBoard(host,label){const app=makePixiApp(host,200,400,label),graphics=new PIXI.Graphics(),overlay=new PIXI.Container(),text=new PIXI.Text('TOP OUT',{fontFamily:'Arial, sans-serif',fontSize:17,fontWeight:'900',fill:0xffe39b,stroke:0x17132c,strokeThickness:3,dropShadow:true,dropShadowColor:0x55d9ff,dropShadowBlur:5,dropShadowDistance:0});text.anchor.set(.5);text.x=100;text.y=200;overlay.visible=false;overlay.addChild(text);app.stage.addChild(graphics,overlay);return{app:app,graphics:graphics,overlay:overlay,text:text,wrap:host.closest('.board-wrap'),lastState:null,fxTimer:0}}
 try{if(window.PIXI){pixiApp=makePixiApp(boardHost,300,600,'Animated PixiJS Tetris game board');pixiBg=new PIXI.Graphics();pixiGrid=new PIXI.Graphics();pixiBlocks=new PIXI.Graphics();pixiFx=new PIXI.Graphics();pixiOverlay=new PIXI.Container();pixiText=new PIXI.Text('',{fontFamily:'Arial, sans-serif',fontSize:22,fontWeight:'900',fill:0xffe39b,stroke:0x17132c,strokeThickness:4,dropShadow:true,dropShadowColor:0x55d9ff,dropShadowBlur:8,dropShadowDistance:0});pixiText.anchor.set(.5);pixiOverlay.addChild(pixiText);pixiApp.stage.addChild(pixiBg,pixiGrid,pixiBlocks,pixiFx,pixiOverlay);nextApp=makePixiApp($('nextBoard'),120,120,'Next Tetris block');nextGraphics=new PIXI.Graphics();nextApp.stage.addChild(nextGraphics);remoteBoards.youBoard=makeRemoteBoard($('youBoard'),'Your battle board');remoteBoards.rivalBoard=makeRemoteBoard($('rivalBoard'),'Rival battle board');$('pixiStatus').textContent='PIXIJS ACTIVE';$('pixiStatus').style.color='#70f5ff'}else{$('pixiStatus').textContent='PIXIJS UNAVAILABLE';$('gameNotice').textContent='PixiJS failed to load. Refresh the game or reopen it from Game Lobby.'}}catch(e){pixiApp=null;console.error('[TETRIS PIXI] initialization failed',e);$('pixiStatus').textContent='PIXIJS ERROR';$('gameNotice').textContent='Tetris graphics failed to initialize. Refresh the game.'}
-/* [UPGRADED] Premium arcade-gem cells: seamless full-size tiles with layered bevels, a diagonal shine, and deep lower shading. */
+/* [UPGRADED] PixiJS premium faceted blocks: seamless jewel base, glassy crown, and sculpted shadow facets. */
 function pixiCell(g,x,y,color,size,alpha){
  const a=alpha===undefined?1:alpha,px=x*size,py=y*size,w=size,h=size,hex=PIXI.utils.string2hex(color);
- const top=Math.max(2,size*.09),side=Math.max(2,size*.07),shade=Math.max(2,size*.12);
- /* Full tile base keeps connected tetrominoes solid—no gaps or oversized padding. */
+ const top=Math.max(2,size*.10),side=Math.max(2,size*.075),shade=Math.max(2,size*.13);
+ /* Full-cell base: adjacent Tetris blocks stay connected with no gaps. */
  g.beginFill(hex,a);g.drawRect(px,py,w,h);g.endFill();
- /* Bright upper bevel and soft inner highlight. */
- g.beginFill(0xffffff,.34*a);g.drawRect(px,py,w,top);g.endFill();
- g.beginFill(0xffffff,.16*a);g.drawRect(px,py+top,side,Math.max(1,h-top-shade));g.endFill();
- g.beginFill(0xffffff,.075*a);g.drawRect(px+side,py+top,Math.max(1,w-side*2),Math.max(1,size*.045));g.endFill();
- /* Rich shaded lower/right bevel gives the block a tactile 3D edge. */
- g.beginFill(0x07101f,.30*a);g.drawRect(px,py+h-shade,w,shade);g.endFill();
- g.beginFill(0x07101f,.20*a);g.drawRect(px+w-side,py,side,h);g.endFill();
- g.beginFill(0x000000,.12*a);g.drawRect(px+side,py+h-shade,w-side*2,Math.max(1,size*.035));g.endFill();
- /* Small diagonal specular streak; clipped to each tile so it never bleeds outside the board. */
- g.lineStyle(Math.max(1,size*.045),0xffffff,.22*a);
- g.moveTo(px+size*.22,py+size*.20);g.lineTo(px+size*.42,py+size*.20);
- g.lineStyle(Math.max(.6,size*.025),0xffffff,.12*a);
- g.moveTo(px+size*.18,py+size*.29);g.lineTo(px+size*.32,py+size*.29);
- /* Fine outline defines shape without separating neighboring blocks. */
- g.lineStyle(Math.max(.6,size*.022),0xffffff,.17*a);g.drawRect(px+.5,py+.5,Math.max(1,w-1),Math.max(1,h-1));g.lineStyle(0,0,0);
+ /* Faceted crown adds a jewel-like 3D face without changing the cell footprint. */
+ g.beginFill(0xffffff,.13*a);g.moveTo(px,py);g.lineTo(px+w*.72,py);g.lineTo(px+w*.40,py+top);g.lineTo(px,py+top);g.closePath();g.endFill();
+ g.beginFill(0xffffff,.075*a);g.moveTo(px,py+top);g.lineTo(px+w*.40,py+top);g.lineTo(px+w*.28,py+h*.55);g.lineTo(px,py+h*.42);g.closePath();g.endFill();
+ /* Fine glass highlight along the top and left edges. */
+ g.beginFill(0xffffff,.31*a);g.drawRect(px,py,w,top);g.endFill();
+ g.beginFill(0xffffff,.17*a);g.drawRect(px,py+top,side,Math.max(1,h-top-shade));g.endFill();
+ g.beginFill(0xffffff,.07*a);g.drawRect(px+side,py+top,Math.max(1,w-side*2),Math.max(1,size*.04));g.endFill();
+ /* Deep lower and right facets create a crisp arcade bevel. */
+ g.beginFill(0x07101f,.28*a);g.drawRect(px,py+h-shade,w,shade);g.endFill();
+ g.beginFill(0x07101f,.19*a);g.drawRect(px+w-side,py,side,h);g.endFill();
+ g.beginFill(0x000000,.13*a);g.moveTo(px+w*.48,py+h-shade);g.lineTo(px+w,py+h-shade);g.lineTo(px+w,py+h);g.lineTo(px+w*.70,py+h);g.closePath();g.endFill();
+ /* Small reflected glint; restrained so the playfield remains easy to read. */
+ g.lineStyle(Math.max(1,size*.045),0xffffff,.24*a);g.moveTo(px+size*.20,py+size*.20);g.lineTo(px+size*.43,py+size*.20);
+ g.lineStyle(Math.max(.6,size*.025),0xffffff,.13*a);g.moveTo(px+size*.17,py+size*.29);g.lineTo(px+size*.31,py+size*.29);
+ g.lineStyle(Math.max(.6,size*.022),0xffffff,.16*a);g.drawRect(px+.5,py+.5,Math.max(1,w-1),Math.max(1,h-1));g.lineStyle(0,0,0);
 }
 function pixiGhostCell(g,x,y,color,size){const px=x*size+3,py=y*size+3,w=size-6,h=size-6;g.beginFill(0x55d9ff,.10);g.drawRoundedRect(px-1,py-1,w+2,h+2,3);g.endFill();g.beginFill(0x55d9ff,.08);g.drawRoundedRect(px,py,w,h,3);g.endFill();g.lineStyle(1,0x70f5ff,.8);g.drawRoundedRect(px+.5,py+.5,w-1,h-1,3);g.lineStyle(1,0xffffff,.55);g.moveTo(px+4,py+3);g.lineTo(px+w-4,py+3)}
 function drawPixi(){if(!pixiApp)return;pixiBlocks.clear();pixiBg.clear();pixiBg.beginFill(0x070b18);pixiBg.drawRect(0,0,300,600);pixiBg.endFill();pixiBg.lineStyle(1,0x5f7cae,.30);for(let x=0;x<=COLS;x++){pixiBg.moveTo(x*S,0);pixiBg.lineTo(x*S,600)}for(let y=0;y<=ROWS;y++){pixiBg.moveTo(0,y*S);pixiBg.lineTo(300,y*S)}
