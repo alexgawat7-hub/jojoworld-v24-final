@@ -237,6 +237,24 @@ button,.back,.tab,.controls .btn{-webkit-tap-highlight-color:transparent}
  .controls .btn{min-height:46px!important;font-size:9px!important}
 }
 
+/* [FIXED] Restore the original Tetris button layout and sizing. */
+.top-actions{display:flex!important;gap:4px!important;align-items:center!important;flex:initial!important;min-width:0!important}
+.top-actions .back{display:inline-flex!important;min-width:0!important;min-height:34px!important;padding:6px 8px!important;font-size:10px!important;line-height:normal!important;white-space:nowrap!important;overflow-wrap:normal!important;text-align:center!important}
+.top{gap:3px!important;align-items:center!important}
+.brand{flex:initial!important;max-width:none!important;white-space:nowrap!important;font-size:10px!important;letter-spacing:.4px!important;line-height:normal!important}
+.controls{gap:5px!important;padding:3px!important}
+.controls .btn{min-height:38px!important;padding:5px 2px!important;font-size:10px!important;line-height:normal!important}
+.tabs{gap:3px!important}
+.tabs .tab{min-height:29px!important;padding:6px 4px!important}
+@media(max-width:380px){
+ .top{align-items:center!important}
+ .brand{max-width:none!important;white-space:nowrap!important;font-size:10px!important}
+ .top-actions{gap:3px!important}
+ .top-actions .back{min-height:34px!important;padding:5px 5px!important;font-size:9px!important}
+ .controls{gap:5px!important;padding:3px!important}
+ .controls .btn{min-height:38px!important;font-size:10px!important}
+}
+
 </style>
 <script src="/vendor/pixi/pixi.min.js"></script>
 </head>
