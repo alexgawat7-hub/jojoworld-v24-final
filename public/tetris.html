@@ -181,15 +181,15 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 @media(max-width:380px){.solo-board-wrap .clear-result-banner{letter-spacing:-1.5px}.solo-board-wrap .clear-result-banner.triple{font-size:clamp(34px,11.5vw,58px)!important}.solo-board-wrap .clear-result-banner.tetris{font-size:clamp(36px,12vw,62px)!important}}
 
 
-/* [FIXED] Place line-clear popups outside the grid, under NEXT BLOCK in the right sidebar. */
-.board-column>.tetris-side-column>#clearResultBanner{display:none;position:relative!important;left:auto!important;top:auto!important;transform:none!important;width:100%!important;max-width:100%!important;box-sizing:border-box;padding:5px 0!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;text-align:center;font-size:clamp(15px,4.5vw,23px)!important;font-weight:1000;line-height:1.05;letter-spacing:-.6px;white-space:normal;overflow-wrap:anywhere;text-shadow:0 0 6px currentColor,0 0 14px currentColor;pointer-events:none}
-.board-column>.tetris-side-column>#clearResultBanner.show{display:block;position:relative!important;animation:sideClearKaboom .55s cubic-bezier(.16,1.45,.3,1) both}
+/* [FIXED] Keep line-clear words at a default compact size below NEXT BLOCK. */
+.board-column>.tetris-side-column>#clearResultBanner{display:none;position:relative!important;left:auto!important;top:auto!important;transform:none!important;width:100%!important;max-width:100%!important;box-sizing:border-box;padding:4px 0!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;text-align:center;font-size:12px!important;font-weight:900;line-height:1.15;letter-spacing:0;white-space:normal;overflow-wrap:anywhere;text-shadow:0 0 3px currentColor,0 0 7px currentColor;pointer-events:none}
+.board-column>.tetris-side-column>#clearResultBanner.show{display:block;position:relative!important;animation:sideClearDefault .3s ease-out both}
 .board-column>.tetris-side-column>#clearResultBanner.show::before{content:none!important}
 .board-column>.tetris-side-column>#clearResultBanner.single{color:#62e9ff}
 .board-column>.tetris-side-column>#clearResultBanner.double{color:#d0a7ff}
-.board-column>.tetris-side-column>#clearResultBanner.triple{font-size:clamp(17px,5vw,25px)!important;color:#ffbf66;background:transparent!important;border:0!important;box-shadow:none!important}
-.board-column>.tetris-side-column>#clearResultBanner.tetris{font-size:clamp(18px,5.2vw,27px)!important;color:#ff659e;background:transparent!important;border:0!important;box-shadow:none!important}
-@keyframes sideClearKaboom{0%{transform:scale(.22) rotate(-8deg);opacity:0;filter:brightness(3)}48%{transform:scale(1.18) rotate(3deg);opacity:1;filter:brightness(1.8)}72%{transform:scale(.92) rotate(-1deg)}100%{transform:scale(1);opacity:1;filter:brightness(1)}}
+.board-column>.tetris-side-column>#clearResultBanner.triple{font-size:12px!important;color:#ffbf66;background:transparent!important;border:0!important;box-shadow:none!important}
+.board-column>.tetris-side-column>#clearResultBanner.tetris{font-size:12px!important;color:#ff659e;background:transparent!important;border:0!important;box-shadow:none!important}
+@keyframes sideClearDefault{0%{transform:scale(.88);opacity:0}65%{transform:scale(1.04);opacity:1}100%{transform:scale(1);opacity:1}}
 
 </style>
 <script src="/vendor/pixi/pixi.min.js"></script>
