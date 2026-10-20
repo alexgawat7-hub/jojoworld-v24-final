@@ -3495,6 +3495,7 @@ app.post('/webhook', async (req, res) => {
           const previousProfilePhotoData = user.profilePhotoData;
           const previousProfilePhotoUrl = user.profilePhotoUrl;
           const wasAwaitingProfilePhoto = user.awaitingProfilePhoto;
+          const previousProfilePhotoRequestAt = user.profilePhotoRequestAt;
           try {
             // [UPGRADED V28] Download the Messenger attachment and store a resized JPEG in MongoDB for persistence.
             const photoResponse = await axios.get(incomingImage.payload.url, {
@@ -3520,6 +3521,7 @@ app.post('/webhook', async (req, res) => {
               else delete user.profilePhotoData;
               if (previousProfilePhotoUrl) user.profilePhotoUrl = previousProfilePhotoUrl;
               if (wasAwaitingProfilePhoto) user.awaitingProfilePhoto = true;
+              if (previousProfilePhotoRequestAt !== undefined) user.profilePhotoRequestAt = previousProfilePhotoRequestAt;
               send(psid, '⚠️ Hindi na-save ang profile photo. Subukan ulit mamaya.');
             } else {
               send(psid, '📸 Profile photo saved! Check your Visual Profile to see it with your equipped frame.', [
@@ -3534,6 +3536,7 @@ app.post('/webhook', async (req, res) => {
             if (previousProfilePhotoUrl) user.profilePhotoUrl = previousProfilePhotoUrl;
             else delete user.profilePhotoUrl;
             if (wasAwaitingProfilePhoto) user.awaitingProfilePhoto = true;
+            if (previousProfilePhotoRequestAt !== undefined) user.profilePhotoRequestAt = previousProfilePhotoRequestAt;
             console.error('[PROFILE PHOTO] Upload failed:', photoUploadError.message);
             send(psid, '⚠️ Hindi ma-save ang picture. Subukan ang ibang larawan na mas maliit o ibang format.');
           }
