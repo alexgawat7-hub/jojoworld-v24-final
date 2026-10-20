@@ -26,6 +26,7 @@ button{touch-action:manipulation}
 .panel.active{display:flex;flex-direction:column;gap:3px}
 .game-layout{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;gap:3px;align-items:stretch;flex:1;min-height:0}
 .board-column{display:flex;flex-direction:column;align-items:center;justify-content:stretch;gap:3px;min-width:0;min-height:0;grid-row:1}
+.next-piece-banner{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 9px;border:1px solid #526a96;border-radius:10px;background:linear-gradient(110deg,#14213d,#0b1022 58%,#20153c);box-shadow:inset 0 0 14px #55d9ff12;flex:0 0 auto}.next-piece-copy{display:flex;flex-direction:column;gap:2px;min-width:0}.next-piece-copy strong{font-size:12px;letter-spacing:.8px;color:#d9f8ff;text-shadow:0 0 8px #55d9ff66}.next-piece-copy small{font-size:9px;color:#aab8d5}.next-piece-banner .stat.next-stat{width:auto;min-width:104px;min-height:48px;flex:0 0 auto;gap:5px;padding:2px 5px;background:#080d1dcc}.next-piece-banner .stat.next-stat small{font-size:8px}.next-piece-banner .stat.next-stat #pixiStatus{font-size:7px}.next-piece-banner #nextBoard{width:44px;height:44px;flex:0 0 44px}
 .board-wrap{display:flex;align-items:center;justify-content:center;min-height:0;width:100%;padding:1px;background:#060916;border:1px solid #475482;border-radius:7px;box-shadow:inset 0 0 12px #5c48b533}.board-column>.board-wrap{flex:1 1 auto}
 .pixi-board{display:flex;align-items:center;justify-content:center;height:100%;width:100%;min-width:0;min-height:0;max-width:100%;max-height:100%;aspect-ratio:1/2;touch-action:manipulation;overflow:hidden;flex:1 1 auto}.pixi-canvas{display:block;width:auto!important;height:100%!important;max-width:100%;max-height:100%;aspect-ratio:1/2;object-fit:contain;touch-action:manipulation;flex:0 1 auto}
 .controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;width:100%;max-width:420px;flex:0 0 auto;padding:3px;border:1px solid #35476f;border-radius:12px;background:linear-gradient(145deg,#111b34dd,#080d1ddd);box-shadow:inset 0 1px 0 #ffffff0d,0 4px 14px #0005}
@@ -72,7 +73,7 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 .stat.next-stat{display:flex;align-items:center;justify-content:space-between;gap:4px;min-height:46px;padding:3px;background:linear-gradient(135deg,#101c36,#080d1d);border-color:#526a96;box-shadow:inset 0 0 10px #55d9ff12}
 .stat.next-stat>div:first-child{flex:1;min-width:0}.stat.next-stat small{font-size:8px;color:#d1dcf5;letter-spacing:.35px}.stat.next-stat #pixiStatus{display:block!important;font-size:7px;line-height:1.2;color:#70f5ff!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#nextBoard{width:44px;height:44px;flex:0 0 44px;max-width:none;border:1px solid #405a87;border-radius:7px;background:radial-gradient(circle,#263d68,#080d1d);overflow:hidden;box-shadow:inset 0 0 10px #55d9ff22}#nextBoard canvas{display:block;width:100%;height:100%}
 #pixiStatus{font-size:8px;color:#70f5ff;letter-spacing:.6px}
-@media(max-height:650px){.stat.next-stat{min-height:38px;padding:2px}.stat.next-stat small{font-size:7px}#nextBoard{width:34px;height:34px;flex-basis:34px}}
+@media(max-height:650px){.next-piece-banner{padding:3px 7px}.next-piece-copy small{display:none}.next-piece-banner .stat.next-stat{min-height:38px;padding:1px 4px}.next-piece-banner .stat.next-stat small{font-size:7px}.next-piece-banner #nextBoard{width:34px;height:34px;flex-basis:34px}}
 </style>
 <script src="/vendor/pixi/pixi.min.js"></script>
 </head>
@@ -95,6 +96,7 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 <section class="panel active" id="soloPanel">
  <div class="game-layout">
   <div class="board-column">
+   <div class="next-piece-banner"><div class="next-piece-copy"><strong>✨ NEXT BLOCK</strong><small>Prepare your next move</small></div><div class="stat next-stat"><div><small>NEXT BLOCK</small><strong id="pixiStatus">ARCADE FX</strong></div><div id="nextBoard" role="img" aria-label="Next Tetris block"></div></div></div>
    <div class="board-wrap solo-board-wrap" id="soloBoardWrap"><div class="pixi-board" id="board" role="img" aria-label="Animated PixiJS Tetris game board"></div></div>
    <div class="controls">
     <button class="btn" id="left" type="button" aria-label="Move block left" title="Hold to move left">◀ LEFT</button><button class="btn" id="rotate" type="button" aria-label="Rotate block" title="Rotate block">⟳ ROTATE</button><button class="btn" id="right" type="button" aria-label="Move block right" title="Hold to move right">RIGHT ▶</button>
@@ -102,7 +104,7 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
    </div>
   </div>
   <aside class="stats">
-   <div class="stat next-stat"><div><small>NEXT BLOCK</small><strong id="pixiStatus">ARCADE FX</strong></div><div id="nextBoard" role="img" aria-label="Next Tetris block"></div></div><div class="stat"><small>SCORE</small><strong id="score">0</strong></div><div class="stat"><small>LINES</small><strong id="lines">0</strong></div><div class="stat"><small>LEVEL</small><strong id="level">1</strong></div><div class="stat"><small>BEST</small><strong id="best">0</strong></div><div class="stat"><small>RANK</small><strong id="bestRank">—</strong></div>
+   <div class="stat"><small>SCORE</small><strong id="score">0</strong></div><div class="stat"><small>LINES</small><strong id="lines">0</strong></div><div class="stat"><small>LEVEL</small><strong id="level">1</strong></div><div class="stat"><small>BEST</small><strong id="best">0</strong></div><div class="stat"><small>RANK</small><strong id="bestRank">—</strong></div>
    <p class="muted">← → move<br>↑ rotate<br>↓ soft drop<br>Space hard drop</p>
   </aside>
  </div>
