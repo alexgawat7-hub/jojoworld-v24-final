@@ -3483,7 +3483,10 @@ app.post('/webhook', async (req, res) => {
         // [FIXED] Profile photos are changed ONLY after the user explicitly taps "Change Photo".
         // A Messenger Like/sticker or an ordinary image can never silently overwrite the saved avatar.
         const isStickerOrLike = Boolean(ev.message && (ev.message.sticker_id || ev.message.is_animated));
-        const incomingImage = ev.message && user.awaitingProfilePhoto === true && !isStickerOrLike &&
+        // [FIXED] Photo upload permission is short-lived and must come from a recent explicit Change Photo tap.
+        const photoRequestAt = Number(user.profilePhotoRequestAt) || 0;
+        const photoRequestIsFresh = photoRequestAt > 0 && Date.now() - photoRequestAt >= 0 && Date.now() - photoRequestAt <= 5 * 60 * 1000;
+        const incomingImage = ev.message && user.awaitingProfilePhoto === true && photoRequestIsFresh && !isStickerOrLike &&
           !ev.message.quick_reply && !(ev.message.text && String(ev.message.text).trim()) &&
           Array.isArray(ev.message.attachments)
           ? ev.message.attachments.find(item => item && item.type === 'image' && item.payload && item.payload.url && !item.payload.sticker_id)
@@ -3511,6 +3514,7 @@ app.post('/webhook', async (req, res) => {
             delete user.profilePhotoUrl;
             // [FIXED] Clear upload mode before the single persistence attempt, so a failed second save cannot leave it armed.
             delete user.awaitingProfilePhoto;
+            delete user.profilePhotoRequestAt;
             if (!await saveUserToDB(psid, { saveJackpot: false })) {
               if (previousProfilePhotoData) user.profilePhotoData = previousProfilePhotoData;
               else delete user.profilePhotoData;
@@ -3538,10 +3542,15 @@ app.post('/webhook', async (req, res) => {
         // [UPGRADED V28] If an image arrives outside the explicit Change Photo flow, never change the saved avatar.
         // [FIXED] Do not claim the user is on Profile/Leaderboard; provide only a neutral Exit action.
         if (ev.message && Array.isArray(ev.message.attachments) &&
-            ev.message.attachments.some(item => item && item.type === 'image') &&
-            user.awaitingProfilePhoto !== true) {
+            ev.message.attachments.some(item => item && item.type === 'image') && !incomingImage) {
           const isImageReaction = Boolean(ev.message.sticker_id || ev.message.is_animated ||
             ev.message.attachments.some(item => item && item.type === 'image' && item.payload && item.payload.sticker_id));
+          // [FIXED] Expire stale upload mode so an old Change Photo tap cannot authorize a later unrelated image.
+          if (user.awaitingProfilePhoto === true && !photoRequestIsFresh) {
+            delete user.awaitingProfilePhoto;
+            delete user.profilePhotoRequestAt;
+            await saveUserToDB(psid, { saveJackpot: false });
+          }
           if (!isImageReaction) {
             send(psid, '↩️', [
               { content_type: 'text', title: '🚪 Exit', payload: 'MENU' }
@@ -4021,11 +4030,15 @@ A new user successfully registered using your link! 🎁
         // [ADDED] Explicitly arm photo upload only from the profile's Change Photo button.
         if (upperRaw === "SET_PROFILE_PHOTO") {
           const wasAwaitingProfilePhoto = user.awaitingProfilePhoto;
+          const wasProfilePhotoRequestAt = user.profilePhotoRequestAt;
           user.awaitingProfilePhoto = true;
+          user.profilePhotoRequestAt = Date.now();
           // [FIXED] Only confirm photo-upload mode if the flag was persisted.
           if (!await saveUserToDB(psid, { saveJackpot: false })) {
             if (wasAwaitingProfilePhoto === undefined) delete user.awaitingProfilePhoto;
             else user.awaitingProfilePhoto = wasAwaitingProfilePhoto;
+            if (wasProfilePhotoRequestAt === undefined) delete user.profilePhotoRequestAt;
+            else user.profilePhotoRequestAt = wasProfilePhotoRequestAt;
             send(psid, "⚠️ Hindi ma-activate ang photo upload ngayon. Subukan ulit mamaya.");
             continue;
           }
