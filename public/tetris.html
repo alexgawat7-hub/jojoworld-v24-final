@@ -420,13 +420,16 @@ function bgmNote(freq,duration,when,type,volume,detune){
 }
 function bgmDrum(when,isSnare){
  if(!audio)return;
- if(!isSnare){bgmNote(105,.12,when,'sine',.12);bgmNote(58,.16,when,'triangle',.065);return}
- const length=Math.max(1,Math.floor(audio.sampleRate*.09)),buffer=audio.createBuffer(1,length,audio.sampleRate),data=buffer.getChannelData(0);
- for(let i=0;i<length;i++)data[i]=(Math.random()*2-1)*(1-i/length);
+ if(!isSnare){
+  /* Tight rock kick: short low thump with a little body. */
+  bgmNote(92,.105,when,'sine',.095);bgmNote(48,.14,when,'triangle',.055);return;
+ }
+ const length=Math.max(1,Math.floor(audio.sampleRate*.11)),buffer=audio.createBuffer(1,length,audio.sampleRate),data=buffer.getChannelData(0);
+ for(let i=0;i<length;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/length,2);
  const noise=audio.createBufferSource(),gain=audio.createGain(),filter=audio.createBiquadFilter();
- noise.buffer=buffer;filter.type='highpass';filter.frequency.value=1300;gain.gain.setValueAtTime(.075,when);gain.gain.exponentialRampToValueAtTime(.0001,when+.085);
- noise.connect(filter);filter.connect(gain);gain.connect(audio.destination);noise.start(when);noise.stop(when+.09);
- bgmNote(175,.07,when,'triangle',.035);
+ noise.buffer=buffer;filter.type='highpass';filter.frequency.value=1700;gain.gain.setValueAtTime(.0001,when);gain.gain.exponentialRampToValueAtTime(.052,when+.004);gain.gain.exponentialRampToValueAtTime(.0001,when+.105);
+ noise.connect(filter);filter.connect(gain);gain.connect(audio.destination);noise.start(when);noise.stop(when+.11);
+ bgmNote(190,.065,when,'triangle',.025);
 }
 function stopBgm(){if(bgmTimer){clearInterval(bgmTimer);bgmTimer=0}bgmNextAt=0}
 function startBgm(){
@@ -439,18 +442,20 @@ function startBgm(){
    if(!soundOn||!started||paused||over){stopBgm();return}
    if(!audio||audio.state!=='running')return;
    const now=audio.currentTime;
-   const beatMs=Math.max(72,164-(Math.max(1,level)-1)*6);
+   /* [FIXED] Use a musical eighth-note pulse; speed up gradually by level without turning into a blur. */
+   const beatMs=Math.max(132,250-(Math.max(1,level)-1)*4);
    if(bgmNextAt&&now<bgmNextAt)return;
    const at=now+.018,idx=bgmStep%bgmMelody.length,f=bgmMelody[idx],octave=f?f*2:0;
-   /* Distorted sawtooth double gives the lead a punchy rock-guitar edge. */
-   if(f){bgmNote(f,.115,at,'square',.024);bgmNote(octave,.085,at,'sawtooth',.009,idx%2?7:-7)}
-   /* Four-on-the-floor kick with snare backbeat and a low bass pulse. */
-   if(bgmStep%4===0)bgmDrum(at,false);
-   else if(bgmStep%4===2)bgmDrum(at,true);
-   if(bgmStep%2===0)bgmNote([110,98,82,98][Math.floor(bgmStep/8)%4],.13,at,'sawtooth',.025);
+   /* [UPGRADED] Layered chiptune lead with a restrained overdriven octave, not a harsh constant buzz. */
+   if(f){bgmNote(f,.19,at,'square',.032);bgmNote(octave,.13,at,'sawtooth',.0045,idx%2?5:-5)}
+   /* [FIXED] Rock backbeat: kick on beats 1/3, snare on 2/4, plus a steady bass line. */
+   if(bgmStep%8===0||bgmStep%8===4)bgmDrum(at,false);
+   else if(bgmStep%8===2||bgmStep%8===6)bgmDrum(at,true);
+   const bassPattern=[82.41,82.41,110,82.41,73.42,73.42,98,73.42];
+   if(bgmStep%2===0)bgmNote(bassPattern[bgmStep%8],.20,at,'triangle',.045);
    bgmStep++;bgmNextAt=now+beatMs/1000;
   };
-  playStep();bgmTimer=setInterval(playStep,25);
+  playStep();bgmTimer=setInterval(playStep,20);
  }catch(e){}
 }
 function sfx(kind){
