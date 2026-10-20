@@ -201,6 +201,22 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
  .board-column>.tetris-side-column>.next-piece-overlay #nextBoard{width:52px!important;height:52px!important;flex:0 0 52px!important}
 }
 
+/* [FIXED] Mobile Tetris controls: clearer separation and safer touch targeting. */
+.controls{gap:8px!important;padding:6px!important;touch-action:manipulation!important}
+.controls .btn{min-height:48px!important;padding:8px 4px!important;line-height:1.15!important;font-size:clamp(11px,3.2vw,14px)!important;border-radius:12px!important;user-select:none!important;-webkit-user-select:none!important;-webkit-touch-callout:none!important;touch-action:manipulation!important}
+.controls .btn:active{transform:scale(.97);filter:brightness(1.16)}
+.top-actions{gap:5px!important}
+.top-actions .back{min-height:34px!important;padding:6px 8px!important;touch-action:manipulation!important}
+.tabs{gap:7px!important}
+.tabs .tab{min-height:42px!important;touch-action:manipulation!important}
+#soundBtn,#fullBtn,#ranksBtn,#lobbyBtn{position:relative;z-index:5}
+@media(max-width:380px){
+ .controls{gap:6px!important;padding:4px!important}
+ .controls .btn{min-height:46px!important;padding:6px 2px!important;font-size:11px!important}
+ .top-actions{gap:3px!important}
+ .top-actions .back{padding:5px 5px!important;font-size:9px!important}
+}
+
 </style>
 <script src="/vendor/pixi/pixi.min.js"></script>
 </head>
