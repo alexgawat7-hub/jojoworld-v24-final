@@ -180,6 +180,17 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 @keyframes clearWordKaboom{0%{transform:translate(-50%,-50%) scale(.18) rotate(-9deg);opacity:0;filter:brightness(3)}48%{transform:translate(-50%,-50%) scale(1.22) rotate(3deg);opacity:1;filter:brightness(1.8)}68%{transform:translate(-50%,-50%) scale(.92) rotate(-1deg)}84%{transform:translate(-50%,-50%) scale(1.08);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:1;filter:brightness(1)}}
 @media(max-width:380px){.solo-board-wrap .clear-result-banner{letter-spacing:-1.5px}.solo-board-wrap .clear-result-banner.triple{font-size:clamp(34px,11.5vw,58px)!important}.solo-board-wrap .clear-result-banner.tetris{font-size:clamp(36px,12vw,62px)!important}}
 
+
+/* [FIXED] Place line-clear popups outside the grid, under NEXT BLOCK in the right sidebar. */
+.board-column>.tetris-side-column>#clearResultBanner{display:none;position:relative!important;left:auto!important;top:auto!important;transform:none!important;width:100%!important;max-width:100%!important;box-sizing:border-box;padding:5px 0!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;text-align:center;font-size:clamp(15px,4.5vw,23px)!important;font-weight:1000;line-height:1.05;letter-spacing:-.6px;white-space:normal;overflow-wrap:anywhere;text-shadow:0 0 6px currentColor,0 0 14px currentColor;pointer-events:none}
+.board-column>.tetris-side-column>#clearResultBanner.show{display:block;position:relative!important;animation:sideClearKaboom .55s cubic-bezier(.16,1.45,.3,1) both}
+.board-column>.tetris-side-column>#clearResultBanner.show::before{content:none!important}
+.board-column>.tetris-side-column>#clearResultBanner.single{color:#62e9ff}
+.board-column>.tetris-side-column>#clearResultBanner.double{color:#d0a7ff}
+.board-column>.tetris-side-column>#clearResultBanner.triple{font-size:clamp(17px,5vw,25px)!important;color:#ffbf66;background:transparent!important;border:0!important;box-shadow:none!important}
+.board-column>.tetris-side-column>#clearResultBanner.tetris{font-size:clamp(18px,5.2vw,27px)!important;color:#ff659e;background:transparent!important;border:0!important;box-shadow:none!important}
+@keyframes sideClearKaboom{0%{transform:scale(.22) rotate(-8deg);opacity:0;filter:brightness(3)}48%{transform:scale(1.18) rotate(3deg);opacity:1;filter:brightness(1.8)}72%{transform:scale(.92) rotate(-1deg)}100%{transform:scale(1);opacity:1;filter:brightness(1)}}
+
 </style>
 <script src="/vendor/pixi/pixi.min.js"></script>
 </head>
@@ -202,8 +213,8 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 <section class="panel active" id="soloPanel">
  <div class="game-layout">
   <div class="board-column">
-   <aside class="tetris-side-column"><div class="next-piece-overlay"><div class="next-piece-copy"><strong>✨ NEXT BLOCK</strong><small>UP NEXT</small></div><div class="stat next-stat"><strong id="pixiStatus">ARCADE FX</strong><div id="nextBoard" role="img" aria-label="Next Tetris block"></div></div></div></aside>
-   <div class="board-wrap solo-board-wrap" id="soloBoardWrap"><div class="pixi-board" id="board" role="img" aria-label="Animated PixiJS Tetris game board"></div><div class="clear-result-banner" id="clearResultBanner" aria-live="polite" aria-atomic="true"></div></div>
+   <aside class="tetris-side-column"><div class="next-piece-overlay"><div class="next-piece-copy"><strong>✨ NEXT BLOCK</strong><small>UP NEXT</small></div><div class="stat next-stat"><strong id="pixiStatus">ARCADE FX</strong><div id="nextBoard" role="img" aria-label="Next Tetris block"></div></div></div><div class="clear-result-banner" id="clearResultBanner" aria-live="polite" aria-atomic="true"></div></aside>
+   <div class="board-wrap solo-board-wrap" id="soloBoardWrap"><div class="pixi-board" id="board" role="img" aria-label="Animated PixiJS Tetris game board"></div></div>
    <div class="controls">
     <button class="btn" id="left" type="button" aria-label="Move block left" title="Hold to move left">◀ LEFT</button><button class="btn" id="rotate" type="button" aria-label="Rotate block" title="Rotate block">⟳ ROTATE</button><button class="btn" id="right" type="button" aria-label="Move block right" title="Hold to move right">RIGHT ▶</button>
     <button class="btn" id="down" type="button" aria-label="Soft drop block" title="Hold to soft drop">▼ DOWN</button><button class="btn" id="hardDrop" type="button" aria-label="Hard drop block" title="Drop instantly">⬇ HARD DROP</button><button class="btn" id="pause" type="button" aria-label="Pause or resume game">Ⅱ PAUSE</button>
