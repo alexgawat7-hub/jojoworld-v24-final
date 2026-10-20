@@ -28,8 +28,16 @@ button{touch-action:manipulation}
 .board-column{display:flex;flex-direction:column;align-items:center;justify-content:stretch;gap:3px;min-width:0;min-height:0;grid-row:1}
 .board-wrap{display:flex;align-items:center;justify-content:center;min-height:0;width:100%;padding:1px;background:#060916;border:1px solid #475482;border-radius:7px;box-shadow:inset 0 0 12px #5c48b533}.board-column>.board-wrap{flex:1 1 auto}
 .pixi-board{display:flex;align-items:center;justify-content:center;height:100%;width:100%;min-width:0;min-height:0;max-width:100%;max-height:100%;aspect-ratio:1/2;touch-action:manipulation;overflow:hidden;flex:1 1 auto}.pixi-canvas{display:block;width:auto!important;height:100%!important;max-width:100%;max-height:100%;aspect-ratio:1/2;object-fit:contain;touch-action:manipulation;flex:0 1 auto}
-.controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;width:100%;max-width:420px;flex:0 0 auto}
-.controls .btn{min-height:31px;padding:4px 1px;font-size:10px}
+.controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;width:100%;max-width:420px;flex:0 0 auto;padding:3px;border:1px solid #35476f;border-radius:12px;background:linear-gradient(145deg,#111b34dd,#080d1ddd);box-shadow:inset 0 1px 0 #ffffff0d,0 4px 14px #0005}
+.controls .btn{position:relative;isolation:isolate;min-width:0;min-height:38px;padding:5px 2px;border:1px solid #465a86;border-radius:10px;background:linear-gradient(180deg,#24365c,#111a31);color:#f5f7ff;font-size:10px;font-weight:950;letter-spacing:.15px;box-shadow:inset 0 1px 0 #ffffff17,0 3px 0 #080d1b,0 4px 8px #0005;transition:transform .08s ease,filter .08s ease,border-color .08s ease;touch-action:none;-webkit-tap-highlight-color:transparent}
+.controls .btn:active{transform:translateY(2px);filter:brightness(1.35);box-shadow:inset 0 1px 8px #0005,0 1px 0 #080d1b}
+.controls #left,.controls #right{border-color:#397eaa;background:linear-gradient(180deg,#164f70,#10233f);color:#8ceaff}
+.controls #rotate{border-color:#7862b8;background:linear-gradient(180deg,#483478,#211b42);color:#e0c9ff}
+.controls #down{border-color:#a57b38;background:linear-gradient(180deg,#63451b,#30220f);color:#ffe2a0}
+.controls #hardDrop{border-color:#d04c87;background:linear-gradient(180deg,#9e285d,#48152f);color:#fff0f7;box-shadow:inset 0 1px 0 #ffffff24,0 3px 0 #260817,0 0 10px #ff4f9b25}
+.controls #pause{border-color:#63708c;background:linear-gradient(180deg,#3b465d,#20283a);color:#e0e7f8}
+.controls .btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.controls .btn:disabled{filter:grayscale(.6);box-shadow:none}
 .stats{grid-row:2;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;align-content:center;min-width:0}.stats .muted{display:none}
 .stat{border:1px solid #273451;background:#080f20;border-radius:5px;padding:2px;min-width:0;overflow:hidden}
 .stat small{display:block;color:var(--muted);font-size:7px;white-space:nowrap}.stat strong{font-size:10px;overflow-wrap:anywhere}.stat.next-stat{min-height:0;display:flex;align-items:center;justify-content:center;gap:2px}.stat.next-stat>div:first-child{min-width:0}.stat.next-stat #pixiStatus{display:none}#nextBoard{width:24px;height:24px;flex:0 0 24px}
@@ -89,8 +97,8 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
   <div class="board-column">
    <div class="board-wrap solo-board-wrap" id="soloBoardWrap"><div class="pixi-board" id="board" role="img" aria-label="Animated PixiJS Tetris game board"></div></div>
    <div class="controls">
-    <button class="btn" id="left" type="button">◀ LEFT</button><button class="btn" id="rotate" type="button">⟳ ROTATE</button><button class="btn" id="right" type="button">RIGHT ▶</button>
-    <button class="btn" id="down" type="button">▼ DOWN</button><button class="btn" id="hardDrop" type="button">⬇ DROP</button><button class="btn" id="pause" type="button">Ⅱ PAUSE</button>
+    <button class="btn" id="left" type="button" aria-label="Move block left" title="Hold to move left">◀ LEFT</button><button class="btn" id="rotate" type="button" aria-label="Rotate block" title="Rotate block">⟳ ROTATE</button><button class="btn" id="right" type="button" aria-label="Move block right" title="Hold to move right">RIGHT ▶</button>
+    <button class="btn" id="down" type="button" aria-label="Soft drop block" title="Hold to soft drop">▼ DOWN</button><button class="btn" id="hardDrop" type="button" aria-label="Hard drop block" title="Drop instantly">⬇ HARD DROP</button><button class="btn" id="pause" type="button" aria-label="Pause or resume game">Ⅱ PAUSE</button>
    </div>
   </div>
   <aside class="stats">
