@@ -191,6 +191,13 @@ input,textarea{-webkit-user-select:text!important;user-select:text!important;-we
 .board-column>.tetris-side-column>#clearResultBanner.tetris{font-size:12px!important;color:#ff659e;background:transparent!important;border:0!important;box-shadow:none!important}
 @keyframes sideClearDefault{0%{transform:scale(.88);opacity:0}65%{transform:scale(1.04);opacity:1}100%{transform:scale(1);opacity:1}}
 
+/* [FIXED] Enlarge only the NEXT BLOCK preview image; keep popup text at default size. */
+.board-column>.tetris-side-column>.next-piece-overlay #nextBoard{width:60px!important;height:60px!important;flex:0 0 60px!important;max-width:100%!important;box-sizing:border-box!important}
+.board-column>.tetris-side-column>.next-piece-overlay #nextBoard canvas{width:100%!important;height:100%!important}
+@media(max-width:380px){
+ .board-column>.tetris-side-column>.next-piece-overlay #nextBoard{width:52px!important;height:52px!important;flex:0 0 52px!important}
+}
+
 </style>
 <script src="/vendor/pixi/pixi.min.js"></script>
 </head>
