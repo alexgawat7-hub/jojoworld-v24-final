@@ -502,18 +502,22 @@ function pixiCell(g,x,y,color,size,alpha){
  g.beginFill(0x030817,.40*a);g.moveTo(px,py+h-shade);g.lineTo(px+w,py+h-shade);g.lineTo(px+w,py+h);g.lineTo(px,py+h);g.closePath();g.endFill();
  g.beginFill(0x050a1a,.30*a);g.moveTo(px+w-side,py);g.lineTo(px+w,py);g.lineTo(px+w,py+h);g.lineTo(px+w-side,py+h-shade);g.closePath();g.endFill();
  /* Bright glass crown and diagonal crystal facet. */
- g.beginFill(0xffffff,.28*a);g.moveTo(px,py);g.lineTo(px+w,py);g.lineTo(px+w*.70,py+top);g.lineTo(px,py+top);g.closePath();g.endFill();
- g.beginFill(0xffffff,.14*a);g.moveTo(px,py+top);g.lineTo(px+w*.70,py+top);g.lineTo(px+w*.38,py+h*.52);g.lineTo(px,py+h*.39);g.closePath();g.endFill();
+ g.beginFill(0xffffff,.42*a);g.moveTo(px,py);g.lineTo(px+w,py);g.lineTo(px+w*.70,py+top);g.lineTo(px,py+top);g.closePath();g.endFill();
+ g.beginFill(0xffffff,.22*a);g.moveTo(px,py+top);g.lineTo(px+w*.70,py+top);g.lineTo(px+w*.38,py+h*.52);g.lineTo(px,py+h*.39);g.closePath();g.endFill();
+/* [ADDED] Broad diagonal glass reflection makes each color pop at a glance. */
+g.beginFill(0xffffff,.19*a);g.moveTo(px+w*.16,py+top+size*.025);g.lineTo(px+w*.31,py+top+size*.025);g.lineTo(px+w*.62,py+h*.48);g.lineTo(px+w*.51,py+h*.53);g.closePath();g.endFill();
  g.beginFill(0x07101f,.13*a);g.moveTo(px+w*.38,py+h*.52);g.lineTo(px+w,py+top);g.lineTo(px+w-side,py+h-shade);g.lineTo(px+w*.55,py+h-shade);g.closePath();g.endFill();
  /* Crisp luminous top/left rails and a fine inset edge improve visibility on mobile. */
- g.beginFill(0xffffff,.42*a);g.drawRect(px,py,w,Math.max(1.5,size*.055));g.endFill();
- g.beginFill(0xffffff,.24*a);g.drawRect(px,py+top,Math.max(1.5,size*.055),Math.max(1,h-top-shade));g.endFill();
+ g.beginFill(0xffffff,.58*a);g.drawRect(px,py,w,Math.max(1.8,size*.065));g.endFill();
+ g.beginFill(0xffffff,.34*a);g.drawRect(px,py+top,Math.max(1.8,size*.065),Math.max(1,h-top-shade));g.endFill();
  g.lineStyle(Math.max(1,size*.035),0xffffff,.27*a);g.drawRect(px+.7,py+.7,Math.max(1,w-1.4),Math.max(1,h-1.4));
  g.lineStyle(Math.max(1,size*.025),hex,.9*a);g.moveTo(px+inset,py+h-shade*.62);g.lineTo(px+inset,py+h-inset);g.lineTo(px+w-inset,py+h-inset);
  /* Specular streak plus tiny glint: bright but not distracting. */
- g.lineStyle(Math.max(1,size*.045),0xffffff,.58*a);g.moveTo(px+size*.19,py+size*.22);g.lineTo(px+size*.48,py+size*.22);
- g.lineStyle(Math.max(.7,size*.022),0xffffff,.30*a);g.moveTo(px+size*.19,py+size*.31);g.lineTo(px+size*.34,py+size*.31);
- g.beginFill(0xffffff,.68*a);g.drawCircle(px+w-size*.20,py+size*.22,Math.max(.8,size*.035));g.endFill();
+ g.lineStyle(Math.max(1.2,size*.055),0xffffff,.88*a);g.moveTo(px+size*.17,py+size*.22);g.lineTo(px+size*.52,py+size*.22);
+ g.lineStyle(Math.max(.8,size*.028),0xffffff,.52*a);g.moveTo(px+size*.17,py+size*.32);g.lineTo(px+size*.39,py+size*.32);
+ g.beginFill(0xffffff,.94*a);g.drawCircle(px+w-size*.20,py+size*.22,Math.max(1,size*.045));g.endFill();
+/* Fine secondary glint adds a polished, glossy finish without changing block size. */
+g.beginFill(0xffffff,.62*a);g.drawCircle(px+w-size*.31,py+size*.22,Math.max(.6,size*.022));g.endFill();
  g.lineStyle(0,0,0);
 }
 function pixiGhostCell(g,x,y,color,size){const px=x*size+3,py=y*size+3,w=size-6,h=size-6;g.beginFill(0x55d9ff,.10);g.drawRoundedRect(px-1,py-1,w+2,h+2,3);g.endFill();g.beginFill(0x55d9ff,.08);g.drawRoundedRect(px,py,w,h,3);g.endFill();g.lineStyle(1,0x70f5ff,.8);g.drawRoundedRect(px+.5,py+.5,w-1,h-1,3);g.lineStyle(1,0xffffff,.55);g.moveTo(px+4,py+3);g.lineTo(px+w-4,py+3)}
