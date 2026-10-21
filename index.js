@@ -800,6 +800,19 @@ app.get('/api/tetris/leaderboard', async (req, res) => {
     const term = String(req.query.search || '').trim().slice(0, 60);
     const all = await TetrisStatsModel.find({}).sort({ highestScore: -1, updatedAt: 1, _id: 1 }).limit(10000).lean();
     const ranked = all.map((row, index) => ({ rank: index + 1, name: String(row.displayName || 'Jojo Player').slice(0, 32), highestScore: Math.max(0, Number(row.highestScore) || 0), gamesPlayed: Math.max(0, Number(row.gamesPlayed) || 0), psid: String(row.psid) }));
+    // [ADDED] Attach the JojoWorld profile photo to leaderboard rows without returning private Messenger IDs.
+    const visiblePsids = ranked.slice(0, 10000).map(row => row.psid);
+    const profileDocs = visiblePsids.length ? await UserModel.find({ psid: { $in: visiblePsids } }).select('psid data.profilePhotoUrl data.profilePhotoData').lean() : [];
+    const avatarByPsid = new Map(profileDocs.map(doc => {
+      const data = doc.data || {};
+      let avatar = typeof data.profilePhotoUrl === 'string' && /^https:\/\//i.test(data.profilePhotoUrl) ? data.profilePhotoUrl : '';
+      // Inline stored profile photos only when no hosted URL exists; cap payload size to keep ranking fast.
+      if (!avatar && typeof data.profilePhotoData === 'string' && data.profilePhotoData.length <= 180000) {
+        const raw = data.profilePhotoData.replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, '');
+        if (/^[A-Za-z0-9+/=]+$/.test(raw)) avatar = 'data:image/jpeg;base64,' + raw;
+      }
+      return [String(doc.psid), avatar];
+    }));
     let selected;
     if (!term) selected = ranked.slice(0, 50);
     else if (/^#?\d+$/.test(term)) {
@@ -810,7 +823,7 @@ app.get('/api/tetris/leaderboard', async (req, res) => {
       selected = ranked.filter(row => row.name.toLowerCase().includes(needle)).slice(0, 50);
     }
     res.set('Cache-Control', 'no-store');
-    return res.json({ ok: true, totalRanked: ranked.length, players: selected.map(({ psid, ...row }) => row), myRank: (ranked.find(row => row.psid === String(session.psid)) || {}).rank || null });
+    return res.json({ ok: true, totalRanked: ranked.length, players: selected.map(({ psid, ...row }) => ({ ...row, avatar: avatarByPsid.get(psid) || '' })), myRank: (ranked.find(row => row.psid === String(session.psid)) || {}).rank || null });
   } catch (err) {
     console.error('[TETRIS] Leaderboard read failed:', err.message);
     return res.status(503).json({ ok: false, error: 'Tetris leaderboard is temporarily unavailable.' });
