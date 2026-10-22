@@ -130,6 +130,8 @@ const app = express();
 
 // Serve versioned-friendly local CSS/JS resources used by browser games.
 app.use('/assets', express.static(path.join(__dirname, 'public', 'assets'), { maxAge: '1h' }));
+// [FIXED] Explicitly serve uploaded Tetris leaderboard audio files; the public folder is not mounted as a whole.
+app.use('/audio/leaderboard-memes', express.static(path.join(__dirname, 'public', 'audio', 'leaderboard-memes'), { maxAge: '1h', fallthrough: false, setHeaders: function (res, filePath) { if (/\.mp3$/i.test(filePath)) res.setHeader('Content-Type', 'audio/mpeg'); else if (/\.m4a$/i.test(filePath)) res.setHeader('Content-Type', 'audio/mp4'); } }));
 
 // [ADDED] Serve the installed PixiJS browser build locally so Tetris does not depend on a third-party CDN.
 app.use('/vendor/pixi', express.static(path.join(__dirname, 'node_modules', 'pixi.js', 'dist'), { maxAge: '7d', immutable: true }));
