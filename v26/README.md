@@ -1,17 +1,31 @@
-# JojoWorld V26 migration branch
+# JojoWorld V26 shared modules
 
-This branch is isolated from the live production branch. Keep the existing Render service on `main` until the V26 integration has been tested.
+The `v26/` directory is a shared-code area inside the main JojoWorld application, not a standalone deployment or an isolated branch. The production entry point remains the repository-root `index.js`, started with `npm start` (`node index.js`). The root application imports modules from `v26/src/`.
 
-## Existing Render variables
-Preserve existing variable names where applicable: `MONGODB_URI`, `PAGE_TOKEN`, `PAYMONGO_SECRET`, `PAYMONGO_WEBHOOK_SECRET`, `VERIFY_TOKEN`, `ADMIN_ID`, `PAGE_USERNAME`, and `GCASH_NUM`. Never commit `.env` or reveal secrets.
+## Modules currently used by the root application
 
-## Deployment checklist
-1. Use Node.js 20+.
-2. Install dependencies from the V26 project directory.
-3. Configure MongoDB using a replica set or supported transaction deployment for atomic wallet changes.
-4. Configure Meta Messenger webhook HTTPS URL, Page token, App Secret and Verify Token.
-5. Configure PayMongo webhook secret and verify signatures against the raw request body. Reject requests if the secret is missing.
-6. Validate event type, payment status, order reference, amount and currency; use a unique payment reference to prevent duplicate coin credits.
-7. Run syntax, unit and integration tests before changing the Render deployment.
+- `src/security/messenger.js` — Messenger request signature verification.
+- `src/security/paymongo.js` — PayMongo webhook signature verification.
+- `src/services/gifts.js` — gift catalog and gift transaction rules.
+- `src/services/ai-name-art.js` — optional name-art generation and cached artwork.
 
-This documentation alone is not a complete runnable V26 replacement. Keep the existing production service unchanged until model wiring, payment-order persistence, Messenger routing, and the existing command set have been integrated and tested.
+**Do not delete this directory without first migrating its imports and tests and confirming the replacement works.** Keep the existing Render deployment and environment-variable names intact. Never commit `.env` files or expose secrets.
+
+## Checks
+
+Run from the repository root with Node.js 20 or newer:
+
+```sh
+npm install
+npm run check
+npm test
+```
+
+The GitHub Actions workflow runs these checks on pushes to and pull requests targeting `main` as well as the legacy `jojoworld-v26-ultimate-evolution` branch.
+
+## Safety notes
+
+- Keep Messenger signature verification enabled.
+- Keep PayMongo signature verification enabled; reject webhook requests when the required secret is missing.
+- Preserve payment validation and duplicate-event protection. Do not change payment behavior as part of unrelated cleanup.
+- Test changes before relying on them in the live Render service.
