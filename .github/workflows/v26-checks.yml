@@ -1,11 +1,13 @@
-name: JojoWorld V26 checks
+name: JojoWorld checks
 
 on:
   push:
     branches:
+      - main
       - jojoworld-v26-ultimate-evolution
   pull_request:
     branches:
+      - main
       - jojoworld-v26-ultimate-evolution
 
 jobs:
