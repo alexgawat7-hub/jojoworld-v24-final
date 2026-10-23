@@ -1020,6 +1020,11 @@ app.get('/api/tetris/battle/state',async(req,res)=>{
   const publicState=tetrisBattlePublicState(latest,psid,Math.max(0,Math.floor(Number(user?.coins)||0)));
   if(latest){
    const myPsid=String(psid),rivalPsid=String(latest.player1.psid)===myPsid?String(latest.player2.psid):String(latest.player1.psid);
+   // [FIXED] Attach current JojoWorld avatars to both active battle player cards.
+   const profileDocs=await UserModel.find({psid:{$in:[myPsid,rivalPsid]}}).select('psid data.profilePhotoUrl data.profilePhotoData').lean();
+   const avatarByPsid=new Map(profileDocs.map(doc=>{const data=doc.data||{};let avatar=typeof data.profilePhotoUrl==='string'&&/^https:\/\//i.test(data.profilePhotoUrl)?data.profilePhotoUrl:'';if(!avatar&&typeof data.profilePhotoData==='string'&&data.profilePhotoData.length<=180000){const raw=data.profilePhotoData.replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/,'');if(/^[A-Za-z0-9+/=]+$/.test(raw))avatar='data:image/jpeg;base64,'+raw;}return[String(doc.psid),avatar]}));
+   publicState.you.avatar=avatarByPsid.get(myPsid)||'';
+   publicState.opponent.avatar=avatarByPsid.get(rivalPsid)||'';
    const [myStats,rivalStats]=await Promise.all([TetrisBattleStatsModel.findOne({psid:myPsid}).lean(),TetrisBattleStatsModel.findOne({psid:rivalPsid}).lean()]);
    async function battleRankFor(stat){
     if(!stat)return null;
