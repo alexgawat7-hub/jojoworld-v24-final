@@ -1075,7 +1075,20 @@ app.get('/api/tetris/battle/leaderboard',async(req,res)=>{
   const ranked=rows.map((r,i)=>({rank:i+1,name:r.displayName||'Jojo Player',wins:r.wins||0,losses:r.losses||0,highestScore:r.highestScore||0,gamesPlayed:r.gamesPlayed||0,coinsWon:r.coinsWon||0,psid:String(r.psid)}));
   const term=String(req.query.search||'').trim().slice(0,60);
   const selected=!term?ranked.slice(0,50):/^#?\d+$/.test(term)?ranked.filter(r=>r.rank===Number(term.replace('#',''))):ranked.filter(r=>r.name.toLowerCase().includes(term.toLowerCase())).slice(0,50);
-  return res.json({ok:true,totalRanked:ranked.length,players:selected.map(({psid,...r})=>r)});
+  // [FIXED] Include JojoWorld profile photos for the visible battle leaderboard rows only.
+  const selectedPsids=selected.map(r=>r.psid);
+  const profileDocs=selectedPsids.length?await UserModel.find({psid:{$in:selectedPsids}}).select('psid data.profilePhotoUrl data.profilePhotoData').lean():[];
+  const avatarByPsid=new Map(profileDocs.map(doc=>{
+   const data=doc.data||{};
+   let avatar=typeof data.profilePhotoUrl==='string'&&/^https:\/\//i.test(data.profilePhotoUrl)?data.profilePhotoUrl:'';
+   if(!avatar&&typeof data.profilePhotoData==='string'&&data.profilePhotoData.length<=180000){
+    const raw=data.profilePhotoData.replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/,'');
+    if(/^[A-Za-z0-9+/=]+$/.test(raw))avatar='data:image/jpeg;base64,'+raw;
+   }
+   return [String(doc.psid),avatar];
+  }));
+  res.set('Cache-Control','no-store');
+  return res.json({ok:true,totalRanked:ranked.length,players:selected.map(({psid,...r})=>({...r,avatar:avatarByPsid.get(psid)||''}))});
  }catch(err){console.error('[TETRIS BATTLE] Leaderboard failed:',err.message);return res.status(503).json({ok:false,error:'Battle leaderboard unavailable.'});}
 });
 
