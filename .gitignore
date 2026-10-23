@@ -1,0 +1,23 @@
+# [ADDED] Local secrets and environment configuration
+.env
+.env.*
+!.env.example
+
+# [ADDED] Node.js dependencies and package-manager logs
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# [ADDED] Runtime data, generated artwork, and local caches
+cache/
+coverage/
+.nyc_output/
+db.json
+*.log
+
+# [ADDED] OS/editor temporary files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
