@@ -4860,7 +4860,7 @@ ${renderGiftCatalog()}
 });
 
 app.get('/', (req, res) => res.status(200).json({
-  service: 'JojoWorld V26 Ultimate Evolution',
+  service: 'JojoWorld Messenger Bot',
   status: 'running',
   health: '/health',
   readiness: '/ready'
@@ -4869,7 +4869,7 @@ app.get('/', (req, res) => res.status(200).json({
 // Liveness probe: confirms the Node.js process and HTTP server are responding.
 app.get('/health', (req, res) => res.status(200).json({
   status: 'ok',
-  service: 'JojoWorld V26 Ultimate Evolution',
+  service: 'JojoWorld Messenger Bot',
   uptimeSeconds: Math.floor(process.uptime())
 }));
 
@@ -4879,14 +4879,14 @@ app.get('/ready', (req, res) => {
     pageToken: Boolean(PAGE_TOKEN),
     verifyToken: Boolean(VERIFY_TOKEN),
     mongodb: Boolean(MONGODB_URI),
-    mongodbConnected: !MONGODB_URI || mongoose.connection.readyState === 1,
+    mongodbConnected: Boolean(MONGODB_URI && mongoose.connection.readyState === 1),
     aiNameArtPersistentCache: Boolean(MONGODB_URI && mongoose.connection.readyState === 1),
     metaAppSecret: Boolean(META_APP_SECRET),
     aiNameArt: isAINameArtConfigured(),
     paymongoSecret: Boolean(PAYMONGO_SECRET),
     paymongoWebhookSecret: Boolean(PAYMONGO_WEBHOOK_SECRET)
   };
-  const messengerReady = checks.pageToken && checks.verifyToken && checks.metaAppSecret && checks.mongodbConnected;
+  const messengerReady = checks.pageToken && checks.verifyToken && checks.metaAppSecret && (!checks.mongodb || checks.mongodbConnected);
   const paymentsReady = checks.paymongoSecret && checks.paymongoWebhookSecret && checks.mongodb && checks.mongodbConnected;
   res.status(messengerReady ? 200 : 503).json({
     status: messengerReady ? 'ready' : 'needs_configuration',
@@ -4897,4 +4897,4 @@ app.get('/ready', (req, res) => {
   });
 });
 
-app.listen(process.env.PORT || 10000, () => console.log("JojoWorld V26 Ultimate Evolution server listening on port " + (process.env.PORT || 10000)));
+app.listen(process.env.PORT || 10000, () => console.log("JojoWorld Messenger Bot server listening on port " + (process.env.PORT || 10000)));
