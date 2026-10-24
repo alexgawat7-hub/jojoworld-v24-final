@@ -1016,7 +1016,15 @@ app.post('/api/hula-room/rooms/:code/draw', async (req, res) => {
     const slotIndex = Number(req.body?.slotIndex);
     let cardIndex;
     if (isAutoMatch) {
-      const slots = Array.isArray(room.cardSlots) && room.cardSlots.length >= 3 ? room.cardSlots : [];
+      let slots = Array.isArray(room.cardSlots) && room.cardSlots.length >= 3 ? room.cardSlots : [];
+      // Backfill matches created before selectable slots were deployed.
+      if (slots.length < 3) {
+        const freshSlots = [];
+        while (freshSlots.length < 5) { const candidate = crypto.randomInt(0, 78); if (!freshSlots.includes(candidate)) freshSlots.push(candidate); }
+        const initialized = await HulaRoomModel.findOneAndUpdate({ _id: room._id, cardIndex: null, $or: [{ cardSlots: { $exists: false } }, { cardSlots: { $size: 0 } }] }, { $set: { cardSlots: freshSlots, updatedAt: new Date() } }, { new: true });
+        if (initialized) slots = initialized.cardSlots;
+        else { const latest = await HulaRoomModel.findById(room._id).lean(); slots = Array.isArray(latest?.cardSlots) ? latest.cardSlots : []; }
+      }
       if (!Number.isInteger(slotIndex) || slotIndex < 0 || slotIndex >= slots.length) return res.status(400).json({ ok: false, error: 'Pumili ng isa sa mga nakaharap-palikod na card.' });
       cardIndex = slots[slotIndex];
       if (!Number.isInteger(cardIndex) || cardIndex < 0 || cardIndex >= 78) return res.status(409).json({ ok: false, error: 'Hindi ma-load ang mga card. Gumawa ng bagong match.' });
