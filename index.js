@@ -852,7 +852,16 @@ app.post('/api/hula-room/rooms/:code/join', async (req, res) => {
         room = current;
       }
     }
-    if (room.players.length >= 10 && room.status === 'waiting') { room.status = 'active'; room.updatedAt = new Date(); await room.save(); }
+    if (room.players.length >= 10 && room.status === 'waiting') {
+      // [FIXED] Activate atomically so a stale join document cannot overwrite a concurrent round update.
+      const activated = await HulaRoomModel.findOneAndUpdate(
+        { _id: room._id, status: 'waiting', $expr: { $gte: [{ $size: '$players' }, 10] } },
+        { $set: { status: 'active', updatedAt: new Date() } },
+        { new: true }
+      );
+      if (activated) room = activated;
+      else room = await HulaRoomModel.findOne({ code, status: { $ne: 'closed' }, expiresAt: { $gt: new Date() } }) || room;
+    }
     res.set('Cache-Control', 'no-store');
     return res.json(hulaRoomPublicState(room, psid));
   } catch (err) {
