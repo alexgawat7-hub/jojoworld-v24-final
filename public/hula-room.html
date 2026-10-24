@@ -80,9 +80,14 @@ const cards=majors.map((m,i)=>({name:m[0],tl:m[1],symbol:m[2],group:"Major Arcan
 suits.forEach(s=>ranks.forEach((r,i)=>{let title=r[0]+" of "+s.name;let role=i===0?"bagong pagkakataon at simula":i<10?["","balanse at pagpili","paglago at pagtutulungan","matatag na pundasyon","hamon at pagbabago","pagsulong at pagtanggap","pagsusuri at tiyaga","pagsisikap at pag-unlad","pagtitiyaga at pag-asa","pagkumpleto ng isang siklo"][i]:(["Page","Knight","Queen","King"][i-10]+" — paglinang ng "+s.theme);let challenge=i===4?"pagsubok na humihingi ng pag-angkop":i===6?"pagdududa o pagsubok sa pasensya":"sobrang pagkiling o kakulangan sa balanse";cards.push({name:title,tl:r[1]+" ng "+s.tl,group:"Minor Arcana · "+s.name,symbol:s.symbol,meaning:"Ipinapakita ng card na ito ang "+role+" sa larangan ng "+s.theme+".",challenge:"Maaaring maging hadlang ang "+challenge+"; tingnan ang buong sitwasyon bago magpasya.",lesson:"Gamitin ang "+s.theme+" nang may kamalayan. Pumili ng isang praktikal na hakbang at huwag ituring ang card bilang tiyak na prediksyon.",number:i+1})}));
 
 const $=id=>document.getElementById(id);let picks=0,busy=false;
-let roomCode='',roomHost=false,lastSharedCard=null,roomPoller=null,roomRefreshInFlight=false,canDrawInRoom=true;
+let roomCode='',roomHost=false,lastSharedCard=null,roomPoller=null,roomRefreshInFlight=false,canDrawInRoom=true,lastAppliedRoundNo=-1,lastAppliedRoundRevealed=false;
 function setRoomMessage(message){$('roomStatus').textContent=message;}
 function showRoomState(state){
+ // [FIXED] Ignore late responses from an older round or an unrevealed snapshot after the same round was revealed.
+ const incomingRound=Number.isInteger(state.roundNo)?state.roundNo:0;
+ const incomingRevealed=!!state.revealed;
+ if(incomingRound<lastAppliedRoundNo||(incomingRound===lastAppliedRoundNo&&lastAppliedRoundRevealed&&!incomingRevealed))return;
+ lastAppliedRoundNo=incomingRound;lastAppliedRoundRevealed=incomingRevealed;
  roomCode=state.code;roomHost=!!state.host;const me=(state.players||[]).find(p=>p.isYou);canDrawInRoom=!!(me&&me.canUseMic);$('pickBtn').disabled=!canDrawInRoom;$('pickBtn').textContent=canDrawInRoom?'✦ PICK TAROT CARD ✦':'WAIT FOR YOUR ACTIVE PAIR';
  $('roomCodeInput').value=roomCode;
  const pair=state.activePair&&state.activePair.length?state.activePair.join(' + '):'waiting for pair';
@@ -113,8 +118,8 @@ async function roomRequest(path,method='GET'){
 }
 async function refreshRoom(){if(!roomCode||roomRefreshInFlight)return;roomRefreshInFlight=true;try{const requestedCode=roomCode;const s=await roomRequest('/api/hula-room/rooms/'+encodeURIComponent(requestedCode)+'/state');if(roomCode===requestedCode)showRoomState(s);}catch(e){setRoomMessage(e.message);if(e.permanent&&roomPoller){clearInterval(roomPoller);roomPoller=null;}}finally{roomRefreshInFlight=false;}}
 function startRoomPolling(){if(roomPoller)clearInterval(roomPoller);roomPoller=setInterval(refreshRoom,2500);refreshRoom();}
-$('createRoomBtn').addEventListener('click',async()=>{const b=$('createRoomBtn');b.disabled=true;try{const s=await roomRequest('/api/hula-room/rooms','POST');lastSharedCard=null;showRoomState(s);startRoomPolling();}catch(e){setRoomMessage(e.message);}finally{b.disabled=false;}});
-$('joinRoomBtn').addEventListener('click',async()=>{const code=$('roomCodeInput').value.trim().toUpperCase();if(!/^[A-F0-9]{6}$/.test(code)){setRoomMessage('Ilagay ang valid na 6-character room code.');return;}try{const s=await roomRequest('/api/hula-room/rooms/'+encodeURIComponent(code)+'/join','POST');lastSharedCard=null;showRoomState(s);startRoomPolling();}catch(e){setRoomMessage(e.message);}});
+$('createRoomBtn').addEventListener('click',async()=>{const b=$('createRoomBtn');b.disabled=true;try{const s=await roomRequest('/api/hula-room/rooms','POST');lastSharedCard=null;lastAppliedRoundNo=-1;lastAppliedRoundRevealed=false;showRoomState(s);startRoomPolling();}catch(e){setRoomMessage(e.message);}finally{b.disabled=false;}});
+$('joinRoomBtn').addEventListener('click',async()=>{const code=$('roomCodeInput').value.trim().toUpperCase();if(!/^[A-F0-9]{6}$/.test(code)){setRoomMessage('Ilagay ang valid na 6-character room code.');return;}try{const s=await roomRequest('/api/hula-room/rooms/'+encodeURIComponent(code)+'/join','POST');lastSharedCard=null;lastAppliedRoundNo=-1;lastAppliedRoundRevealed=false;showRoomState(s);startRoomPolling();}catch(e){setRoomMessage(e.message);}});
 $('nextPairBtn').addEventListener('click',async()=>{if(!roomCode)return;try{const s=await roomRequest('/api/hula-room/rooms/'+encodeURIComponent(roomCode)+'/next-pair','POST');lastSharedCard=null;showRoomState(s);}catch(e){setRoomMessage(e.message);}});
 
 function renderDeck(){const list=$("cardList");cards.forEach(c=>{const item=document.createElement("div");item.className="mini";const b=document.createElement("b");b.textContent=c.symbol+" "+c.name;const s=document.createElement("span");s.textContent=c.group+" · "+c.tl;item.append(b,s);list.append(item)});$("deckCount").textContent=cards.length+" cards"}
