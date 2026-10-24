@@ -879,14 +879,38 @@ app.post('/api/hula-room/rooms/:code/next-pair', async (req, res) => {
     const session = await getDiceWebSession(req);
     if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Secure session expired. Reopen Game Lobby from Messenger.' });
     const code = String(req.params.code || '').trim().toUpperCase();
-    const room = await HulaRoomModel.findOne({ code, hostPsid: String(session.psid), status: { $ne: 'closed' }, expiresAt: { $gt: new Date() } });
+    const room = await HulaRoomModel.findOne({ code, hostPsid: String(session.psid), status: { $ne: 'closed' }, expiresAt: { $gt: new Date() } }).lean();
     if (!room) return res.status(403).json({ ok: false, error: 'Host access lang ang puwedeng magpalit ng active pair.' });
-    if (room.players.length < 10) return res.status(409).json({ ok: false, error: 'Kailangan muna ng 10 participants para sa 5 pairs.' });
-    room.activePairIndex = (room.activePairIndex + 1) % 5;
-    room.cardIndex = null; room.revealedBy = null; room.roundNo += 1; room.status = 'active'; room.updatedAt = new Date();
-    await room.save();
+    if ((room.players || []).length < 10) return res.status(409).json({ ok: false, error: 'Kailangan muna ng 10 participants para sa 5 pairs.' });
+
+    // [FIXED] Atomic optimistic update: rapid/double host taps cannot skip multiple pairs
+    // or reset a Tarot card after another request has already advanced the round.
+    const now = new Date();
+    const updated = await HulaRoomModel.findOneAndUpdate(
+      {
+        _id: room._id,
+        hostPsid: String(session.psid),
+        activePairIndex: room.activePairIndex,
+        roundNo: room.roundNo,
+        status: { $ne: 'closed' },
+        expiresAt: { $gt: now },
+        $expr: { $gte: [{ $size: { $ifNull: ['$players', []] } }, 10] }
+      },
+      {
+        $set: {
+          activePairIndex: (Number(room.activePairIndex) + 1) % 5,
+          cardIndex: null,
+          revealedBy: null,
+          status: 'active',
+          updatedAt: now
+        },
+        $inc: { roundNo: 1 }
+      },
+      { new: true, runValidators: true }
+    );
+    if (!updated) return res.status(409).json({ ok: false, error: 'Nagbago na ang round o may kasabay na request. I-refresh ang room state bago mag-next pair.' });
     res.set('Cache-Control', 'no-store');
-    return res.json(hulaRoomPublicState(room, session.psid));
+    return res.json(hulaRoomPublicState(updated, session.psid));
   } catch (err) {
     console.error('[HULA ROOM] Pair rotation failed:', err.message);
     return res.status(503).json({ ok: false, error: 'Hindi mapalitan ang active pair ngayon.' });
