@@ -94,7 +94,7 @@ function showRoomState(state){
  setRoomMessage('ROOM '+roomCode+' · '+state.playerCount+'/'+state.capacity+' players\nActive pair '+(state.activePairIndex+1)+': '+pair+(state.revealed?' · CARD REVEALED':' · Waiting for reveal'));
  const roster=$('roomRoster');roster.style.display='grid';roster.style.gridTemplateColumns='repeat(2,minmax(0,1fr))';roster.style.gap='6px';roster.replaceChildren();
  state.players.forEach(p=>{const item=document.createElement('div');item.style.cssText='padding:8px;border:1px solid #45345f;border-radius:8px;background:#17112a;font-size:11px;overflow-wrap:anywhere';const name=document.createElement('b');name.textContent=(p.isYou?'YOU · ':'')+p.displayName;name.style.color=p.canUseMic?'#f6d98b':'#ddd2f1';const role=document.createElement('div');role.textContent=p.role==='manghuhula'?'MANGHUHULA':p.role==='nagpapahula'?'NAGPAPAHULA':'SPECTATOR';role.style.cssText='font-size:10px;color:#b9a8d7;margin-top:3px';item.append(name,role);roster.append(item);});
- $('nextPairBtn').style.display=roomHost?'block':'none';
+ $('nextPairBtn').style.display=roomHost?'block':'none';$('nextPairBtn').disabled=!roomHost||state.playerCount<10;$('nextPairBtn').textContent=state.playerCount<10?'WAIT FOR 10 PARTICIPANTS':'NEXT ACTIVE PAIR';
  if(state.revealed&&Number.isInteger(state.cardIndex)&&state.cardIndex!==lastSharedCard){lastSharedCard=state.cardIndex;showSharedCard(cards[state.cardIndex],state.revealedBy);}
  else if(!state.revealed&&lastSharedCard!==null){lastSharedCard=null;$('tarotCard').classList.add('backface');$('cardNumber').textContent='✦  THE TAROT DECK  ✦';$('sigil').textContent='☾';$('cardLabel').textContent='PICK A CARD';$('result').replaceChildren();$('result').classList.remove('show');}
 }
