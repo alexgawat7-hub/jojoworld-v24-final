@@ -919,7 +919,7 @@ app.post('/api/hula-room/rooms/:code/draw', async (req, res) => {
   }
 });
 
-// [ADDED] Hula Room: authenticated server-side Tarot selection; no coin transfer or multiplayer claims yet.
+// [ADDED] Hula Room: authenticated standalone Tarot picker for users outside a multiplayer room.
 app.post('/api/hula-room/draw', async (req, res) => {
   try {
     const session = await getDiceWebSession(req);
