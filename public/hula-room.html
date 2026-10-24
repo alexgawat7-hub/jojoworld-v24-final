@@ -24,7 +24,7 @@ h1{font-size:clamp(25px,7vw,40px);line-height:1.05;margin:22px 0 8px;letter-spac
 
 <section class="panel" id="roomPanel" style="margin-bottom:14px">
   <div class="brand" style="margin-bottom:8px">✦ MULTIPLAYER ROOM</div>
-  <p class="sub" style="margin-bottom:12px">Gumawa ng private room o sumali gamit ang 6-character code. Hanggang 10 participants at 8 spectators; ang active pair lang ang puwedeng mag-reveal ng card.</p>
+  <p class="sub" style="margin-bottom:12px">Pumili ng role at awtomatikong hanapin ang katapat. Ang <b>Manghuhula</b> ang magbabasa; ang <b>Magpapahula</b> ang pipili ng card. Maaari pa ring gumawa o sumali sa private room gamit ang code.</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px"><button class="back" id="readerRoleBtn" style="padding:12px">🔮 MANGHUHULA</button><button class="back" id="seekerRoleBtn" style="padding:12px">🃏 MAGPAHULA</button></div><button class="cta" id="findMatchBtn" style="margin:0 0 8px">✦ HANAP NG MATCH ✦</button><button class="back" id="cancelMatchBtn" style="display:none;width:100%;margin-bottom:9px">CANCEL MATCH</button>
   <div style="display:grid;grid-template-columns:1fr;gap:9px">
     <button class="cta" id="createRoomBtn" style="margin:0">＋ CREATE ROOM</button>
     <div style="display:flex;gap:8px"><input id="roomCodeInput" maxlength="6" autocomplete="off" placeholder="ROOM CODE" aria-label="Room code" style="min-width:0;flex:1;border:1px solid #574778;border-radius:10px;padding:12px;background:#100b20;color:#fff;text-transform:uppercase;font-weight:900;letter-spacing:2px"><button class="back" id="joinRoomBtn" style="font-size:13px">JOIN</button></div>
@@ -81,7 +81,7 @@ const cards=majors.map((m,i)=>({name:m[0],tl:m[1],symbol:m[2],group:"Major Arcan
 suits.forEach(s=>ranks.forEach((r,i)=>{let title=r[0]+" of "+s.name;let role=i===0?"bagong pagkakataon at simula":i<10?["","balanse at pagpili","paglago at pagtutulungan","matatag na pundasyon","hamon at pagbabago","pagsulong at pagtanggap","pagsusuri at tiyaga","pagsisikap at pag-unlad","pagtitiyaga at pag-asa","pagkumpleto ng isang siklo"][i]:(["Page","Knight","Queen","King"][i-10]+" — paglinang ng "+s.theme);let challenge=i===4?"pagsubok na humihingi ng pag-angkop":i===6?"pagdududa o pagsubok sa pasensya":"sobrang pagkiling o kakulangan sa balanse";cards.push({name:title,tl:r[1]+" ng "+s.tl,group:"Minor Arcana · "+s.name,symbol:s.symbol,meaning:"Ipinapakita ng card na ito ang "+role+" sa larangan ng "+s.theme+".",challenge:"Maaaring maging hadlang ang "+challenge+"; tingnan ang buong sitwasyon bago magpasya.",lesson:"Gamitin ang "+s.theme+" nang may kamalayan. Pumili ng isang praktikal na hakbang at huwag ituring ang card bilang tiyak na prediksyon.",number:i+1})}));
 
 const $=id=>document.getElementById(id);let picks=0,busy=false;
-let roomCode='',roomHost=false,lastSharedCard=null,roomPoller=null,roomRefreshInFlight=false,canDrawInRoom=true,lastAppliedRoundNo=-1,lastAppliedRoundRevealed=false;
+let roomCode='',roomHost=false,lastSharedCard=null,roomPoller=null,roomRefreshInFlight=false,canDrawInRoom=true,lastAppliedRoundNo=-1,lastAppliedRoundRevealed=false,selectedRole='nagpapahula',matchPoller=null;
 function setRoomMessage(message){$('roomStatus').textContent=message;}
 function showRoomState(state){
  // [FIXED] Ignore late responses from an older round or an unrevealed snapshot after the same round was revealed.
@@ -105,12 +105,12 @@ function showSharedCard(c,by){
  [['KAHULUGAN',c.meaning],['HAMON / BABALA',c.challenge],['ARAL / GABAY',c.lesson]].forEach(([label,value])=>{const p=document.createElement('p'),strong=document.createElement('strong');strong.textContent=label+': ';p.append(strong,document.createTextNode(value));result.append(p)});
  const note=document.createElement('p');note.style.color='#bca8dc';note.textContent='Iisang card para sa lahat ng miyembro ng room. Roleplay at pagninilay lamang — hindi tiyak na prediksyon.';result.append(note);result.classList.add('show');
 }
-async function roomRequest(path,method='GET'){
+async function roomRequest(path,method='GET',payload={}){
  const token=new URLSearchParams(location.search).get('token')||'';
  if(!/^[a-f0-9]{64}$/i.test(token)){const error=new Error('Buksan ang Hula Room mula sa Game Lobby sa Messenger.');error.permanent=true;throw error;}
  let response;
  try{
-  response=await fetch(path+(path.includes('?')?'&':'?')+'token='+encodeURIComponent(token),{method,headers:{'Content-Type':'application/json'},body:method==='GET'?undefined:JSON.stringify({token}),cache:'no-store'});
+  response=await fetch(path+(path.includes('?')?'&':'?')+'token='+encodeURIComponent(token),{method,headers:{'Content-Type':'application/json'},body:method==='GET'?undefined:JSON.stringify({...payload,token}),cache:'no-store'});
  }catch(networkError){const error=new Error('Pansamantalang naputol ang koneksyon. Susubukan ulit ang room.');error.transient=true;throw error;}
  let data;
  try{data=await response.json();}catch(parseError){const error=new Error('Hindi mabasa ang sagot ng server. Susubukan ulit ang room.');error.transient=true;throw error;}
@@ -119,6 +119,41 @@ async function roomRequest(path,method='GET'){
 }
 async function refreshRoom(){if(!roomCode||roomRefreshInFlight)return;roomRefreshInFlight=true;try{const requestedCode=roomCode;const s=await roomRequest('/api/hula-room/rooms/'+encodeURIComponent(requestedCode)+'/state');if(roomCode===requestedCode)showRoomState(s);}catch(e){setRoomMessage(e.message);if(e.permanent&&roomPoller){clearInterval(roomPoller);roomPoller=null;}}finally{roomRefreshInFlight=false;}}
 function startRoomPolling(){if(roomPoller)clearInterval(roomPoller);roomPoller=setInterval(refreshRoom,2500);refreshRoom();}
+
+function selectRole(role){
+ selectedRole=role;
+ $('readerRoleBtn').style.borderColor=role==='manghuhula'?'#f6d98b':'#574778';
+ $('readerRoleBtn').style.color=role==='manghuhula'?'#f6d98b':'#fff';
+ $('seekerRoleBtn').style.borderColor=role==='nagpapahula'?'#f6d98b':'#574778';
+ $('seekerRoleBtn').style.color=role==='nagpapahula'?'#f6d98b':'#fff';
+}
+$('readerRoleBtn').addEventListener('click',()=>selectRole('manghuhula'));
+$('seekerRoleBtn').addEventListener('click',()=>selectRole('nagpapahula'));
+selectRole(selectedRole);
+async function pollMatch(){
+ try{
+  const state=await roomRequest('/api/hula-room/match-state');
+  if(state.matched&&state.code){
+   if(matchPoller){clearInterval(matchPoller);matchPoller=null;}
+   $('cancelMatchBtn').style.display='none';$('findMatchBtn').disabled=false;$('findMatchBtn').textContent='✦ HANAP NG MATCH ✦';
+   lastSharedCard=null;lastAppliedRoundNo=-1;lastAppliedRoundRevealed=false;showRoomState(state);startRoomPolling();
+  }else if(state.waiting){setRoomMessage('🔎 '+(state.message||'Naghahanap ng katapat na player…')+'\nRole: '+(state.role==='manghuhula'?'MANGHUHULA':'MAGPAPAHULA')); }
+ }catch(e){setRoomMessage(e.message);}
+}
+$('findMatchBtn').addEventListener('click',async()=>{
+ const b=$('findMatchBtn');b.disabled=true;b.textContent='🔎 NAGHAHANAP…';$('cancelMatchBtn').style.display='block';
+ try{
+  const state=await roomRequest('/api/hula-room/match','POST',{role:selectedRole});
+  if(state.matched&&state.code){lastSharedCard=null;lastAppliedRoundNo=-1;lastAppliedRoundRevealed=false;showRoomState(state);startRoomPolling();$('cancelMatchBtn').style.display='none';b.disabled=false;b.textContent='✦ HANAP NG MATCH ✦';}
+  else{setRoomMessage(state.message||'Naghahanap ng katapat na player…');if(matchPoller)clearInterval(matchPoller);matchPoller=setInterval(pollMatch,1800);}
+ }catch(e){setRoomMessage(e.message);$('cancelMatchBtn').style.display='none';b.disabled=false;b.textContent='✦ HANAP NG MATCH ✦';}
+});
+$('cancelMatchBtn').addEventListener('click',async()=>{
+ try{await roomRequest('/api/hula-room/cancel-match','POST');}catch(e){setRoomMessage(e.message);}
+ if(matchPoller){clearInterval(matchPoller);matchPoller=null;}
+ $('cancelMatchBtn').style.display='none';$('findMatchBtn').disabled=false;$('findMatchBtn').textContent='✦ HANAP NG MATCH ✦';setRoomMessage('Nakansela ang paghahanap ng match.');
+});
+
 $('createRoomBtn').addEventListener('click',async()=>{const b=$('createRoomBtn');b.disabled=true;try{const s=await roomRequest('/api/hula-room/rooms','POST');lastSharedCard=null;lastAppliedRoundNo=-1;lastAppliedRoundRevealed=false;showRoomState(s);startRoomPolling();}catch(e){setRoomMessage(e.message);}finally{b.disabled=false;}});
 $('joinRoomBtn').addEventListener('click',async()=>{const code=$('roomCodeInput').value.trim().toUpperCase();if(!/^[A-F0-9]{6}$/.test(code)){setRoomMessage('Ilagay ang valid na 6-character room code.');return;}try{const s=await roomRequest('/api/hula-room/rooms/'+encodeURIComponent(code)+'/join','POST');lastSharedCard=null;lastAppliedRoundNo=-1;lastAppliedRoundRevealed=false;showRoomState(s);startRoomPolling();}catch(e){setRoomMessage(e.message);}});
 $('nextPairBtn').addEventListener('click',async()=>{if(!roomCode)return;try{const s=await roomRequest('/api/hula-room/rooms/'+encodeURIComponent(roomCode)+'/next-pair','POST');lastSharedCard=null;showRoomState(s);}catch(e){setRoomMessage(e.message);}});
