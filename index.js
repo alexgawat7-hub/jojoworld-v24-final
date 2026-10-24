@@ -1005,7 +1005,9 @@ app.post('/api/hula-room/rooms/:code/draw', async (req, res) => {
     const activeSeats = [room.activePairIndex * 2, room.activePairIndex * 2 + 1];
     const actor = room.players.find(p => String(p.psid) === psid);
     if (!activeSeats.includes(actor.seat)) return res.status(403).json({ ok: false, error: 'Ang active pair lang ang puwedeng mag-reveal ng Tarot card.' });
-    if (room.players.length < 10) return res.status(409).json({ ok: false, error: 'Kailangan muna ng 10 participants para simulan ang 5 pairs.' });
+    const isAutoMatch = room.players.length === 2 && room.players.some(p => p.role === 'manghuhula') && room.players.some(p => p.role === 'nagpapahula');
+    if (isAutoMatch && actor.role !== 'nagpapahula') return res.status(403).json({ ok: false, error: 'Ang Magpapahula ang pipili ng card. Ang Manghuhula ang magbibigay ng reading.' });
+    if (!isAutoMatch && room.players.length < 10) return res.status(409).json({ ok: false, error: 'Kailangan muna ng 10 participants para simulan ang 5 pairs.' });
     if (Number.isInteger(room.cardIndex)) return res.status(409).json({ ok: false, error: 'May card nang na-reveal sa round na ito. Hintayin ang host sa susunod na pair.' });
     const cardIndex = crypto.randomInt(0, 78);
     const updated = await HulaRoomModel.findOneAndUpdate(
