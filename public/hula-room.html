@@ -100,11 +100,17 @@ function showSharedCard(c,by){
 }
 async function roomRequest(path,method='GET'){
  const token=new URLSearchParams(location.search).get('token')||'';
- if(!/^[a-f0-9]{64}$/i.test(token))throw new Error('Buksan ang Hula Room mula sa Game Lobby sa Messenger.');
- const response=await fetch(path+(path.includes('?')?'&':'?')+'token='+encodeURIComponent(token),{method,headers:{'Content-Type':'application/json'},body:method==='GET'?undefined:JSON.stringify({token}),cache:'no-store'});
- const data=await response.json();if(!response.ok||!data.ok)throw new Error(data.error||'Room request failed.');return data;
+ if(!/^[a-f0-9]{64}$/i.test(token)){const error=new Error('Buksan ang Hula Room mula sa Game Lobby sa Messenger.');error.permanent=true;throw error;}
+ let response;
+ try{
+  response=await fetch(path+(path.includes('?')?'&':'?')+'token='+encodeURIComponent(token),{method,headers:{'Content-Type':'application/json'},body:method==='GET'?undefined:JSON.stringify({token}),cache:'no-store'});
+ }catch(networkError){const error=new Error('Pansamantalang naputol ang koneksyon. Susubukan ulit ang room.');error.transient=true;throw error;}
+ let data;
+ try{data=await response.json();}catch(parseError){const error=new Error('Hindi mabasa ang sagot ng server. Susubukan ulit ang room.');error.transient=true;throw error;}
+ if(!response.ok||!data.ok){const error=new Error(data.error||'Room request failed.');error.status=response.status;error.permanent=[400,401,403,404,410].includes(response.status);throw error;}
+ return data;
 }
-async function refreshRoom(){if(!roomCode)return;try{const s=await roomRequest('/api/hula-room/rooms/'+encodeURIComponent(roomCode)+'/state');showRoomState(s);}catch(e){setRoomMessage(e.message);if(roomPoller){clearInterval(roomPoller);roomPoller=null;}}}
+async function refreshRoom(){if(!roomCode)return;try{const s=await roomRequest('/api/hula-room/rooms/'+encodeURIComponent(roomCode)+'/state');showRoomState(s);}catch(e){setRoomMessage(e.message);if(e.permanent&&roomPoller){clearInterval(roomPoller);roomPoller=null;}}}
 function startRoomPolling(){if(roomPoller)clearInterval(roomPoller);roomPoller=setInterval(refreshRoom,2500);refreshRoom();}
 $('createRoomBtn').addEventListener('click',async()=>{const b=$('createRoomBtn');b.disabled=true;try{const s=await roomRequest('/api/hula-room/rooms','POST');lastSharedCard=null;showRoomState(s);startRoomPolling();}catch(e){setRoomMessage(e.message);}finally{b.disabled=false;}});
 $('joinRoomBtn').addEventListener('click',async()=>{const code=$('roomCodeInput').value.trim().toUpperCase();if(!/^[A-F0-9]{6}$/.test(code)){setRoomMessage('Ilagay ang valid na 6-character room code.');return;}try{const s=await roomRequest('/api/hula-room/rooms/'+encodeURIComponent(code)+'/join','POST');lastSharedCard=null;showRoomState(s);startRoomPolling();}catch(e){setRoomMessage(e.message);}});
