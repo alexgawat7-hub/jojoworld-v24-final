@@ -100,11 +100,21 @@ function showRoomState(state){
  if(state.revealed&&Number.isInteger(state.cardIndex)&&state.cardIndex!==lastSharedCard){lastSharedCard=state.cardIndex;showSharedCard(cards[state.cardIndex],state.revealedBy);}
  else if(!state.revealed&&lastSharedCard!==null){lastSharedCard=null;$('tarotCard').classList.add('backface');$('cardNumber').textContent='✦  THE TAROT DECK  ✦';$('sigil').textContent='☾';$('cardLabel').textContent='PICK A CARD';$('result').replaceChildren();$('result').classList.remove('show');}
 }
+function getTopicReading(topic){
+ const readings={
+ 'Love':{focus:'Sa usaping pag-ibig, pag-isipan ang respeto sa hangganan at malinaw na komunikasyon.',challenge:'Huwag magpasya batay lamang sa takot, selos, o pag-aakalang alam mo ang iniisip ng iba.',action:'Linawin ang nararamdaman at makinig nang hindi pinipilit ang sagot.'},
+ 'Career':{focus:'Sa career, tingnan kung paano naaangkop ang kakayahan, paghahanda, at mga pagpipilian sa layunin mo.',challenge:'Suriin ang impormasyon at epekto bago gumawa ng malaking desisyon.',action:'Pumili ng isang kasanayang pauunlarin o konkretong hakbang para sa susunod na linggo.'},
+ 'Personal Growth':{focus:'Suriin ang nakasanayan, lakas, at bahaging gusto mong paunlarin.',challenge:'Huwag gawing sukatan ng halaga mo ang isang pagkakamali o asahang magbabago ang lahat sa isang araw.',action:'Pumili ng maliit na habit na kaya mong ulitin araw-araw.'},
+ 'Relationships':{focus:'Pag-isipan ang tiwala, paggalang, pakikinig, at patas na pagbibigay at pagtanggap.',challenge:'Huwag agad maghinuha ng intensyon ng iba; linawin muna ang hindi pagkakaunawaan at panatilihin ang ligtas na hangganan.',action:'Magtanong nang mahinahon at pakinggan ang sagot bago magpasya.'},
+ 'General Reading':{focus:'Tingnan kung aling bahagi ng buhay ang pinakanauugnay sa card sa kasalukuyan.',challenge:'Hindi ito tiyak na prediksyon o kapalit ng sariling paghatol at totoong impormasyon.',action:'Pangalanan ang isang bagay na kaya mong kontrolin at gawin ang susunod na maliit na hakbang.'}
+ };
+ return readings[topic]||readings['General Reading'];
+}
 function showSharedCard(c,by){
  $('choiceDeck').classList.remove('show');$('choiceDeck').replaceChildren();$('choiceHint').classList.remove('show');
  const card=$('tarotCard');card.classList.remove('backface');$('cardNumber').textContent=c.group.toUpperCase()+' · '+String(c.number).padStart(2,'0');$('sigil').textContent=c.symbol;$('cardLabel').textContent=c.name;
  const result=$('result');result.replaceChildren();const pill=document.createElement('div');pill.className='pill';pill.textContent='SHARED ROOM REVEAL · '+(selectedTopic||'GENERAL READING')+' · '+c.group+' · '+c.tl;const title=document.createElement('h2');title.textContent=c.name;result.append(pill,title);
- [['KAHULUGAN',c.meaning],['HAMON / BABALA',c.challenge],['ARAL / GABAY',c.lesson]].forEach(([label,value])=>{const p=document.createElement('p'),strong=document.createElement('strong');strong.textContent=label+': ';p.append(strong,document.createTextNode(value));result.append(p)});
+ const lens=getTopicReading(selectedTopic);[['KAHULUGAN NG CARD',c.meaning+' '+lens.focus],['HAMON / BABALA',c.challenge+' '+lens.challenge],['ARAL / SUSUNOD NA HAKBANG',c.lesson+' '+lens.action]].forEach(([label,value])=>{const p=document.createElement('p'),strong=document.createElement('strong');strong.textContent=label+': ';p.append(strong,document.createTextNode(value));result.append(p)});
  const note=document.createElement('p');note.style.color='#bca8dc';note.textContent='Iisang card para sa lahat ng miyembro ng room. Roleplay at pagninilay lamang — hindi tiyak na prediksyon.';result.append(note);result.classList.add('show');
 }
 async function roomRequest(path,method='GET',payload={}){
