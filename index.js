@@ -790,7 +790,7 @@ function hulaRoomPublicState(room, viewerPsid) {
   return {
     ok: true, code: room.code, status: room.status, capacity: 18, playerCount: players.length,
     players, activePairIndex: room.activePairIndex, activePair: activePair.map(p => p.displayName),
-    roundNo: room.roundNo, cardIndex: room.cardIndex, revealed: Number.isInteger(room.cardIndex),
+    roundNo: room.roundNo, cardIndex: room.cardIndex, revealed: Number.isInteger(room.cardIndex), readingTopic: room.readingTopic || '',
     matchMode: players.length === 2 && players.some(p => p.role === 'manghuhula') && players.some(p => p.role === 'nagpapahula'),
     cardSlotsCount: players.length === 2 && players.some(p => p.role === 'manghuhula') && players.some(p => p.role === 'nagpapahula') && !Number.isInteger(room.cardIndex) ? Math.max(3, Math.min(7, (room.cardSlots || []).length || 5)) : 0,
     revealedBy: room.revealedBy ? (room.players.find(p => String(p.psid) === String(room.revealedBy))?.displayName || 'Player') : null,
@@ -1013,6 +1013,9 @@ app.post('/api/hula-room/rooms/:code/draw', async (req, res) => {
     if (isAutoMatch && actor.role !== 'nagpapahula') return res.status(403).json({ ok: false, error: 'Ang Magpapahula ang pipili ng card. Ang Manghuhula ang magbibigay ng reading.' });
     if (!isAutoMatch && room.players.length < 10) return res.status(409).json({ ok: false, error: 'Kailangan muna ng 10 participants para simulan ang 5 pairs.' });
     if (Number.isInteger(room.cardIndex)) return res.status(409).json({ ok: false, error: 'May card nang na-reveal sa round na ito. Hintayin ang host sa susunod na pair.' });
+    const allowedTopics = ['Love', 'Career', 'Personal Growth', 'Relationships', 'General Reading'];
+    const readingTopic = String(req.body?.readingTopic || '');
+    if (isAutoMatch && !allowedTopics.includes(readingTopic)) return res.status(400).json({ ok: false, error: 'Pumili muna ng topic: Love, Career, Personal Growth, Relationships, o General Reading.' });
     const slotIndex = Number(req.body?.slotIndex);
     let cardIndex;
     if (isAutoMatch) {
@@ -1033,7 +1036,7 @@ app.post('/api/hula-room/rooms/:code/draw', async (req, res) => {
     }
     const updated = await HulaRoomModel.findOneAndUpdate(
       { _id: room._id, cardIndex: null, activePairIndex: room.activePairIndex, status: { $ne: 'closed' }, expiresAt: { $gt: new Date() }, players: { $elemMatch: { psid, seat: { $in: activeSeats } } } },
-      { $set: { cardIndex, revealedBy: psid, status: 'active', updatedAt: new Date() } },
+      { $set: { cardIndex, revealedBy: psid, ...(isAutoMatch ? { readingTopic } : {}), status: 'active', updatedAt: new Date() } },
       { new: true }
     );
     if (!updated) return res.status(409).json({ ok: false, error: 'Na-reveal na ang card. I-refresh ang room state.' });
@@ -1532,6 +1535,7 @@ const HulaRoomSchema = new mongoose.Schema({
   cardIndex: { type: Number, default: null },
   // Private server-side mapping for the five face-down choices in role-based matches.
   cardSlots: { type: [Number], default: [] },
+  readingTopic: { type: String, enum: ['Love', 'Career', 'Personal Growth', 'Relationships', 'General Reading', ''], default: '' },
   revealedBy: { type: String, default: null },
   status: { type: String, enum: ['waiting', 'active', 'closed'], default: 'waiting', index: true },
   createdAt: { type: Date, default: Date.now },
