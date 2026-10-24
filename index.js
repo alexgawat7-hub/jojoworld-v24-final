@@ -791,6 +791,8 @@ function hulaRoomPublicState(room, viewerPsid) {
     ok: true, code: room.code, status: room.status, capacity: 18, playerCount: players.length,
     players, activePairIndex: room.activePairIndex, activePair: activePair.map(p => p.displayName),
     roundNo: room.roundNo, cardIndex: room.cardIndex, revealed: Number.isInteger(room.cardIndex),
+    matchMode: players.length === 2 && players.some(p => p.role === 'manghuhula') && players.some(p => p.role === 'nagpapahula'),
+    cardSlotsCount: players.length === 2 && players.some(p => p.role === 'manghuhula') && players.some(p => p.role === 'nagpapahula') && !Number.isInteger(room.cardIndex) ? Math.max(3, Math.min(7, (room.cardSlots || []).length || 5)) : 0,
     revealedBy: room.revealedBy ? (room.players.find(p => String(p.psid) === String(room.revealedBy))?.displayName || 'Player') : null,
     host: String(room.hostPsid) === String(viewerPsid)
   };
@@ -830,7 +832,9 @@ app.post('/api/hula-room/match', async (req, res) => {
       const code=crypto.randomBytes(3).toString('hex').toUpperCase();
       const reader = role==='manghuhula' ? {psid,displayName:hulaRoomName(user,psid),role,seat:0,joinedAt:new Date()} : {psid:otherClaim.psid,displayName:otherClaim.displayName,role:otherClaim.role,seat:0,joinedAt:new Date()};
       const seeker = role==='nagpapahula' ? {psid,displayName:hulaRoomName(user,psid),role,seat:1,joinedAt:new Date()} : {psid:otherClaim.psid,displayName:otherClaim.displayName,role:otherClaim.role,seat:1,joinedAt:new Date()};
-      const room=await HulaRoomModel.create({code,hostPsid:reader.psid,players:[reader,seeker],activePairIndex:0,roundNo:0,cardIndex:null,status:'active',expiresAt:new Date(Date.now()+2*60*60*1000)});
+      const cardSlots = [];
+      while (cardSlots.length < 5) { const candidate = crypto.randomInt(0, 78); if (!cardSlots.includes(candidate)) cardSlots.push(candidate); }
+      const room=await HulaRoomModel.create({code,hostPsid:reader.psid,players:[reader,seeker],activePairIndex:0,roundNo:1,cardIndex:null,cardSlots,status:'active',expiresAt:new Date(Date.now()+2*60*60*1000)});
       await HulaMatchQueueModel.updateMany({psid:{$in:[psid,otherClaim.psid]}},{$set:{status:'matched',roomCode:code,expiresAt:new Date(Date.now()+2*60*60*1000)}});
       res.set('Cache-Control','no-store');
       return res.json({...hulaRoomPublicState(room,psid),matched:true});
@@ -1009,7 +1013,16 @@ app.post('/api/hula-room/rooms/:code/draw', async (req, res) => {
     if (isAutoMatch && actor.role !== 'nagpapahula') return res.status(403).json({ ok: false, error: 'Ang Magpapahula ang pipili ng card. Ang Manghuhula ang magbibigay ng reading.' });
     if (!isAutoMatch && room.players.length < 10) return res.status(409).json({ ok: false, error: 'Kailangan muna ng 10 participants para simulan ang 5 pairs.' });
     if (Number.isInteger(room.cardIndex)) return res.status(409).json({ ok: false, error: 'May card nang na-reveal sa round na ito. Hintayin ang host sa susunod na pair.' });
-    const cardIndex = crypto.randomInt(0, 78);
+    const slotIndex = Number(req.body?.slotIndex);
+    let cardIndex;
+    if (isAutoMatch) {
+      const slots = Array.isArray(room.cardSlots) && room.cardSlots.length >= 3 ? room.cardSlots : [];
+      if (!Number.isInteger(slotIndex) || slotIndex < 0 || slotIndex >= slots.length) return res.status(400).json({ ok: false, error: 'Pumili ng isa sa mga nakaharap-palikod na card.' });
+      cardIndex = slots[slotIndex];
+      if (!Number.isInteger(cardIndex) || cardIndex < 0 || cardIndex >= 78) return res.status(409).json({ ok: false, error: 'Hindi ma-load ang mga card. Gumawa ng bagong match.' });
+    } else {
+      cardIndex = crypto.randomInt(0, 78);
+    }
     const updated = await HulaRoomModel.findOneAndUpdate(
       { _id: room._id, cardIndex: null, activePairIndex: room.activePairIndex, status: { $ne: 'closed' }, expiresAt: { $gt: new Date() }, players: { $elemMatch: { psid, seat: { $in: activeSeats } } } },
       { $set: { cardIndex, revealedBy: psid, status: 'active', updatedAt: new Date() } },
@@ -1509,6 +1522,8 @@ const HulaRoomSchema = new mongoose.Schema({
   activePairIndex: { type: Number, default: 0, min: 0, max: 4 },
   roundNo: { type: Number, default: 0 },
   cardIndex: { type: Number, default: null },
+  // Private server-side mapping for the five face-down choices in role-based matches.
+  cardSlots: { type: [Number], default: [] },
   revealedBy: { type: String, default: null },
   status: { type: String, enum: ['waiting', 'active', 'closed'], default: 'waiting', index: true },
   createdAt: { type: Date, default: Date.now },
