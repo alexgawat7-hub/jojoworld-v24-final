@@ -795,6 +795,76 @@ function hulaRoomPublicState(room, viewerPsid) {
     host: String(room.hostPsid) === String(viewerPsid)
   };
 }
+
+app.post('/api/hula-room/match', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok:false, error:'Secure session expired. Reopen Game Lobby from Messenger.' });
+    const psid = String(session.psid), role = String(req.body?.role || '');
+    if (!['manghuhula','nagpapahula'].includes(role)) return res.status(400).json({ok:false,error:'Pumili muna ng role.'});
+    const user = await loadUserFromDB(psid);
+    if (!user) return res.status(404).json({ok:false,error:'JojoWorld account not found.'});
+    const existing = await HulaMatchQueueModel.findOne({psid, expiresAt:{$gt:new Date()}});
+    if (existing?.status === 'matched' && existing.roomCode) {
+      const room = await HulaRoomModel.findOne({code:existing.roomCode, expiresAt:{$gt:new Date()}, status:{$ne:'closed'}});
+      if (room && room.players.some(p=>String(p.psid)===psid)) return res.json({...hulaRoomPublicState(room,psid), matched:true});
+      await HulaMatchQueueModel.deleteOne({psid});
+    } else if (existing?.status === 'waiting' && existing.role === role) {
+      return res.json({ok:true, waiting:true, role, message:'Naghahanap ng katapat na player…'});
+    } else if (existing) await HulaMatchQueueModel.deleteOne({psid});
+    const queueItem = await HulaMatchQueueModel.findOneAndUpdate(
+      {psid},
+      {$set:{psid, displayName:hulaRoomName(user,psid), role, status:'waiting', roomCode:null, createdAt:new Date(), expiresAt:new Date(Date.now()+10*60*1000)}},
+      {upsert:true,new:true,setDefaultsOnInsert:true}
+    );
+    const opponent = await HulaMatchQueueModel.findOne({psid:{$ne:psid},role:{$ne:role},status:'waiting',expiresAt:{$gt:new Date()}}).sort({createdAt:1});
+    if (!opponent) return res.json({ok:true,waiting:true,role,message:'Naghahanap ng katapat na player…'});
+    const otherClaim = await HulaMatchQueueModel.findOneAndUpdate({_id:opponent._id,status:'waiting',expiresAt:{$gt:new Date()}},{$set:{status:'matched'}},{new:true});
+    if (!otherClaim) return res.json({ok:true,waiting:true,role,message:'May nauna nang nakakuha sa player. Patuloy na naghahanap…'});
+    const selfClaim = await HulaMatchQueueModel.findOneAndUpdate({_id:queueItem._id,status:'waiting'},{$set:{status:'matched'}},{new:true});
+    if (!selfClaim) {
+      await HulaMatchQueueModel.updateOne({_id:otherClaim._id,status:'matched',roomCode:null},{$set:{status:'waiting'}});
+      return res.json({ok:true,waiting:true,role,message:'Patuloy na naghahanap…'});
+    }
+    try {
+      const code=crypto.randomBytes(3).toString('hex').toUpperCase();
+      const reader = role==='manghuhula' ? {psid,displayName:hulaRoomName(user,psid),role,seat:0,joinedAt:new Date()} : {psid:otherClaim.psid,displayName:otherClaim.displayName,role:otherClaim.role,seat:0,joinedAt:new Date()};
+      const seeker = role==='nagpapahula' ? {psid,displayName:hulaRoomName(user,psid),role,seat:1,joinedAt:new Date()} : {psid:otherClaim.psid,displayName:otherClaim.displayName,role:otherClaim.role,seat:1,joinedAt:new Date()};
+      const room=await HulaRoomModel.create({code,hostPsid:reader.psid,players:[reader,seeker],activePairIndex:0,roundNo:0,cardIndex:null,status:'active',expiresAt:new Date(Date.now()+2*60*60*1000)});
+      await HulaMatchQueueModel.updateMany({psid:{$in:[psid,otherClaim.psid]}},{$set:{status:'matched',roomCode:code,expiresAt:new Date(Date.now()+2*60*60*1000)}});
+      res.set('Cache-Control','no-store');
+      return res.json({...hulaRoomPublicState(room,psid),matched:true});
+    } catch(createErr) {
+      await HulaMatchQueueModel.updateMany({psid:{$in:[psid,otherClaim.psid]},status:'matched',roomCode:null},{$set:{status:'waiting'}});
+      throw createErr;
+    }
+  } catch(err) {
+    console.error('[HULA ROOM] Matchmaking failed:',err.message);
+    return res.status(503).json({ok:false,error:'Hindi makahanap ng match ngayon. Subukan ulit.'});
+  }
+});
+app.get('/api/hula-room/match-state', async (req,res)=>{
+  try {
+    const session=await getDiceWebSession(req);
+    if(!session) return res.status(mongoose.connection.readyState===1?401:503).json({ok:false,error:'Secure session expired. Reopen Game Lobby from Messenger.'});
+    const item=await HulaMatchQueueModel.findOne({psid:String(session.psid),expiresAt:{$gt:new Date()}});
+    if(!item) return res.json({ok:true,waiting:false,matched:false});
+    if(item.status==='matched'&&item.roomCode){
+      const room=await HulaRoomModel.findOne({code:item.roomCode,status:{$ne:'closed'},expiresAt:{$gt:new Date()}});
+      if(room&&room.players.some(p=>String(p.psid)===String(session.psid))) return res.json({...hulaRoomPublicState(room,session.psid),matched:true});
+    }
+    return res.json({ok:true,waiting:item.status==='waiting',matched:false,role:item.role,message:item.status==='waiting'?'Naghahanap ng katapat na player…':'Inihahanda ang match…'});
+  } catch(err) { return res.status(503).json({ok:false,error:'Hindi ma-check ang match status.'}); }
+});
+app.post('/api/hula-room/cancel-match', async (req,res)=>{
+  try {
+    const session=await getDiceWebSession(req);
+    if(!session) return res.status(mongoose.connection.readyState===1?401:503).json({ok:false,error:'Secure session expired. Reopen Game Lobby from Messenger.'});
+    await HulaMatchQueueModel.deleteOne({psid:String(session.psid),status:'waiting'});
+    return res.json({ok:true,cancelled:true});
+  } catch(err) { return res.status(503).json({ok:false,error:'Hindi makansela ang paghahanap ngayon.'}); }
+});
+
 app.post('/api/hula-room/rooms', async (req, res) => {
   try {
     const session = await getDiceWebSession(req);
@@ -1444,6 +1514,17 @@ const HulaRoomSchema = new mongoose.Schema({
   expiresAt: { type: Date, required: true, index: { expires: 0 } }
 }, { strict: true });
 const HulaRoomModel = mongoose.models.JHulaRoom || mongoose.model('JHulaRoom', HulaRoomSchema);
+const HulaMatchQueueSchema = new mongoose.Schema({
+  psid: { type: String, required: true, unique: true, index: true },
+  displayName: { type: String, default: 'Jojo Player' },
+  role: { type: String, enum: ['manghuhula', 'nagpapahula'], required: true },
+  status: { type: String, enum: ['waiting', 'matched'], default: 'waiting', index: true },
+  roomCode: { type: String, default: null },
+  createdAt: { type: Date, default: Date.now, index: true },
+  expiresAt: { type: Date, required: true, index: { expires: 0 } }
+}, { strict: true });
+const HulaMatchQueueModel = mongoose.models.JHulaMatchQueue || mongoose.model('JHulaMatchQueue', HulaMatchQueueSchema);
+
 
 
 
