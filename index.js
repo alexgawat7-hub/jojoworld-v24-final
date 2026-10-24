@@ -775,6 +775,150 @@ app.post('/api/coin-shop/checkout', async (req, res) => {
   }
 });
 
+// [ADDED] Hula Room authenticated multiplayer API. No virtual coins are created or transferred.
+function hulaRoomName(user, psid) {
+  const raw = user?.name || user?.data?.name || user?.data?.displayName || user?.displayName || 'Jojo Player';
+  return String(raw).replace(/[<>\u0000-\u001f]/g, '').trim().slice(0, 32) || 'Jojo Player';
+}
+function hulaRoomPublicState(room, viewerPsid) {
+  const players = (room.players || []).map(p => ({
+    displayName: p.displayName, role: p.role, seat: p.seat,
+    isYou: String(p.psid) === String(viewerPsid),
+    canUseMic: p.seat === room.activePairIndex * 2 || p.seat === room.activePairIndex * 2 + 1
+  }));
+  const activePair = (room.players || []).filter(p => p.seat === room.activePairIndex * 2 || p.seat === room.activePairIndex * 2 + 1);
+  return {
+    ok: true, code: room.code, status: room.status, capacity: 18, playerCount: players.length,
+    players, activePairIndex: room.activePairIndex, activePair: activePair.map(p => p.displayName),
+    roundNo: room.roundNo, cardIndex: room.cardIndex, revealed: Number.isInteger(room.cardIndex),
+    revealedBy: room.revealedBy ? (room.players.find(p => String(p.psid) === String(room.revealedBy))?.displayName || 'Player') : null,
+    host: String(room.hostPsid) === String(viewerPsid)
+  };
+}
+app.post('/api/hula-room/rooms', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Secure session expired. Reopen Game Lobby from Messenger.' });
+    const user = await loadUserFromDB(String(session.psid));
+    if (!user) return res.status(404).json({ ok: false, error: 'JojoWorld account not found.' });
+    let room, attempts = 0;
+    while (!room && attempts++ < 5) {
+      const code = crypto.randomBytes(3).toString('hex').toUpperCase();
+      try {
+        room = await HulaRoomModel.create({
+          code, hostPsid: String(session.psid),
+          players: [{ psid: String(session.psid), displayName: hulaRoomName(user, session.psid), role: 'manghuhula', seat: 0, joinedAt: new Date() }],
+          activePairIndex: 0, status: 'waiting', expiresAt: new Date(Date.now() + 6 * 60 * 60 * 1000)
+        });
+      } catch (err) { if (err.code !== 11000) throw err; }
+    }
+    if (!room) return res.status(503).json({ ok: false, error: 'Hindi makagawa ng room ngayon. Subukan ulit.' });
+    res.set('Cache-Control', 'no-store');
+    return res.status(201).json(hulaRoomPublicState(room, session.psid));
+  } catch (err) {
+    console.error('[HULA ROOM] Create room failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Hindi makagawa ng room ngayon. Subukan ulit.' });
+  }
+});
+app.post('/api/hula-room/rooms/:code/join', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Secure session expired. Reopen Game Lobby from Messenger.' });
+    const psid = String(session.psid), code = String(req.params.code || '').trim().toUpperCase();
+    if (!/^[A-F0-9]{6}$/.test(code)) return res.status(400).json({ ok: false, error: 'Room code must be 6 characters.' });
+    const user = await loadUserFromDB(psid);
+    if (!user) return res.status(404).json({ ok: false, error: 'JojoWorld account not found.' });
+    let room = await HulaRoomModel.findOne({ code, status: { $ne: 'closed' }, expiresAt: { $gt: new Date() } });
+    if (!room) return res.status(404).json({ ok: false, error: 'Room not found or expired.' });
+    if (!room.players.some(p => String(p.psid) === psid)) {
+      const player = { psid, displayName: hulaRoomName(user, psid), joinedAt: new Date() };
+      room = await HulaRoomModel.findOneAndUpdate(
+        { code, status: { $ne: 'closed' }, expiresAt: { $gt: new Date() }, 'players.psid': { $ne: psid }, $expr: { $lt: [{ $size: '$players' }, 18] } },
+        [{ $set: { players: { $concatArrays: ['$players', [{ $mergeObjects: [
+          { $literal: player },
+          { seat: { $size: '$players' }, role: { $cond: [
+            { $lt: [{ $size: '$players' }, 10] },
+            { $cond: [{ $eq: [{ $mod: [{ $size: '$players' }, 2] }, 0] }, 'manghuhula', 'nagpapahula'] },
+            'spectator'
+          ] } }
+        ] }]] }, updatedAt: new Date() } }],
+        { new: true }
+      );
+      if (!room) {
+        const current = await HulaRoomModel.findOne({ code, status: { $ne: 'closed' }, expiresAt: { $gt: new Date() } });
+        if (!current) return res.status(404).json({ ok: false, error: 'Room not found or expired.' });
+        if (current.players.length >= 18) return res.status(409).json({ ok: false, error: 'Puno na ang room (10 players + 8 spectators).' });
+        if (!current.players.some(p => String(p.psid) === psid)) return res.status(409).json({ ok: false, error: 'Hindi nakapasok. Subukan ulit.' });
+        room = current;
+      }
+    }
+    if (room.players.length >= 10 && room.status === 'waiting') { room.status = 'active'; room.updatedAt = new Date(); await room.save(); }
+    res.set('Cache-Control', 'no-store');
+    return res.json(hulaRoomPublicState(room, psid));
+  } catch (err) {
+    console.error('[HULA ROOM] Join room failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Hindi makapasok sa room ngayon. Subukan ulit.' });
+  }
+});
+app.get('/api/hula-room/rooms/:code/state', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Secure session expired. Reopen Game Lobby from Messenger.' });
+    const code = String(req.params.code || '').trim().toUpperCase();
+    const room = await HulaRoomModel.findOne({ code, status: { $ne: 'closed' }, expiresAt: { $gt: new Date() } }).lean();
+    if (!room || !(room.players || []).some(p => String(p.psid) === String(session.psid))) return res.status(404).json({ ok: false, error: 'Room not found, expired, or you have not joined it.' });
+    res.set('Cache-Control', 'no-store');
+    return res.json(hulaRoomPublicState(room, session.psid));
+  } catch (err) {
+    console.error('[HULA ROOM] State read failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Hindi mabasa ang room state ngayon.' });
+  }
+});
+app.post('/api/hula-room/rooms/:code/next-pair', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Secure session expired. Reopen Game Lobby from Messenger.' });
+    const code = String(req.params.code || '').trim().toUpperCase();
+    const room = await HulaRoomModel.findOne({ code, hostPsid: String(session.psid), status: { $ne: 'closed' }, expiresAt: { $gt: new Date() } });
+    if (!room) return res.status(403).json({ ok: false, error: 'Host access lang ang puwedeng magpalit ng active pair.' });
+    if (room.players.length < 10) return res.status(409).json({ ok: false, error: 'Kailangan muna ng 10 participants para sa 5 pairs.' });
+    room.activePairIndex = (room.activePairIndex + 1) % 5;
+    room.cardIndex = null; room.revealedBy = null; room.roundNo += 1; room.status = 'active'; room.updatedAt = new Date();
+    await room.save();
+    res.set('Cache-Control', 'no-store');
+    return res.json(hulaRoomPublicState(room, session.psid));
+  } catch (err) {
+    console.error('[HULA ROOM] Pair rotation failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Hindi mapalitan ang active pair ngayon.' });
+  }
+});
+app.post('/api/hula-room/rooms/:code/draw', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({ ok: false, error: 'Secure session expired. Reopen Game Lobby from Messenger.' });
+    const code = String(req.params.code || '').trim().toUpperCase(), psid = String(session.psid);
+    const room = await HulaRoomModel.findOne({ code, status: { $ne: 'closed' }, expiresAt: { $gt: new Date() } });
+    if (!room || !room.players.some(p => String(p.psid) === psid)) return res.status(404).json({ ok: false, error: 'Join the room before drawing.' });
+    const activeSeats = [room.activePairIndex * 2, room.activePairIndex * 2 + 1];
+    const actor = room.players.find(p => String(p.psid) === psid);
+    if (!activeSeats.includes(actor.seat)) return res.status(403).json({ ok: false, error: 'Ang active pair lang ang puwedeng mag-reveal ng Tarot card.' });
+    if (room.players.length < 10) return res.status(409).json({ ok: false, error: 'Kailangan muna ng 10 participants para simulan ang 5 pairs.' });
+    if (Number.isInteger(room.cardIndex)) return res.status(409).json({ ok: false, error: 'May card nang na-reveal sa round na ito. Hintayin ang host sa susunod na pair.' });
+    const cardIndex = crypto.randomInt(0, 78);
+    const updated = await HulaRoomModel.findOneAndUpdate(
+      { _id: room._id, cardIndex: null, activePairIndex: room.activePairIndex, 'players.psid': psid },
+      { $set: { cardIndex, revealedBy: psid, status: 'active', updatedAt: new Date() }, $inc: { roundNo: 1 } },
+      { new: true }
+    );
+    if (!updated) return res.status(409).json({ ok: false, error: 'Na-reveal na ang card. I-refresh ang room state.' });
+    res.set('Cache-Control', 'no-store');
+    return res.json(hulaRoomPublicState(updated, psid));
+  } catch (err) {
+    console.error('[HULA ROOM] Shared Tarot draw failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Hindi makuha ang shared card ngayon. Subukan ulit.' });
+  }
+});
+
 // [ADDED] Hula Room: authenticated server-side Tarot selection; no coin transfer or multiplayer claims yet.
 app.post('/api/hula-room/draw', async (req, res) => {
   try {
@@ -1245,6 +1389,29 @@ const DiceWebSessionSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 }, { strict: true });
 const DiceWebSessionModel = mongoose.models.JDiceWebSession || mongoose.model('JDiceWebSession', DiceWebSessionSchema);
+
+// [ADDED] Hula Room multiplayer state. Room membership and Tarot results are server-owned.
+const HulaRoomSchema = new mongoose.Schema({
+  code: { type: String, required: true, unique: true, index: true },
+  hostPsid: { type: String, required: true, index: true },
+  players: { type: [new mongoose.Schema({
+    psid: { type: String, required: true },
+    displayName: { type: String, default: 'Jojo Player' },
+    role: { type: String, enum: ['manghuhula', 'nagpapahula', 'spectator'], required: true },
+    seat: { type: Number, required: true },
+    joinedAt: { type: Date, default: Date.now }
+  }, { _id: false })], default: [] },
+  activePairIndex: { type: Number, default: 0, min: 0, max: 4 },
+  roundNo: { type: Number, default: 0 },
+  cardIndex: { type: Number, default: null },
+  revealedBy: { type: String, default: null },
+  status: { type: String, enum: ['waiting', 'active', 'closed'], default: 'waiting', index: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+  expiresAt: { type: Date, required: true, index: { expires: 0 } }
+}, { strict: true });
+const HulaRoomModel = mongoose.models.JHulaRoom || mongoose.model('JHulaRoom', HulaRoomSchema);
+
 
 
 const JackpotSchema = new mongoose.Schema({ id: { type: String, required: true, unique: true }, amount: Number }, { strict: false });
