@@ -89,7 +89,7 @@ function showRoomState(state){
  const incomingRevealed=!!state.revealed;
  if(incomingRound<lastAppliedRoundNo||(incomingRound===lastAppliedRoundNo&&lastAppliedRoundRevealed&&!incomingRevealed))return;
  lastAppliedRoundNo=incomingRound;lastAppliedRoundRevealed=incomingRevealed;
- roomCode=state.code;roomHost=!!state.host;const me=(state.players||[]).find(p=>p.isYou);canDrawInRoom=!!(me&&me.canUseMic);$('pickBtn').disabled=!canDrawInRoom;$('pickBtn').textContent=canDrawInRoom?'✦ PICK TAROT CARD ✦':'WAIT FOR YOUR ACTIVE PAIR';
+ roomCode=state.code;roomHost=!!state.host;const me=(state.players||[]).find(p=>p.isYou);const autoMatch=(state.players||[]).length===2&&(state.players||[]).some(p=>p.role==='manghuhula')&&(state.players||[]).some(p=>p.role==='nagpapahula');canDrawInRoom=!!(me&&(autoMatch?me.role==='nagpapahula':me.canUseMic));$('pickBtn').disabled=!canDrawInRoom;$('pickBtn').textContent=canDrawInRoom?(autoMatch?'🃏 MAGPAPAHULA: PUMILI NG CARD':'✦ PICK TAROT CARD ✦'):(autoMatch&&me?.role==='manghuhula'?'🔮 MANGHUHULA: HINTAYIN ANG CARD':'WAIT FOR YOUR ACTIVE PAIR');
  $('roomCodeInput').value=roomCode;
  const pair=state.activePair&&state.activePair.length?state.activePair.join(' + '):'waiting for pair';
  setRoomMessage('ROOM '+roomCode+' · '+state.playerCount+'/'+state.capacity+' players\nActive pair '+(state.activePairIndex+1)+': '+pair+(state.revealed?' · CARD REVEALED':' · Waiting for reveal'));
