@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="tl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#100b25">
+<title>JojoWorld • Hula Room Tarot</title>
+<style>
+:root{color-scheme:dark;--gold:#f6d98b;--ink:#100b25;--panel:#1b1436;--line:#574778;--muted:#c2b8dd}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(ellipse at 50% -10%,#55377b 0,#201439 42%,#0b0817 100%);color:#fff}
+body{padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom)}button{font:inherit;touch-action:manipulation;cursor:pointer}
+.app{max-width:760px;margin:auto;padding:10px 0 28px}.top{display:flex;align-items:center;justify-content:space-between;gap:10px}.brand{color:var(--gold);font-size:12px;font-weight:1000;letter-spacing:1.5px}.back{color:#fff;text-decoration:none;border:1px solid var(--line);border-radius:9px;padding:8px 11px;background:#21183d;font-size:12px;font-weight:800}
+h1{font-size:clamp(25px,7vw,40px);line-height:1.05;margin:22px 0 8px;letter-spacing:-1px}.sub{color:var(--muted);font-size:14px;line-height:1.5;margin:0 0 18px}
+.panel{border:1px solid #69548d;border-radius:18px;padding:16px;background:linear-gradient(145deg,#241940ee,#110d22f5);box-shadow:0 14px 38px #0005}.card-stage{display:grid;place-items:center;min-height:300px;padding:10px}
+.tarot-card{position:relative;width:min(68vw,230px);height:min(100vw,350px);min-height:280px;border-radius:14px;padding:9px;background:linear-gradient(135deg,#f7df9b,#916a36 25%,#f9e8b5 50%,#775126 75%,#f6db95);box-shadow:0 12px 32px #0009;transition:transform .55s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
+.tarot-card.backface{transform:rotateY(180deg)}.card-inner{width:100%;height:100%;border:1px solid #6b4b27;border-radius:9px;background:radial-gradient(circle at 50% 35%,#47336a,#151027 75%);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:13px 9px;text-align:center;overflow:hidden;position:relative}
+.card-inner:before{content:"";position:absolute;inset:8px;border:1px solid #e8cd87;border-radius:5px;opacity:.65;pointer-events:none}.sigil{font-size:66px;line-height:1.2;color:#f8df9b;text-shadow:0 0 22px #e8b75e88;filter:drop-shadow(0 4px 7px #0008)}.card-label{font-family:Georgia,serif;color:#ffe9ad;font-size:18px;font-weight:bold;letter-spacing:.8px;text-transform:uppercase}.card-number{font-size:11px;color:#d8c5f4;letter-spacing:2px}.ornament{color:#d8b76d;font-size:19px;letter-spacing:7px}.cta{width:100%;border:0;border-radius:12px;padding:15px 12px;background:linear-gradient(100deg,#f9df9a,#b994e8);color:#211334;font-weight:1000;font-size:15px;letter-spacing:.7px;box-shadow:0 5px 0 #76578e;margin-top:5px}.cta:active{transform:translateY(2px);box-shadow:0 3px 0 #76578e}.cta:disabled{opacity:.5;cursor:not-allowed}
+.result{display:none;margin-top:15px;border:1px solid #5e4a80;border-radius:14px;padding:15px;background:#130e27}.result.show{display:block;animation:rise .35s ease-out}@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}.result h2{color:var(--gold);margin:0 0 8px;font-family:Georgia,serif}.pill{display:inline-block;padding:4px 8px;border-radius:20px;background:#34254e;color:#dfcff9;font-size:11px;font-weight:800;margin-bottom:8px}.result p{line-height:1.55;margin:7px 0;color:#e9e1f7}.result strong{color:#f7dfa0}.disclaimer{font-size:11px;color:#b7a9d0;line-height:1.5;margin:14px 2px 0}.deck-info{display:flex;justify-content:space-between;gap:10px;margin-top:14px;color:#cfc3e7;font-size:12px}.deck-info strong{color:var(--gold)}.all-cards{margin-top:22px}.all-cards summary{cursor:pointer;color:#e8d8ff;font-weight:850;padding:12px 0}.card-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.mini{border:1px solid #3d305b;border-radius:9px;padding:9px;background:#17112a;font-size:12px}.mini b{display:block;color:#f5dca0;margin-bottom:3px}.mini span{color:#bfb2d8;font-size:11px}@media(min-width:600px){.panel{padding:22px}.card-list{grid-template-columns:repeat(3,minmax(0,1fr))}.card-stage{min-height:380px}.tarot-card{width:230px;height:350px}}
+</style>
+</head>
+<body><main class="app">
+<header class="top"><div class="brand">✦ JOJOWORLD · HULA ROOM</div><a class="back" href="/game-lobby">← GAME LOBBY</a></header>
+<h1>Hula Room <span style="color:#f6d98b">Tarot</span></h1>
+<p class="sub">Pumili ng isang card mula sa kumpletong 78-card Tarot deck. Basahin ang simbolo at kahulugan bilang gabay sa pagninilay at roleplay.</p>
+<section class="panel">
+<div class="card-stage"><div class="tarot-card" id="tarotCard" aria-live="polite"><div class="card-inner"><div class="card-number" id="cardNumber">✦  THE TAROT DECK  ✦</div><div class="sigil" id="sigil">☾</div><div class="ornament">✦ ✧ ✦</div><div class="card-label" id="cardLabel">PICK A CARD</div><div class="card-number">JOJOWORLD · TAROT</div></div></div></div>
+<button class="cta" id="pickBtn">✦ PICK TAROT CARD ✦</button>
+<div class="result" id="result" aria-live="polite"></div>
+<div class="deck-info"><span>Deck: <strong id="deckCount">78 cards</strong></span><span id="pickCount">Picks this visit: 0</span></div>
+<p class="disclaimer">Entertainment at self-reflection lamang. Hindi ito tiyak na hula o garantiya sa mangyayari. Ang card pick sa prototype na ito ay hindi gumagamit o naglilipat ng JojoWorld coins.</p>
+</section>
+<details class="all-cards"><summary>Tingnan ang buong Tarot deck (78 cards)</summary><div class="card-list" id="cardList"></div></details>
+</main>
+<script>
+(function(){
+const majors=[
+["The Fool","Ang Bagong Simula","🌱","Bagong simula, lakas ng loob, at bukas na isip.","Padalos-dalos na desisyon o pagbalewala sa panganib.","Subukan ang bagong hakbang, pero maghanda at timbangin ang epekto."],
+["The Magician","Ang May Kakayahan","🪄","Kakayahan, pokus, at paggamit ng mga mapagkukunan.","Pagmamaniobra o kakayahang hindi nagagamit.","Piliin ang isang malinaw na layunin at kumilos gamit ang mayroon ka."],
+["The High Priestess","Ang Tagapag-ingat ng Lihim","🌙","Intuwisyon, tahimik na pagmamasid, at nakatagong kaalaman.","Pagkalito o hindi pakikinig sa sariling pakiramdam.","Huminto muna at pakinggan ang sarili bago magpasya."],
+["The Empress","Ang Tagapag-alaga","🌿","Pag-aaruga, pagkamalikhain, at kasaganaan.","Sobrang pag-aalaga o paglimot sa sariling pangangailangan.","Alagaan ang sarili at ang mga bagay na nais mong palaguin."],
+["The Emperor","Ang Pinuno","👑","Kaayusan, pananagutan, at matatag na hangganan.","Pagiging sobrang kontrolado o matigas ang ulo.","Gumawa ng malinaw na plano nang may puwang sa pakikinig."],
+["The Hierophant","Ang Guro","📜","Tradisyon, pag-aaral, at gabay mula sa komunidad.","Pagsunod nang walang sariling pagsusuri.","Matuto sa nakasanayan ngunit suriin kung angkop ito sa iyo."],
+["The Lovers","Ang Magkasangga","💞","Pagkakaisa, pagpili ayon sa pinahahalagahan, at ugnayan.","Hindi pagkakasundo o pagpiling hindi tapat sa sarili.","Piliin ang katapatan at malinaw na komunikasyon."],
+["The Chariot","Ang Karwahe","🏇","Determinasyon, direksiyon, at pagpipigil sa sarili.","Pagmamadali o kawalan ng direksiyon.","Ituon ang lakas sa isang layunin at panatilihin ang balanse."],
+["Strength","Ang Lakas ng Loob","🦁","Tapang, pasensya, at mahinahong lakas.","Pagdududa sa sarili o padalus-dalos na reaksyon.","Mas epektibo ang mahinahong tapang kaysa pamimilit."],
+["The Hermit","Ang Ermitanyo","🏮","Pagninilay, paghahanap ng karunungan, at katahimikan.","Paglayo sa lahat o sobrang pag-iisa.","Maglaan ng oras mag-isip at humingi ng tulong kung kailangan."],
+["Wheel of Fortune","Ang Gulong ng Kapalaran","☸️","Pagbabago, siklo, at bagong pagkakataon.","Paglaban sa pagbabago o pakiramdam na walang kontrol.","Tanggapin ang nagbabago at piliin ang kaya mong impluwensiyahan."],
+["Justice","Ang Katarungan","⚖️","Patas na paghatol, katotohanan, at pananagutan.","Pagkiling o pag-iwas sa responsibilidad.","Tingnan ang mga katotohanan at panagutan ang sariling pasya."],
+["The Hanged Man","Ang Nakasabit","🪢","Bagong pananaw, paghinto, at pagsuko sa hindi makontrol.","Pagkaantala o pagkapit sa dating pananaw.","Subukang tingnan ang sitwasyon mula sa ibang anggulo."],
+["Death","Ang Pagwawakas at Pagbabago","🦋","Pagtatapos ng yugto at puwang para sa pagbabago.","Takot bumitaw o pagtanggi sa pagtatapos.","Bitawan ang hindi na nakatutulong at maghanda sa susunod na yugto."],
+["Temperance","Ang Pagtitimpi","🏺","Balanse, pagtitiyaga, at maingat na pagsasama ng mga bagay.","Sobra o kulang; kawalan ng timpla.","Humanap ng gitna at gumawa ng maliliit na hakbang."],
+["The Devil","Ang Pagkakagapos","⛓️","Pagkilala sa tukso, nakasanayan, at mga gapos na maaaring baguhin.","Pagkakulong sa bisyo, takot, o mapaminsalang pattern.","Kilalanin ang nakagagapos at humingi ng suporta para makawala."],
+["The Tower","Ang Tore","⚡","Biglaang pagmulat at pagguho ng hindi matatag na pundasyon.","Pagkapit sa lumang sistema kahit hindi na gumagana.","Harapin ang katotohanan at buuin muli ang mas matibay na pundasyon."],
+["The Star","Ang Bituin","⭐","Pag-asa, paggaling, at panibagong inspirasyon.","Panghihina ng loob o kawalan ng tiwala.","Magpahinga, magtiwala sa proseso, at alagaan ang pag-asa."],
+["The Moon","Ang Buwan","🌕","Imaginasyon, damdamin, at pagharap sa kawalang-katiyakan.","Takot, maling palagay, o impormasyong kulang.","Huwag agad magkonklusyon; linawin muna ang mga bagay."],
+["The Sun","Ang Araw","☀️","Saya, sigla, kalinawan, at tagumpay.","Sobrang kumpiyansa o hindi pagpansin sa detalye.","Ipagdiwang ang progreso habang nananatiling mapagpakumbaba."],
+["Judgement","Ang Pagtawag","📯","Pagmumuni, paggising, at pagkakataong magsimula muli.","Paghatol sa sarili o pag-iwas sa nakaraan.","Matuto sa nakaraan at gumawa ng mas mulat na pagpili."],
+["The World","Ang Mundo","🌍","Pagkumpleto, integrasyon, at pagkilala sa narating.","Hindi pagsasara ng yugto o pakiramdam na may kulang.","Kilalanin ang natapos at planuhin ang susunod na paglalakbay."]
+];
+const suits=[
+{name:"Wands",tl:"Baston",symbol:"🔥",theme:"sigla, pagkamalikhain, at pagkilos"},
+{name:"Cups",tl:"Kopa",symbol:"💧",theme:"damdamin, ugnayan, at intuwisyon"},
+{name:"Swords",tl:"Espada",symbol:"⚔️",theme:"isip, katotohanan, at komunikasyon"},
+{name:"Pentacles",tl:"Barya",symbol:"🪙",theme:"trabaho, yaman, at praktikal na bagay"}
+];
+const ranks=[["Ace","Ace"],["Two","Dalawa"],["Three","Tatlo"],["Four","Apat"],["Five","Lima"],["Six","Anim"],["Seven","Pito"],["Eight","Walo"],["Nine","Siyam"],["Ten","Sampu"],["Page","Pahina"],["Knight","Kabalyero"],["Queen","Reyna"],["King","Hari"]];
+const cards=majors.map((m,i)=>({name:m[0],tl:m[1],symbol:m[2],group:"Major Arcana",meaning:m[3],challenge:m[4],lesson:m[5],number:i+1}));
+suits.forEach(s=>ranks.forEach((r,i)=>{let title=r[0]+" of "+s.name;let role=i===0?"bagong pagkakataon at simula":i<10?["","balanse at pagpili","paglago at pagtutulungan","matatag na pundasyon","hamon at pagbabago","pagsulong at pagtanggap","pagsusuri at tiyaga","pagsisikap at pag-unlad","pagtitiyaga at pag-asa","pagkumpleto ng isang siklo"][i]:(["Page","Knight","Queen","King"][i-10]+" — paglinang ng "+s.theme);let challenge=i===4?"pagsubok na humihingi ng pag-angkop":i===6?"pagdududa o pagsubok sa pasensya":"sobrang pagkiling o kakulangan sa balanse";cards.push({name:title,tl:r[1]+" ng "+s.tl,group:"Minor Arcana · "+s.name,symbol:s.symbol,meaning:"Ipinapakita ng card na ito ang "+role+" sa larangan ng "+s.theme+".",challenge:"Maaaring maging hadlang ang "+challenge+"; tingnan ang buong sitwasyon bago magpasya.",lesson:"Gamitin ang "+s.theme+" nang may kamalayan. Pumili ng isang praktikal na hakbang at huwag ituring ang card bilang tiyak na prediksyon.",number:i+1})}));
+const $=id=>document.getElementById(id);let picks=0,busy=false;
+function renderDeck(){const list=$("cardList");cards.forEach(c=>{const item=document.createElement("div");item.className="mini";const b=document.createElement("b");b.textContent=c.symbol+" "+c.name;const s=document.createElement("span");s.textContent=c.group+" · "+c.tl;item.append(b,s);list.append(item)});$("deckCount").textContent=cards.length+" cards"}
+function pick(){if(busy)return;busy=true;const btn=$("pickBtn"),card=$("tarotCard"),result=$("result");btn.disabled=true;btn.textContent="✦ BINUBUKSAN ANG CARD…";result.classList.remove("show");card.classList.add("backface");window.setTimeout(()=>{const c=cards[Math.floor(Math.random()*cards.length)];picks++;$("cardNumber").textContent=c.group.toUpperCase()+" · "+String(c.number).padStart(2,"0");$("sigil").textContent=c.symbol;$("cardLabel").textContent=c.name;card.classList.remove("backface");result.replaceChildren();const pill=document.createElement("div");pill.className="pill";pill.textContent=c.group+" · "+c.tl;const h=document.createElement("h2");h.textContent=c.name;result.append(pill,h);[["KAHULUGAN",c.meaning],["HAMON / BABALA",c.challenge],["ARAL / GABAY",c.lesson]].forEach(([label,value])=>{const p=document.createElement("p"),strong=document.createElement("strong");strong.textContent=label+": ";p.append(strong,document.createTextNode(value));result.append(p)});result.classList.add("show");$("pickCount").textContent="Picks this visit: "+picks;btn.disabled=false;btn.textContent="✦ PICK ANOTHER TAROT CARD ✦";busy=false;},500)}
+$("pickBtn").addEventListener("click",pick);renderDeck();
+})();
+</script></body></html>
