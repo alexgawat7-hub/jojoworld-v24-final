@@ -275,7 +275,8 @@ async function secureStandaloneDraw(token){
  return cards[data.cardIndex];
 }
 async function pickThreeCardSpread(token){
- if(!selectedTopic){$('topicHint').textContent='Pumili muna ng topic ng reading.';return;}
+ if(!selectedTopic){$('topicHint').textContent='Pumili muna ng topic ng reading.';busy=false;return;}
+ if(!/^[a-f0-9]{64}$/i.test(token)){const hint=$('result');hint.replaceChildren();const p=document.createElement('p');p.textContent='Buksan ang Hula Room mula sa Game Lobby sa Messenger para sa secure Tarot draw.';hint.append(p);hint.classList.add('show');busy=false;return;}
  const result=$('result'),btn=$('pickBtn'),card=$('tarotCard');
  btn.disabled=true;btn.textContent='✦ BINUBUKSAN ANG 3 CARD…';result.classList.remove('show');card.classList.add('backface');
  try{
