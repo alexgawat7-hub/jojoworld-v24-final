@@ -775,6 +775,25 @@ app.post('/api/coin-shop/checkout', async (req, res) => {
   }
 });
 
+// [ADDED] Hula Room: authenticated server-side Tarot selection; no coin transfer or multiplayer claims yet.
+app.post('/api/hula-room/draw', async (req, res) => {
+  try {
+    const session = await getDiceWebSession(req);
+    if (!session) return res.status(mongoose.connection.readyState === 1 ? 401 : 503).json({
+      ok: false,
+      error: 'Secure session expired. Reopen Game Lobby from Messenger.'
+    });
+    const user = await loadUserFromDB(String(session.psid));
+    if (!user) return res.status(404).json({ ok: false, error: 'JojoWorld account not found.' });
+    // 22 Major Arcana + 56 Minor Arcana. The server, not the browser, chooses the card index.
+    res.set('Cache-Control', 'no-store');
+    return res.json({ ok: true, cardIndex: crypto.randomInt(0, 78), deckSize: 78 });
+  } catch (err) {
+    console.error('[HULA ROOM] Secure Tarot draw failed:', err.message);
+    return res.status(503).json({ ok: false, error: 'Tarot draw is temporarily unavailable. Try again.' });
+  }
+});
+
 // [ADDED] JojoWorld Hula Room Tarot card-pick page (no coin actions in this prototype).
 app.get('/hula-room', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'hula-room.html'), err => {
