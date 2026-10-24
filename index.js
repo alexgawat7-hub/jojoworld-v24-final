@@ -775,6 +775,13 @@ app.post('/api/coin-shop/checkout', async (req, res) => {
   }
 });
 
+// [ADDED] JojoWorld Hula Room Tarot card-pick page (no coin actions in this prototype).
+app.get('/hula-room', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'hula-room.html'), err => {
+    if (err && !res.headersSent) { console.error('[HULA ROOM] Could not serve page:', err.message); res.status(503).send('Hula Room is temporarily unavailable.'); }
+  });
+});
+
 // [ADDED] JojoWorld Tetris: authenticated solo score submissions and global rankings.
 app.get('/tetris', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'tetris.html'), err => {
