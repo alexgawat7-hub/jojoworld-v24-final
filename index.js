@@ -906,8 +906,8 @@ app.post('/api/hula-room/rooms/:code/draw', async (req, res) => {
     if (Number.isInteger(room.cardIndex)) return res.status(409).json({ ok: false, error: 'May card nang na-reveal sa round na ito. Hintayin ang host sa susunod na pair.' });
     const cardIndex = crypto.randomInt(0, 78);
     const updated = await HulaRoomModel.findOneAndUpdate(
-      { _id: room._id, cardIndex: null, activePairIndex: room.activePairIndex, 'players.psid': psid },
-      { $set: { cardIndex, revealedBy: psid, status: 'active', updatedAt: new Date() }, $inc: { roundNo: 1 } },
+      { _id: room._id, cardIndex: null, activePairIndex: room.activePairIndex, status: { $ne: 'closed' }, expiresAt: { $gt: new Date() }, players: { $elemMatch: { psid, seat: { $in: activeSeats } } } },
+      { $set: { cardIndex, revealedBy: psid, status: 'active', updatedAt: new Date() } },
       { new: true }
     );
     if (!updated) return res.status(409).json({ ok: false, error: 'Na-reveal na ang card. I-refresh ang room state.' });
