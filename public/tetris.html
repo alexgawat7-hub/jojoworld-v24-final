@@ -482,6 +482,33 @@ button,.back,.tab,.controls .btn{-webkit-tap-highlight-color:transparent}
  #battlePanel .battle-side>.controls,#battlePanel .battle-side>.battle-metrics:last-child{height:64px!important;min-height:64px!important;max-height:64px!important}
 }
 
+
+/* [UPGRADED] Compact battle chrome so the boards own the screen. */
+#battlePanel{gap:3px!important;padding:4px!important}
+#battlePanel>.battle-title{font-size:12px!important;line-height:1!important;padding:0!important;margin:0!important}
+#battlePanel .stake-select{padding:3px 5px!important;margin:0!important;border-radius:7px!important}
+#battlePanel .stake-select-head{margin:0 0 2px!important;font-size:8px!important;line-height:1!important}
+#battlePanel .stake-options{gap:3px!important;padding:0!important;margin:0!important}
+#battlePanel .stake-option{min-height:25px!important;height:25px!important;padding:1px!important;font-size:10px!important;border-radius:5px!important}
+#battlePanel .stake-summary{padding-top:2px!important;font-size:8px!important;line-height:1!important}
+#battlePanel #battleNotice{display:none!important}
+#battlePanel .battle-scorebar{grid-template-columns:1fr 1fr!important;min-height:25px!important;padding:2px 6px!important;gap:4px!important}
+#battlePanel .battle-scorebar span:nth-child(2){display:none!important}
+#battlePanel .battle-side .player-label{min-height:23px!important;height:23px!important;padding:1px 4px!important;font-size:9px!important}
+#battlePanel .battle-side .player-label#youLabel,
+#battlePanel .battle-side .player-label#rivalLabel{font-size:0!important}
+#battlePanel .battle-side .player-label#youLabel:after{content:"YOU";font-size:9px!important}
+#battlePanel .battle-side .player-label#rivalLabel:after{content:"RIVAL";font-size:9px!important}
+#battlePanel>.leader-head,#battlePanel #battleRanks{display:none!important}
+#battlePanel .actions{margin-top:2px!important}
+#battlePanel .battle-side{grid-template-rows:23px auto minmax(0,1fr) 60px!important}
+#battlePanel .battle-side>.controls,
+#battlePanel .battle-side>.battle-metrics:last-child{height:60px!important;min-height:60px!important;max-height:60px!important}
+@media(max-width:420px){
+ #battlePanel .battle-side{grid-template-rows:23px auto minmax(0,1fr) 58px!important}
+ #battlePanel .battle-side>.controls,#battlePanel .battle-side>.battle-metrics:last-child{height:58px!important;min-height:58px!important;max-height:58px!important}
+}
+
 </style>
 <script src="/vendor/pixi/pixi.min.js"></script>
 </head>
