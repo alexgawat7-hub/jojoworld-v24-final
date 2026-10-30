@@ -1263,7 +1263,7 @@ app.post('/api/tetris/battle/join',async(req,res)=>{
   const session=await getDiceWebSession(req);
   if(!session)return res.status(mongoose.connection.readyState===1?401:503).json({ok:false,error:'Open Tetris from Messenger to connect your account.'});
   const psid=String(session.psid),stake=Number(req.body?.stake);
-  if(!Number.isSafeInteger(stake)||stake<10||stake>100000)return res.status(400).json({ok:false,error:'Stake must be a whole number from 10 to 100,000 coins.'});
+  if(![20,50,100,200,300,500,1000].includes(stake))return res.status(400).json({ok:false,error:'Choose a valid Tetris bet: 20, 50, 100, 200, 300, 500, or 1,000 coins.'});
   return await withDiceUserQueue(psid,async()=>{
    const user=await loadUserFromDB(psid);if(!user)return res.status(404).json({ok:false,error:'JojoWorld account not found.'});
    const old=await TetrisBattleQueueModel.findOne({psid}).lean();
@@ -1474,7 +1474,7 @@ const TetrisStatsModel = mongoose.models.JTetrisStats || mongoose.model('JTetris
 const TetrisBattleQueueSchema = new mongoose.Schema({
   psid: { type: String, required: true, unique: true },
   displayName: { type: String, default: 'Jojo Player' },
-  stake: { type: Number, required: true, min: 10, max: 100000 },
+  stake: { type: Number, required: true, enum: [20, 50, 100, 200, 300, 500, 1000] },
   status: { type: String, enum: ['waiting', 'matching', 'matched'], default: 'waiting', index: true },
   matchId: { type: String, default: null },
   createdAt: { type: Date, default: Date.now },
