@@ -442,6 +442,46 @@ button,.back,.tab,.controls .btn{-webkit-tap-highlight-color:transparent}
  #battlePanel .battle-side>.controls,#battlePanel .battle-side>.battle-metrics:last-child{height:64px!important;min-height:64px!important;max-height:64px!important}
 }
 
+
+/* [FIXED] Prioritize actual 1v1 playfield space over oversized lobby chrome. */
+#battlePanel{gap:4px!important;padding:5px!important}
+#battlePanel>.battle-title{font-size:13px!important;line-height:1.05!important;margin:0!important;padding:1px 0!important}
+#battlePanel .stake-select{padding:5px!important;border-radius:8px!important}
+#battlePanel .stake-select-head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:5px!important;margin-bottom:4px!important;font-size:9px!important;line-height:1!important}
+#battlePanel .stake-options{
+ display:flex!important;flex-wrap:nowrap!important;gap:4px!important;
+ width:100%!important;overflow-x:auto!important;overflow-y:hidden!important;
+ padding:1px 0 4px!important;scrollbar-width:none!important;
+}
+#battlePanel .stake-options::-webkit-scrollbar{display:none!important}
+#battlePanel .stake-option{
+ flex:1 0 0!important;min-width:0!important;min-height:32px!important;
+ padding:3px 2px!important;font-size:11px!important;border-radius:7px!important;
+}
+#battlePanel .stake-summary{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:5px!important;padding-top:4px!important;font-size:9px!important;line-height:1.1!important}
+#battlePanel #battleNotice{min-height:10px!important;max-height:16px!important;margin:0!important;font-size:8px!important;line-height:1.1!important;overflow:hidden!important}
+#battlePanel .battle-scorebar{padding:4px 7px!important;min-height:32px!important;font-size:9px!important}
+#battlePanel .battle-scorebar strong{font-size:12px!important}
+#battlePanel .battle-boards{gap:5px!important}
+#battlePanel .battle-side{gap:3px!important;padding:4px!important}
+#battlePanel .battle-side .player-label{min-height:27px!important;padding:2px 4px!important;font-size:9px!important}
+#battlePanel .battle-side .battle-metrics{padding:1px!important;font-size:7px!important}
+#battlePanel .battle-side{grid-template-rows:auto auto minmax(0,1fr) 68px!important}
+#battlePanel .battle-side>.controls,
+#battlePanel .battle-side>.battle-metrics:last-child{height:68px!important;min-height:68px!important;max-height:68px!important}
+#battlePanel .battle-side>.controls{gap:3px!important;padding:3px!important}
+#battlePanel .battle-side>.controls .btn{font-size:clamp(7px,2vw,9px)!important;padding:2px 0!important}
+#battlePanel .actions{gap:4px!important}
+#battlePanel .actions .btn{min-height:32px!important;padding:4px 3px!important;font-size:8px!important}
+#battlePanel>.leader-head{padding-top:2px!important}
+#battlePanel #battleRanks{max-height:28px!important;padding:1px 3px!important}
+@media(max-width:420px){
+ #battlePanel .stake-option{min-width:40px!important;flex:0 0 auto!important}
+ #battlePanel .stake-options{justify-content:space-between!important}
+ #battlePanel .battle-side{grid-template-rows:auto auto minmax(0,1fr) 64px!important}
+ #battlePanel .battle-side>.controls,#battlePanel .battle-side>.battle-metrics:last-child{height:64px!important;min-height:64px!important;max-height:64px!important}
+}
+
 </style>
 <script src="/vendor/pixi/pixi.min.js"></script>
 </head>
