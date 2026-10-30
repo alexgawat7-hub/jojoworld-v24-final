@@ -329,6 +329,72 @@ button,.back,.tab,.controls .btn{-webkit-tap-highlight-color:transparent}
 @media(max-width:380px){#soloPanel .board-column>.controls{gap:4px!important;padding:4px!important}#soloPanel .board-column>.controls .btn{font-size:9px!important;letter-spacing:0!important;min-height:36px!important}}
 /* [ADDED] Choose a fixed 1v1 stake before matchmaking; hide the whole selector once the match is live. */
 .stake-select{display:flex;flex-direction:column;gap:5px;flex:0 0 auto;padding:7px;border:1px solid #46557e;border-radius:9px;background:linear-gradient(145deg,#111b34,#080d1d)}.stake-select-head,.stake-summary{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:9px}.stake-select-head strong{color:#ffe39b;letter-spacing:.5px}.stake-select-head span{color:#aab6d3;font-size:8px}.stake-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.stake-option{min-height:34px;border:1px solid #465a86;border-radius:7px;background:linear-gradient(180deg,#24365c,#111a31);color:#f7f8ff;font-size:12px;font-weight:950;touch-action:manipulation}.stake-option.selected{border-color:#ffe39b;background:linear-gradient(135deg,#ffe49a,#b5a1ff);color:#19142d;box-shadow:0 0 0 1px #ffe39b55}.stake-summary{padding-top:4px;border-top:1px solid #293953;color:#aab6d3}.stake-summary strong{color:#ffe39b;margin-left:4px}#battlePanel.has-live-match .stake-select{display:none!important}#battlePanel.is-waiting .stake-select{padding:4px 6px}#battlePanel.is-waiting .stake-options{display:none}
+
+/* [UPGRADED V1V1 VIEW] Give the two playfields a cleaner arena layout and clearer touch controls. */
+#battlePanel{position:relative;gap:7px!important;padding:8px!important;border:1px solid #52658d!important;border-radius:15px!important;background:radial-gradient(ellipse at 50% 0,#24345a 0,#121d36 42%,#090f20 100%)!important;box-shadow:inset 0 1px 0 #ffffff18,0 8px 24px #0006!important}
+#battlePanel>.battle-title{font-size:clamp(13px,3.4vw,17px)!important;line-height:1.2!important;letter-spacing:.45px!important;text-align:center!important;color:#f5e2ad!important;text-shadow:0 2px 8px #0009!important;margin:0!important}
+#battlePanel .stake-select{padding:8px!important;border-color:#53678f!important;border-radius:11px!important;background:linear-gradient(135deg,#172744,#0b1327)!important;box-shadow:inset 0 1px 0 #ffffff12!important}
+#battlePanel .stake-option{min-height:36px!important;border-radius:9px!important;font-size:13px!important}
+#battlePanel .stake-summary{font-size:10px!important}
+#battlePanel #battleNotice{max-height:30px!important;min-height:14px!important;font-size:9px!important;line-height:1.25!important;text-align:center!important;color:#f5d995!important}
+#battlePanel .battle-scorebar{display:grid!important;grid-template-columns:1fr auto 1fr!important;align-items:center!important;gap:8px!important;padding:7px 10px!important;border:1px solid #52678f!important;border-radius:10px!important;background:linear-gradient(100deg,#101d35,#17294a,#101d35)!important;font-size:10px!important;font-weight:900!important;letter-spacing:.35px!important}
+#battlePanel .battle-scorebar span:first-child{text-align:left}
+#battlePanel .battle-scorebar span:nth-child(2){text-align:center;padding:3px 9px;border-radius:20px;background:#080f20;color:#aebbd5}
+#battlePanel .battle-scorebar span:last-child{text-align:right}
+#battlePanel .battle-scorebar strong{font-size:13px!important;color:#ffe39b!important;font-variant-numeric:tabular-nums}
+#battlePanel .battle-boards{gap:8px!important;align-items:stretch!important;min-height:0!important;padding:1px!important}
+#battlePanel .battle-side{gap:5px!important;padding:6px!important;border:1px solid #35496f!important;border-radius:12px!important;background:linear-gradient(155deg,#172541,#0a1122 72%)!important;box-shadow:inset 0 1px 0 #ffffff12,0 4px 12px #0004!important}
+#battlePanel .battle-side:first-child{border-color:#4385a8!important;background:linear-gradient(155deg,#15334a,#0a1426 75%)!important}
+#battlePanel .battle-side .player-label{min-height:34px!important;justify-content:flex-start!important;padding:4px 6px!important;gap:6px!important;border:1px solid #52678c!important;border-radius:8px!important;background:linear-gradient(100deg,#1b2b49,#101a30)!important;font-size:clamp(9px,2.5vw,11px)!important;letter-spacing:.2px!important}
+#battlePanel .battle-side:first-child .player-label{border-color:#398eaf!important;background:linear-gradient(100deg,#12435a,#10213a)!important}
+#battlePanel .battle-player-avatar{width:25px!important;height:25px!important;flex-basis:25px!important}
+#battlePanel .battle-side .battle-metrics{display:flex!important;justify-content:space-between!important;gap:3px!important;padding:3px 2px!important;font-size:clamp(6px,1.8vw,8px)!important;line-height:1.2!important;white-space:nowrap!important}
+#battlePanel .battle-side .battle-metrics span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+#battlePanel .battle-side .board-wrap{width:100%!important;flex:1 1 0!important;min-height:0!important;padding:4px!important;border:2px solid #53688f!important;border-radius:9px!important;background:linear-gradient(145deg,#0b1428,#050914)!important;box-shadow:inset 0 0 0 1px #ffffff0b,0 3px 9px #0006!important}
+#battlePanel .battle-side:first-child .board-wrap{border-color:#3d8aaa!important;box-shadow:inset 0 0 0 1px #ffffff0b,0 0 12px #35bce51c!important}
+#battlePanel .battle-side .pixi-board{width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important}
+#battlePanel .battle-side .pixi-canvas{height:100%!important;width:auto!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important}
+#battlePanel .battle-side .controls{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important;padding:5px!important;border-radius:11px!important;border-color:#46648b!important;background:linear-gradient(145deg,#142744,#080f20)!important}
+#battlePanel .battle-side .controls .btn{min-height:40px!important;padding:5px 1px!important;border-radius:9px!important;font-size:clamp(8px,2.2vw,10px)!important;line-height:1.1!important;white-space:normal!important;box-shadow:inset 0 1px 0 #ffffff20,0 3px 0 #050915,0 4px 7px #0005!important}
+#battlePanel .battle-side .controls [data-action="left"],#battlePanel .battle-side .controls [data-action="right"]{border-color:#4aadd0!important;background:linear-gradient(180deg,#176487,#102642)!important;color:#d5f7ff!important}
+#battlePanel .battle-side .controls [data-action="rotate"]{border-color:#9b80dc!important;background:linear-gradient(180deg,#5b438d,#251c49)!important;color:#f0e5ff!important}
+#battlePanel .battle-side .controls [data-action="down"]{border-color:#d3a34d!important;background:linear-gradient(180deg,#76551f,#34240f)!important;color:#fff0bf!important}
+#battlePanel .battle-side .controls [data-action="drop"]{border-color:#e96b9d!important;background:linear-gradient(180deg,#a63268,#4c1833)!important;color:#fff!important}
+#battlePanel .battle-side .controls .btn:active{transform:translateY(2px) scale(.98)!important;filter:brightness(1.25)!important}
+#battlePanel .battle-side .battle-metrics strong{color:#ffe39b!important}
+#battlePanel .battle-side:last-child>.battle-metrics:last-child{margin-top:auto;padding:5px 3px!important;border-top:1px solid #35496f!important}
+#battlePanel .actions{display:grid!important;grid-template-columns:1.2fr 1fr 1fr!important;gap:6px!important;width:100%!important}
+#battlePanel .actions .btn{min-height:38px!important;padding:6px 4px!important;border-radius:9px!important;font-size:clamp(8px,2.2vw,10px)!important}
+#battlePanel #findRival{background:linear-gradient(110deg,#ffe49a,#c5a7ff)!important;color:#1a1830!important;border:0!important}
+#battlePanel #leaveBattle{border-color:#a75a70!important;background:linear-gradient(180deg,#542b40,#241523)!important;color:#ffdce7!important}
+#battlePanel .leader-head{padding-top:4px!important;border-top:1px solid #34496d!important}
+#battlePanel #battleRanks{max-height:46px!important;padding:2px 4px!important;border-radius:7px!important;background:#080f20!important}
+#battlePanel #battleRanks .row{padding:4px 0!important;font-size:8px!important}
+@media(max-width:420px){
+ #battlePanel{padding:6px!important;gap:5px!important}
+ #battlePanel .battle-boards{gap:5px!important}
+ #battlePanel .battle-side{padding:4px!important;gap:4px!important}
+ #battlePanel .battle-side .player-label{min-height:31px!important;padding:3px 4px!important}
+ #battlePanel .battle-side .battle-metrics{font-size:6px!important}
+ #battlePanel .battle-side .controls{gap:3px!important;padding:4px!important}
+ #battlePanel .battle-side .controls .btn{min-height:38px!important;font-size:8px!important}
+ #battlePanel .actions{gap:4px!important}
+ #battlePanel .actions .btn{min-height:36px!important}
+}
+@media(max-height:720px){
+ #battlePanel{gap:4px!important;padding:5px!important}
+ #battlePanel .battle-boards{gap:5px!important}
+ #battlePanel .battle-side{gap:3px!important;padding:4px!important}
+ #battlePanel .battle-side .player-label{min-height:28px!important}
+ #battlePanel .battle-side .controls .btn{min-height:32px!important}
+ #battlePanel #battleRanks{max-height:26px!important}
+}
+@media(orientation:landscape) and (max-height:520px){
+ #battlePanel .battle-boards{gap:8px!important}
+ #battlePanel .battle-side .controls .btn{min-height:30px!important}
+ #battlePanel .battle-scorebar{padding:4px 8px!important}
+}
+
 </style>
 <script src="/vendor/pixi/pixi.min.js"></script>
 </head>
