@@ -395,6 +395,53 @@ button,.back,.tab,.controls .btn{-webkit-tap-highlight-color:transparent}
  #battlePanel .battle-scorebar{padding:4px 8px!important}
 }
 
+
+/* [UPGRADED] Equal-height 1v1 boards: reserve identical footer space for controls and rival stats. */
+#battlePanel .battle-boards{align-items:stretch!important}
+#battlePanel .battle-side{
+ display:grid!important;
+ grid-template-rows:auto auto minmax(0,1fr) 82px!important;
+ align-content:stretch!important;
+ align-items:stretch!important;
+ min-height:0!important;
+ gap:4px!important;
+}
+#battlePanel .battle-side .player-label{width:100%!important;min-height:32px!important}
+#battlePanel .battle-side>.battle-metrics:first-of-type{min-height:15px!important;margin:0!important}
+#battlePanel .battle-side>.board-wrap{
+ grid-row:3!important;
+ width:100%!important;
+ height:100%!important;
+ min-height:0!important;
+ min-width:0!important;
+ flex:none!important;
+ align-self:stretch!important;
+}
+#battlePanel .battle-side .pixi-board{height:100%!important;width:100%!important;min-height:0!important;min-width:0!important}
+#battlePanel .battle-side .pixi-canvas{height:100%!important;width:auto!important;max-height:100%!important;max-width:100%!important;object-fit:contain!important}
+#battlePanel .battle-side>.controls,
+#battlePanel .battle-side>.battle-metrics:last-child{
+ grid-row:4!important;
+ align-self:stretch!important;
+ width:100%!important;
+ height:82px!important;
+ min-height:82px!important;
+ max-height:82px!important;
+ margin:0!important;
+}
+#battlePanel .battle-side>.controls{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-template-rows:repeat(2,minmax(0,1fr))!important;gap:4px!important;padding:4px!important}
+#battlePanel .battle-side>.controls .btn{height:100%!important;min-height:0!important;max-height:none!important}
+#battlePanel .battle-side>.battle-metrics:last-child{display:flex!important;align-items:center!important;justify-content:space-between!important;padding:0 5px!important;border-top:1px solid #35496f!important;background:#0a1224!important;border-radius:8px!important}
+@media(max-width:420px){
+ #battlePanel .battle-side{grid-template-rows:auto auto minmax(0,1fr) 76px!important}
+ #battlePanel .battle-side>.controls,#battlePanel .battle-side>.battle-metrics:last-child{height:76px!important;min-height:76px!important;max-height:76px!important}
+ #battlePanel .battle-side>.controls{gap:3px!important;padding:3px!important}
+}
+@media(max-height:650px){
+ #battlePanel .battle-side{grid-template-rows:auto auto minmax(0,1fr) 64px!important}
+ #battlePanel .battle-side>.controls,#battlePanel .battle-side>.battle-metrics:last-child{height:64px!important;min-height:64px!important;max-height:64px!important}
+}
+
 </style>
 <script src="/vendor/pixi/pixi.min.js"></script>
 </head>
