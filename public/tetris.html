@@ -509,6 +509,31 @@ button,.back,.tab,.controls .btn{-webkit-tap-highlight-color:transparent}
  #battlePanel .battle-side>.controls,#battlePanel .battle-side>.battle-metrics:last-child{height:58px!important;min-height:58px!important;max-height:58px!important}
 }
 
+
+/* [UPGRADED] Center shared battle controls below both playfields, like Solo mode. */
+#battlePanel .battle-boards{margin-bottom:0!important}
+#battlePanel .battle-side:first-child{grid-template-rows:23px auto minmax(0,1fr)!important}
+#battlePanel .battle-side:last-child{grid-template-rows:23px auto minmax(0,1fr) 25px!important}
+#battlePanel .battle-side:first-child>.board-wrap{grid-row:3!important}
+#battlePanel .battle-side:last-child>.board-wrap{grid-row:3!important}
+#battlePanel .battle-side:last-child>.battle-metrics:last-child{grid-row:4!important;height:25px!important;min-height:25px!important;max-height:25px!important}
+#battlePanel .battle-controls-dock{display:flex!important;justify-content:center!important;align-items:center!important;width:100%!important;padding:4px 0 2px!important}
+#battlePanel .battle-controls-dock .controls{
+ display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;
+ grid-template-rows:54px!important;gap:6px!important;width:min(100%,520px)!important;
+ margin:0 auto!important;padding:5px!important;border:1px solid #46648b!important;
+ border-radius:12px!important;background:linear-gradient(145deg,#142744,#080f20)!important;
+}
+#battlePanel .battle-controls-dock .controls .btn{min-width:0!important;width:100%!important;height:100%!important;min-height:0!important;padding:3px 2px!important;font-size:clamp(8px,2.5vw,11px)!important;white-space:normal!important}
+#battlePanel .battle-controls-dock [data-action="left"],#battlePanel .battle-controls-dock [data-action="right"]{border-color:#4aadd0!important;background:linear-gradient(180deg,#176487,#102642)!important;color:#d5f7ff!important}
+#battlePanel .battle-controls-dock [data-action="rotate"]{border-color:#9b80dc!important;background:linear-gradient(180deg,#5b438d,#251c49)!important;color:#f0e5ff!important}
+#battlePanel .battle-controls-dock [data-action="down"]{border-color:#d3a34d!important;background:linear-gradient(180deg,#76551f,#34240f)!important;color:#fff0bf!important}
+#battlePanel .battle-controls-dock [data-action="drop"]{border-color:#e96b9d!important;background:linear-gradient(180deg,#a63268,#4c1833)!important;color:#fff!important}
+@media(max-width:420px){
+ #battlePanel .battle-controls-dock .controls{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:4px!important;width:100%!important;grid-template-rows:50px!important}
+ #battlePanel .battle-controls-dock .controls .btn{font-size:8px!important}
+}
+
 </style>
 <script src="/vendor/pixi/pixi.min.js"></script>
 </head>
@@ -549,9 +574,10 @@ button,.back,.tab,.controls .btn{-webkit-tap-highlight-color:transparent}
  <p class="notice" id="battleNotice">Choose a stake and tap Find Rival.</p>
  <div class="battle-scorebar"><span>YOU <strong id="youScore">0</strong></span><span>GAP <strong id="scoreGap">0</strong></span><span>RIVAL <strong id="rivalScoreTop">0</strong></span></div>
  <div class="battle-boards">
-  <div class="battle-side"><div class="player-label" id="youLabel">YOU · WAITING</div><div class="battle-metrics"><span>RANK <strong id="youRank">—</strong></span><span>W/L <strong id="youRecord">0/0</strong></span><span>BEST <strong id="youBest">0</strong></span></div><div class="board-wrap"><div class="pixi-board" id="youBoard" role="img" aria-label="Your battle board"></div></div><div class="controls"><button class="btn" data-action="left" aria-label="Move left" title="Hold to move left" type="button" disabled>◀ LEFT</button><button class="btn" data-action="rotate" aria-label="Rotate" title="Rotate block" type="button" disabled>⟳ ROTATE</button><button class="btn" data-action="right" aria-label="Move right" title="Hold to move right" type="button" disabled>RIGHT ▶</button><button class="btn" data-action="down" aria-label="Soft drop" title="Hold to soft drop" type="button" disabled>▼ DOWN</button><button class="btn" data-action="drop" aria-label="Hard drop" title="Drop instantly" type="button" disabled>⬇ HARD DROP</button></div></div>
+  <div class="battle-side"><div class="player-label" id="youLabel">YOU · WAITING</div><div class="battle-metrics"><span>RANK <strong id="youRank">—</strong></span><span>W/L <strong id="youRecord">0/0</strong></span><span>BEST <strong id="youBest">0</strong></span></div><div class="board-wrap"><div class="pixi-board" id="youBoard" role="img" aria-label="Your battle board"></div></div></div>
   <div class="battle-side"><div class="player-label" id="rivalLabel">RIVAL · WAITING</div><div class="battle-metrics"><span>RANK <strong id="rivalRank">—</strong></span><span>W/L <strong id="rivalRecord">0/0</strong></span><span>BEST <strong id="rivalBest">0</strong></span></div><div class="board-wrap"><div class="pixi-board" id="rivalBoard" role="img" aria-label="Rival battle board"></div></div><div class="battle-metrics"><span>COINS WON <strong id="rivalWon">0</strong></span><span>POT <strong id="won">0</strong></span></div></div>
  </div>
+ <div class="battle-controls-dock"><div class="controls" aria-label="Battle controls"><button class="btn" data-action="left" aria-label="Move left" title="Hold to move left" type="button" disabled>◀ LEFT</button><button class="btn" data-action="rotate" aria-label="Rotate" title="Rotate block" type="button" disabled>⟳ ROTATE</button><button class="btn" data-action="right" aria-label="Move right" title="Hold to move right" type="button" disabled>RIGHT ▶</button><button class="btn" data-action="down" aria-label="Soft drop" title="Hold to soft drop" type="button" disabled>▼ DOWN</button><button class="btn" data-action="drop" aria-label="Hard drop" title="Drop instantly" type="button" disabled>⬇ HARD DROP</button></div></div>
  <div class="actions"><button class="btn primary" id="findRival" type="button">⚔ FIND RIVAL</button><button class="btn" id="battleRefresh" type="button" aria-label="Refresh battle" title="Refresh match status">↻ REFRESH</button><button class="btn" id="leaveBattle" type="button">CANCEL / LEAVE</button></div>
  <div class="leader-head"><h2>⚔ BATTLE RANKING</h2><span class="muted">Wins · losses · best</span></div><div id="battleRanks" class="muted">Loading ranking…</div>
 </section>
