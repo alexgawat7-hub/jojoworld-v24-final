@@ -253,6 +253,42 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
       if(i%2===0)lamp(side*(10.7+(i%2)),z-3,side);
     }
   }
+  // Physical finish structure: checkered road stripe and overhead motorsport gantry.
+  const finishGate=new THREE.Group();
+  const finishMetal= new THREE.MeshStandardMaterial({color:0x89949c,metalness:.82,roughness:.28});
+  const finishDark= new THREE.MeshStandardMaterial({color:0x17212a,metalness:.35,roughness:.55});
+  for(const x of [-7.45,7.45]){
+    const post=new THREE.Mesh(new THREE.BoxGeometry(.24,6.2,.28),finishMetal);
+    post.position.set(x,3.1,0);post.castShadow=true;finishGate.add(post);
+    const foot=new THREE.Mesh(new THREE.BoxGeometry(.9,.22,.9),finishDark);
+    foot.position.set(x,.11,0);finishGate.add(foot);
+  }
+  const topBeam=new THREE.Mesh(new THREE.BoxGeometry(15.1,.42,.42),finishMetal);
+  topBeam.position.set(0,6.15,0);topBeam.castShadow=true;finishGate.add(topBeam);
+  const banner=new THREE.Mesh(new THREE.BoxGeometry(8.2,.9,.18),new THREE.MeshStandardMaterial({color:0x18232b,metalness:.25,roughness:.6}));
+  banner.position.set(0,5.55,-.05);finishGate.add(banner);
+  const bannerCanvas=document.createElement('canvas');bannerCanvas.width=1024;bannerCanvas.height=128;
+  const bannerCtx=bannerCanvas.getContext('2d');bannerCtx.fillStyle='#17212a';bannerCtx.fillRect(0,0,1024,128);
+  bannerCtx.fillStyle='#e7e9e9';bannerCtx.font='900 76px Arial';bannerCtx.textAlign='center';bannerCtx.textBaseline='middle';bannerCtx.fillText('FINISH',512,66);
+  const bannerTexture=new THREE.CanvasTexture(bannerCanvas);
+  const bannerFace=new THREE.Mesh(new THREE.PlaneGeometry(8.05,.82),new THREE.MeshBasicMaterial({map:bannerTexture,transparent:true,side:THREE.DoubleSide}));
+  bannerFace.position.set(0,5.55,.055);finishGate.add(bannerFace);
+  const checkerCanvas=document.createElement('canvas');checkerCanvas.width=512;checkerCanvas.height=128;
+  const checkerCtx=checkerCanvas.getContext('2d');checkerCtx.fillStyle='#f4f4f1';checkerCtx.fillRect(0,0,512,128);
+  const checkerSize=32;
+  for(let y=0;y<4;y++)for(let x=0;x<16;x++)if((x+y)%2===0){checkerCtx.fillStyle='#101418';checkerCtx.fillRect(x*checkerSize,y*checkerSize,checkerSize,checkerSize);}
+  const checkerTexture=new THREE.CanvasTexture(checkerCanvas);checkerTexture.colorSpace=THREE.SRGBColorSpace;
+  const finishStripe=new THREE.Mesh(new THREE.PlaneGeometry(18,2.6),new THREE.MeshBasicMaterial({map:checkerTexture,side:THREE.DoubleSide}));
+  finishStripe.rotation.x=-Math.PI/2;finishStripe.position.set(0,.035,0);finishGate.add(finishStripe);
+  scene.add(finishGate);finishGate.position.z=-150;
+  // A narrow approach marker makes the finish structure readable from a distance.
+  const finishLights=new THREE.Group();
+  for(let i=0;i<5;i++){
+    const lamp=new THREE.Mesh(new THREE.SphereGeometry(.12,12,8),new THREE.MeshStandardMaterial({color:0xf0d5a0,emissive:0xc38c43,emissiveIntensity:1.3}));
+    lamp.position.set(-1.1+i*.55,6.17,.28);finishLights.add(lamp);
+  }
+  finishGate.add(finishLights);
+
   // A few overhead road signs with real 3D posts.
   for(const z of [-72,-150,-225]){
     const sign=new THREE.Group();
@@ -362,6 +398,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
   }
   function draw(){
     if(pageLeaving)return;
+    finishGate.position.z=-150+Math.min(1000,progress)*.15;
     const playerX=steer*6.55;
     const slide=driftAmount*(steer<0?1:-1)*.52;
     const targetX=playerX+slide;
