@@ -417,6 +417,44 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
       roadside.push({group:streetFurniture,z,side,kind:'street-furniture'});
     }
   }
+  // [ADDED] Compact glass bus shelters add believable public-transport detail along the downtown sidewalks.
+  const shelterFrame=new THREE.MeshStandardMaterial({color:0x3b464e,metalness:.78,roughness:.32});
+  const shelterGlass=new THREE.MeshPhysicalMaterial({color:0x91a9b5,transparent:true,opacity:.22,metalness:.12,roughness:.16,clearcoat:.8,depthWrite:false});
+  const shelterRoof=new THREE.MeshStandardMaterial({color:0x252f37,metalness:.62,roughness:.42});
+  const shelterSeat=new THREE.MeshStandardMaterial({color:0x4c514f,metalness:.38,roughness:.62});
+  const stopSignMat=new THREE.MeshStandardMaterial({color:0x304a59,emissive:0x142630,emissiveIntensity:.35,metalness:.25,roughness:.48});
+  for(const z of [-88,-168]){
+    for(const side of [-1,1]){
+      const shelter=new THREE.Group();
+      const roof=new THREE.Mesh(new THREE.BoxGeometry(1.48,.13,3.35),shelterRoof);
+      roof.position.set(side*.0,2.35,0);roof.castShadow=true;shelter.add(roof);
+      const roofLip=new THREE.Mesh(new THREE.BoxGeometry(1.56,.055,3.43),shelterFrame);roofLip.position.set(0,2.27,0);shelter.add(roofLip);
+      for(const x of [-.68,.68])for(const dz of [-1.52,1.52]){
+        const post=new THREE.Mesh(new THREE.BoxGeometry(.075,2.25,.075),shelterFrame);
+        post.position.set(x,1.14,dz);shelter.add(post);
+      }
+      const backPanel=new THREE.Mesh(new THREE.BoxGeometry(.045,1.95,2.95),shelterGlass);
+      backPanel.position.set(side*.64,1.22,0);shelter.add(backPanel);
+      for(const dz of [-1.48,1.48]){
+        const endPanel=new THREE.Mesh(new THREE.BoxGeometry(1.28,1.92,.035),shelterGlass);
+        endPanel.position.set(0,1.2,dz);shelter.add(endPanel);
+      }
+      const seat=new THREE.Mesh(new THREE.BoxGeometry(.72,.09,2.1),shelterSeat);
+      seat.position.set(-side*.22,.58,0);shelter.add(seat);
+      for(const dz of [-.88,.88]){
+        const leg=new THREE.Mesh(new THREE.BoxGeometry(.08,.52,.08),shelterFrame);
+        leg.position.set(-side*.22,.29,dz);shelter.add(leg);
+      }
+      const signPost=new THREE.Mesh(new THREE.CylinderGeometry(.035,.045,2.65,8),shelterFrame);
+      signPost.position.set(-side*.78,1.32,-1.35);shelter.add(signPost);
+      const sign=new THREE.Mesh(new THREE.BoxGeometry(.48,.62,.09),stopSignMat);
+      sign.position.set(-side*.78,2.18,-1.35);shelter.add(sign);
+      const signStripe=new THREE.Mesh(new THREE.BoxGeometry(.28,.045,.018),shelterGlass);
+      signStripe.position.set(-side*.78,2.24,-1.30);shelter.add(signStripe);
+      shelter.position.set(side*11.1,0,z);scene.add(shelter);
+      roadside.push({group:shelter,z,side,kind:'bus-shelter'});
+    }
+  }
   // Physical finish structure: checkered road stripe and overhead motorsport gantry.
   const finishGate=new THREE.Group();
   const finishMetal= new THREE.MeshStandardMaterial({color:0x89949c,metalness:.82,roughness:.28});
