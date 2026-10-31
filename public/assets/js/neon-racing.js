@@ -394,6 +394,29 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
       }
     }
   }
+  // [ADDED] Sparse downtown seating and litter bins make the sidewalks feel occupied, not cluttered.
+  const benchMetal=new THREE.MeshStandardMaterial({color:0x343e46,metalness:.72,roughness:.38});
+  const benchWood=new THREE.MeshStandardMaterial({color:0x574b3d,roughness:.78});
+  const binMat=new THREE.MeshStandardMaterial({color:0x414c53,metalness:.52,roughness:.55});
+  const binSlotMat=new THREE.MeshStandardMaterial({color:0x171e23,roughness:.9});
+  for(const z of [-68,-148,-228]){
+    for(const side of [-1,1]){
+      const streetFurniture=new THREE.Group();
+      const seat=new THREE.Mesh(new THREE.BoxGeometry(.82,.09,1.75),benchWood);seat.position.set(side*11.05,.58,0);streetFurniture.add(seat);
+      const back=new THREE.Mesh(new THREE.BoxGeometry(.09,.62,1.75),benchWood);back.position.set(side*11.48,.91,.0);streetFurniture.add(back);
+      for(const dz of [-.67,.67]){
+        const leg=new THREE.Mesh(new THREE.BoxGeometry(.1,.55,.1),benchMetal);leg.position.set(side*11.05,.29,dz);streetFurniture.add(leg);
+        const brace=new THREE.Mesh(new THREE.BoxGeometry(.48,.07,.08),benchMetal);brace.position.set(side*11.25,.2,dz);streetFurniture.add(brace);
+      }
+      const bin=new THREE.Group();
+      const body=new THREE.Mesh(new THREE.CylinderGeometry(.22,.25,.78,12),binMat);body.position.y=.4;body.castShadow=true;bin.add(body);
+      const lid=new THREE.Mesh(new THREE.CylinderGeometry(.24,.24,.08,12),benchMetal);lid.position.y=.82;bin.add(lid);
+      const slot=new THREE.Mesh(new THREE.BoxGeometry(.24,.035,.025),binSlotMat);slot.position.set(0,.67,.235);bin.add(slot);
+      bin.position.set(side*12.05,0,.95);streetFurniture.add(bin);
+      streetFurniture.position.z=z;scene.add(streetFurniture);
+      roadside.push({group:streetFurniture,z,side,kind:'street-furniture'});
+    }
+  }
   // Physical finish structure: checkered road stripe and overhead motorsport gantry.
   const finishGate=new THREE.Group();
   const finishMetal= new THREE.MeshStandardMaterial({color:0x89949c,metalness:.82,roughness:.28});
