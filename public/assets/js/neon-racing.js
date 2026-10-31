@@ -328,12 +328,12 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     if(!sound)return;ensureAudio();if(!audioRig||!audio)return;
     if(audio.state==='suspended')audio.resume().catch(()=>{});
     const t=audio.currentTime,throttle=running?Math.max(.12,speed/245):0;
-    audioRig.engine.frequency.setTargetAtTime(38+speed*.48+,t,.06);
+    audioRig.engine.frequency.setTargetAtTime(38+speed*.48,t,.06);
     audioRig.engineGain.gain.setTargetAtTime(running?.025+throttle*.045:.0001,t,.08);
     audioRig.engineFilter.frequency.setTargetAtTime(180+speed*2.2,t,.08);
     audioRig.harmonic.frequency.setTargetAtTime(76+speed*.92,t,.07);
     audioRig.harmonicGain.gain.setTargetAtTime(running?.006+throttle*.018:.0001,t,.08);
-    audioRig.motor.frequency.setTargetAtTime(28+speed*.24+,t,.07);
+    audioRig.motor.frequency.setTargetAtTime(28+speed*.24,t,.07);
     audioRig.motorGain.gain.setTargetAtTime(running?.012+throttle*.026:.0001,t,.08);
     audioRig.motorFilter.frequency.setTargetAtTime(80+speed*.7,t,.08);
     audioRig.windGain.gain.setTargetAtTime(running?Math.min(.14,speed/245*.14):.0001,t,.12);
