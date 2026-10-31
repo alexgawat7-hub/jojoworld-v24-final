@@ -314,6 +314,28 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
       if(i%2===0)lamp(side*(10.7+(i%2)),z-3,side);
     }
   }
+  // [UPGRADED] Subtle roadside utility cabinets and safety bollards add street-level city detail.
+  const utilityCaseMat=new THREE.MeshStandardMaterial({color:0x3b454b,metalness:.62,roughness:.5});
+  const utilityDoorMat=new THREE.MeshStandardMaterial({color:0x56636a,metalness:.48,roughness:.58});
+  const utilityMarkMat=new THREE.MeshStandardMaterial({color:0xd7a65d,emissive:0x513619,emissiveIntensity:.42,roughness:.5});
+  const bollardMat=new THREE.MeshStandardMaterial({color:0x343c42,metalness:.55,roughness:.42});
+  for(const z of [-38,-108,-188]){
+    for(const side of [-1,1]){
+      const unit=new THREE.Group();
+      const base=new THREE.Mesh(new THREE.BoxGeometry(1.05,.12,.78),concrete);base.position.y=.06;unit.add(base);
+      const cabinet=new THREE.Mesh(new THREE.BoxGeometry(.86,1.12,.62),utilityCaseMat);cabinet.position.y=.68;cabinet.castShadow=true;unit.add(cabinet);
+      const door=new THREE.Mesh(new THREE.BoxGeometry(.68,.82,.035),utilityDoorMat);door.position.set(0,.7,.33);unit.add(door);
+      const marker=new THREE.Mesh(new THREE.BoxGeometry(.34,.055,.045),utilityMarkMat);marker.position.set(0,1.12,.355);unit.add(marker);
+      const latch=new THREE.Mesh(new THREE.BoxGeometry(.045,.13,.045),roadSignTrim);latch.position.set(.25,.68,.36);unit.add(latch);
+      unit.position.set(side*11.8,0,z);scene.add(unit);roadside.push({group:unit,z,side,kind:'utility'});
+      for(const offset of [-1.25,1.25]){
+        const bollard=new THREE.Group();
+        const post=new THREE.Mesh(new THREE.CylinderGeometry(.09,.11,.72,10),bollardMat);post.position.y=.36;post.castShadow=true;bollard.add(post);
+        const cap=new THREE.Mesh(new THREE.CylinderGeometry(.095,.095,.09,10),utilityMarkMat);cap.position.y=.72;bollard.add(cap);
+        bollard.position.set(side*11.8,0,z+offset);scene.add(bollard);roadside.push({group:bollard,z:z+offset,side,kind:'bollard'});
+      }
+    }
+  }
   // Physical finish structure: checkered road stripe and overhead motorsport gantry.
   const finishGate=new THREE.Group();
   const finishMetal= new THREE.MeshStandardMaterial({color:0x89949c,metalness:.82,roughness:.28});
