@@ -355,7 +355,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     driftAmount+=((hardTurn?1:0)-driftAmount)*Math.min(1,sec*(hardTurn?4.5:2.2));
     if(hardTurn&&Math.random()<.72)emitSmoke();
     updateSmoke(sec);
-    progress+=speed*sec*.080;
+    /* [FIXED] Give the player a fair passing pace: normal throttle now beats the rival's cruise speed, while nitro creates a clear overtake burst. */
+    progress+=speed*sec*.090;
     rivalBoost=Math.max(0,rivalBoost-sec);if(rivalBoost<=0&&Math.random()<.045)rivalBoost=1.1;
     rivalProgress+=sec*(rivalBoost>0?18.8:16.2);
     if(keys.left)steer=Math.max(-1,steer-sec*1.7);else if(keys.right)steer=Math.min(1,steer+sec*1.7);else steer*=Math.pow(.91,sec*60);
