@@ -877,7 +877,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     progress+=speed*sec*.090;
     rivalProgress+=sec*16.4;
     if(keys.left)steer=Math.max(-1,steer-sec*1.7);else if(keys.right)steer=Math.min(1,steer+sec*1.7);else steer*=Math.pow(.91,sec*60);
-    $('score').textContent=Math.min(100,Math.floor(progress/10))+'%';$('speed').textContent=Math.round(speed)+' km/h';
+    $('score').textContent=Math.min(100,Math.floor(progress/10))+'%';$('speed').textContent=Math.round(speed)+' km/h';$('distanceStatus').textContent='DISTANCE  •  '+Math.min(1000,Math.floor(progress))+' / 1,000 M';
     const rivalGap=Math.round(Math.abs(rivalProgress-progress));
     $('rivalStatus').textContent=rivalGap<2?'RIVAL: SIDE BY SIDE':(rivalProgress>progress?'RIVAL AHEAD  •  '+rivalGap+' m':'YOU AHEAD  •  '+rivalGap+' m');
     draw();
