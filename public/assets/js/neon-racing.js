@@ -264,6 +264,24 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     for(const sx of [-1,1]){
       const edge=new THREE.Mesh(new THREE.BoxGeometry(.13,height,.13),trimMat);edge.position.set(sx*(width/2-.08),height/2,depth/2+.06);group.add(edge);
     }
+    // [UPGRADED] Selective rooftop HVAC equipment adds believable commercial-district detail without extra lights.
+    if(index%3===1){
+      const unitMat=new THREE.MeshStandardMaterial({color:0x343d45,metalness:.62,roughness:.58});
+      const unit=new THREE.Mesh(new THREE.BoxGeometry(1.35,.62,1.05),unitMat);
+      unit.position.set(width*.22,height+.48,depth*.12);unit.castShadow=true;group.add(unit);
+      const top=new THREE.Mesh(new THREE.BoxGeometry(1.42,.09,1.12),trimMat);
+      top.position.set(width*.22,height+.83,depth*.12);group.add(top);
+      const fanRing=new THREE.Mesh(new THREE.TorusGeometry(.27,.035,6,18),chrome);
+      fanRing.position.set(width*.22,height+.9,depth*.12);fanRing.rotation.x=Math.PI/2;group.add(fanRing);
+      for(let blade=0;blade<4;blade++){
+        const vane=new THREE.Mesh(new THREE.BoxGeometry(.055,.025,.43),darkMat);
+        vane.position.set(width*.22,height+.91,depth*.12);vane.rotation.y=blade*Math.PI/2;group.add(vane);
+      }
+      const vent=new THREE.Mesh(new THREE.BoxGeometry(.72,.22,.035),trimMat);
+      vent.position.set(width*.22,height+.48,depth*.66);group.add(vent);
+      const conduit=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,.9,8),trimMat);
+      conduit.rotation.z=Math.PI/2;conduit.position.set(width*.22,height+.24,depth*.12);group.add(conduit);
+    }
     group.position.set(x,0,z);scene.add(group);roadside.push({group,z,side,kind:'building'});
   }
   function tree(x,z,side){
