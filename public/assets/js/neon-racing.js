@@ -161,7 +161,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
   }
   function addCar(color,accent){
     const root=new THREE.Group();
-    const paint=new THREE.MeshPhysicalMaterial({color,roughness:.2,metalness:.68,clearcoat:1,clearcoatRoughness:.12});
+    const paint=new THREE.MeshPhysicalMaterial({color,roughness:.24,metalness:.62,clearcoat:1,clearcoatRoughness:.16,ior:1.48,specularIntensity:.82,specularColor:0xd9e8f2});
     const carbon=new THREE.MeshStandardMaterial({color:0x090e15,roughness:.42,metalness:.48});
     const glass=new THREE.MeshPhysicalMaterial({color:0x071522,roughness:.12,metalness:.38,clearcoat:1,clearcoatRoughness:.08});
     const chromeTrim=new THREE.MeshStandardMaterial({color:0xaebdc8,roughness:.2,metalness:.96});
@@ -272,7 +272,10 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
               if('metalness' in material)material.metalness=.58;
               if('roughness' in material)material.roughness=.27;
               if('clearcoat' in material)material.clearcoat=.82;
-              if('clearcoatRoughness' in material)material.clearcoatRoughness=.2;
+              if('clearcoatRoughness' in material)material.clearcoatRoughness=.18;
+              if('ior' in material)material.ior=1.48;
+              if('specularIntensity' in material)material.specularIntensity=.82;
+              if('specularColor' in material)material.specularColor.setHex(0xd9e8f2);
             }
           }
           if('envMapIntensity' in material)material.envMapIntensity=1.25;
