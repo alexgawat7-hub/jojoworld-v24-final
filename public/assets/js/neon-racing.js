@@ -10,7 +10,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     $('multiplayer').href = '/neon-racing-multiplayer?token=' + encodeURIComponent(token);
   }
   let running=false, countdownActive=false, countdownTimer=null, sound=true, audio=null, audioRig=null, last=0, progress=0, rivalProgress=0, rafId=0, pageLeaving=false;
-  let speed=0, steer=0, braking=false, keys={}, edgeHitCooldown=0, driftAmount=0;
+  let speed=0, steer=0, braking=false, keys={}, edgeHitCooldown=0, edgeWarning=0, driftAmount=0;
   let best=Number(localStorage.getItem('jojoworldNeonRacingBest')||0);
   $('best').textContent=best;
 
@@ -816,7 +816,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     player.position.x+=(targetX-player.position.x)*.16;
     // The painted edge/shoulder acts as a light crash boundary, with a brief impact and speed loss.
     if(running&&Math.abs(player.position.x)>6.25&&edgeHitCooldown<=0){
-      edgeHitCooldown=.9;speed=Math.max(55,speed*.58);impactSound();
+      edgeHitCooldown=.9;edgeWarning=1.1;speed=Math.max(55,speed*.58);impactSound();
       player.position.x=Math.sign(player.position.x)*6.25;
     }
     player.rotation.z=-steer*.08-driftAmount*steer*.055;
@@ -870,14 +870,14 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     const dt=Math.min(40,t-last||16);last=t;const sec=dt/1000;
     const target=braking?82:205;
     speed+=(target-speed)*Math.min(1,sec*2.4);
-    edgeHitCooldown=Math.max(0,edgeHitCooldown-sec);
+    edgeHitCooldown=Math.max(0,edgeHitCooldown-sec);edgeWarning=Math.max(0,edgeWarning-sec);
     const hardTurn=Math.abs(steer)>.62&&speed>125&&!braking;
     driftAmount+=((hardTurn?1:0)-driftAmount)*Math.min(1,sec*(hardTurn?3.2:1.8));
     /* Distance-based pace lets the player close the initial gap and pass without scripted lane swapping. */
     progress+=speed*sec*.090;
     rivalProgress+=sec*16.4;
     if(keys.left)steer=Math.max(-1,steer-sec*1.7);else if(keys.right)steer=Math.min(1,steer+sec*1.7);else steer*=Math.pow(.91,sec*60);
-    $('score').textContent=Math.min(100,Math.floor(progress/10))+'%';$('speed').textContent=Math.round(speed)+' km/h';$('distanceStatus').textContent='DISTANCE  •  '+Math.min(1000,Math.floor(progress))+' / 1,000 M';$('driveStatus').textContent=braking?'DRIVE MODE  •  BRAKING':'DRIVE MODE  •  ACCELERATING';$('driveStatus').classList.toggle('is-braking',braking);const speedMeterFill=$('speedMeterFill');if(speedMeterFill)speedMeterFill.style.width=(Math.min(205,speed)/205*100)+'%';const speedMeter=$('speedMeterFill')?.parentElement;if(speedMeter)speedMeter.setAttribute('aria-valuenow',String(Math.round(speed)));
+    $('score').textContent=Math.min(100,Math.floor(progress/10))+'%';$('speed').textContent=Math.round(speed)+' km/h';$('distanceStatus').textContent='DISTANCE  •  '+Math.min(1000,Math.floor(progress))+' / 1,000 M';$('driveStatus').textContent=edgeWarning>0?'TRACK EDGE  •  SLOW DOWN':(braking?'DRIVE MODE  •  BRAKING':'DRIVE MODE  •  ACCELERATING');$('driveStatus').classList.toggle('is-braking',braking&&!edgeWarning);$('driveStatus').classList.toggle('is-edge',edgeWarning>0);const speedMeterFill=$('speedMeterFill');if(speedMeterFill)speedMeterFill.style.width=(Math.min(205,speed)/205*100)+'%';const speedMeter=$('speedMeterFill')?.parentElement;if(speedMeter)speedMeter.setAttribute('aria-valuenow',String(Math.round(speed)));
     const rivalGap=Math.round(Math.abs(rivalProgress-progress));
     $('rivalStatus').textContent=rivalGap<2?'RIVAL: SIDE BY SIDE':(rivalProgress>progress?'RIVAL AHEAD  •  '+rivalGap+' m':'YOU AHEAD  •  '+rivalGap+' m');
     draw();
@@ -888,9 +888,9 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
   function start(){
     if(pageLeaving)return;
     if(countdownTimer)clearTimeout(countdownTimer);
-    running=false;countdownActive=false;progress=0;rivalProgress=0;speed=0;steer=0;braking=false;driftAmount=0;edgeHitCooldown=0;last=0;keys={};player.position.x=0;
+    running=false;countdownActive=false;progress=0;rivalProgress=0;speed=0;steer=0;braking=false;driftAmount=0;edgeHitCooldown=0;edgeWarning=0;last=0;keys={};player.position.x=0;
     rival.position.set(-2.8,0,-12);
-    $('score').textContent='0%';$('speed').textContent='0 km/h';$('driveStatus').textContent='DRIVE MODE  •  READY';$('driveStatus').classList.remove('is-braking');$('speedMeterFill').style.width='0%';$('speedMeterFill').parentElement.setAttribute('aria-valuenow','0');$('overlay').hidden=true;
+    $('score').textContent='0%';$('speed').textContent='0 km/h';$('driveStatus').textContent='DRIVE MODE  •  READY';edgeWarning=0;$('driveStatus').classList.remove('is-braking','is-edge');$('speedMeterFill').style.width='0%';$('speedMeterFill').parentElement.setAttribute('aria-valuenow','0');$('overlay').hidden=true;
     $('start').textContent='RACE AGAIN';
     ensureAudio();
     if(rafId)cancelAnimationFrame(rafId);
