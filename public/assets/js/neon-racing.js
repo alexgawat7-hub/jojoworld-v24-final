@@ -376,6 +376,20 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
       const lowerTrim=new THREE.Mesh(new THREE.BoxGeometry(.12,.1,2.55),trimMat);
       lowerTrim.position.set(frontageX+roadward*.08,.39,-.12);group.add(lowerTrim);
     }
+    // [UPGRADED] Selective wall-mounted CCTV cameras add subtle downtown security detail.
+    if(index%3===0){
+      const cameraMetal=new THREE.MeshStandardMaterial({color:0x303a42,metalness:.78,roughness:.34});
+      const cameraLens=new THREE.MeshStandardMaterial({color:0x91b7c7,emissive:0x284553,emissiveIntensity:.65,metalness:.3,roughness:.2});
+      const roadward=-side;
+      const mount=new THREE.Mesh(new THREE.BoxGeometry(.22,.12,.18),cameraMetal);
+      mount.position.set(roadward*(width*.5+.1),Math.min(height-.9,4.4),0);group.add(mount);
+      const arm=new THREE.Mesh(new THREE.BoxGeometry(.48,.07,.07),cameraMetal);
+      arm.position.set(roadward*(width*.5+.3),Math.min(height-.85,4.45),0);group.add(arm);
+      const housing=new THREE.Mesh(new THREE.BoxGeometry(.3,.18,.2),cameraMetal);
+      housing.position.set(roadward*(width*.5+.52),Math.min(height-.8,4.4),0);housing.rotation.z=roadward*.12;group.add(housing);
+      const lens=new THREE.Mesh(new THREE.CircleGeometry(.055,12),cameraLens);
+      lens.position.set(roadward*(width*.5+.625),Math.min(height-.8,4.4),0);lens.rotation.y=roadward*Math.PI/2;group.add(lens);
+    }
     group.position.set(x,0,z);scene.add(group);roadside.push({group,z,side,kind:'building'});
   }
   function tree(x,z,side){
