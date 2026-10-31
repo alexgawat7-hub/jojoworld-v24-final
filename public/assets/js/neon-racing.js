@@ -150,7 +150,19 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     scene.add(root);return root;
   }
   const player=addCar(0x176d9a,0x8ef7ff);player.position.set(0,0,0);
-  const rival=addCar(0xb52f3b,0xffb27d);rival.scale.setScalar(.78);rival.position.set(-2.8,0,-36);
+  const rival=addCar(0xb52f3b,0xffb27d);
+  // [ADDED] Make the solo AI opponent unmistakable and easy to track during the race.
+  rival.scale.setScalar(.92);rival.position.set(-2.8,0,-22);
+  const rivalGlow=new THREE.PointLight(0xff294f,2.1,10);rivalGlow.position.set(0,.65,.1);rival.add(rivalGlow);
+  const rivalTagCanvas=document.createElement('canvas');rivalTagCanvas.width=512;rivalTagCanvas.height=128;
+  const rivalTagCtx=rivalTagCanvas.getContext('2d');
+  rivalTagCtx.fillStyle='rgba(12,15,28,.88)';rivalTagCtx.beginPath();rivalTagCtx.roundRect(12,12,488,104,26);rivalTagCtx.fill();
+  rivalTagCtx.strokeStyle='#ff526d';rivalTagCtx.lineWidth=8;rivalTagCtx.stroke();
+  rivalTagCtx.font='900 62px Arial';rivalTagCtx.textAlign='center';rivalTagCtx.textBaseline='middle';
+  rivalTagCtx.fillStyle='#fff';rivalTagCtx.shadowColor='#ff294f';rivalTagCtx.shadowBlur=18;rivalTagCtx.fillText('AI RIVAL',256,66);
+  const rivalTagTexture=new THREE.CanvasTexture(rivalTagCanvas);rivalTagTexture.colorSpace=THREE.SRGBColorSpace;
+  const rivalTag=new THREE.Sprite(new THREE.SpriteMaterial({map:rivalTagTexture,transparent:true,depthTest:false}));
+  rivalTag.position.set(0,2.45,0);rivalTag.scale.set(3.5,.88,1);rival.add(rivalTag);
   // Auto-collected nitro canisters: drive through one to trigger a short boost.
   const pickupCoreMat=new THREE.MeshStandardMaterial({color:0x8fffff,emissive:0x27dfff,emissiveIntensity:3,metalness:.25,roughness:.22});
   const pickupRingMat=new THREE.MeshStandardMaterial({color:0xff9f43,emissive:0xff5b20,emissiveIntensity:2.2,metalness:.2,roughness:.3});
@@ -315,7 +327,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     for(const wheel of rival.userData.wheels)wheel.rotation.x+=speed*.00018;for(const hub of rival.userData.hubs)hub.rotation.x+=speed*.00018;for(const rim of rival.userData.rims)rim.rotation.x+=speed*.00018;
     rival.position.x=-2.8+Math.sin(progress*.013)*.8;
     const gap=rivalProgress-progress;
-    rival.position.z=-Math.max(9,Math.min(75,18+gap*.12));
+    rival.position.z=-Math.max(10,Math.min(62,14+gap*.12));
     camera.position.x+=(player.position.x*.48-camera.position.x)*.06;
     camera.position.y=5.0+(nitro>0?.12:0);
     camera.lookAt(player.position.x*.35,1.0,-16);
