@@ -75,16 +75,17 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     texture.needsUpdate=true;
     return texture;
   }
-  const asphalt= new THREE.MeshStandardMaterial({color:0xffffff,map:makeRoadTexture(),roughness:.91,metalness:.04});
-  // Fine shoulder reflectors and slightly worn road-edge markers.
-  const reflectorMat=new THREE.MeshStandardMaterial({color:0xffd28a,emissive:0x4d2b08,emissiveIntensity:.55,roughness:.42});
+  // [UPGRADED] Darker, slightly smoother asphalt catches nearby street lights without looking wet.
+  const asphalt= new THREE.MeshStandardMaterial({color:0xffffff,map:makeRoadTexture(),roughness:.82,metalness:.09});
+  // Fine shoulder reflectors and restrained warm road-edge markers.
+  const reflectorMat=new THREE.MeshStandardMaterial({color:0xffdca5,emissive:0x6b421b,emissiveIntensity:.78,roughness:.34});
   const reflectorMeshes=[];
   for(let z=-246;z<12;z+=8)for(const side of [-1,1]){
     const reflector=new THREE.Mesh(new THREE.BoxGeometry(.16,.09,.28),reflectorMat);
     reflector.position.set(side*8.9,.12,z);scene.add(reflector);reflectorMeshes.push(reflector);
   }
   const shoulder=mat(0x626b72,.92), grass=mat(0x263d3a,1), concrete=mat(0x858e96,.8);
-  const laneMat=mat(0xe6e0cd,.65), darkGlass=mat(0x182b3a,.28,.25), tireMat=mat(0x111315,1), chrome=mat(0x9da7ad,.32,.75);
+  const laneMat=new THREE.MeshStandardMaterial({color:0xc9c6ba,roughness:.62,emissive:0x29261d,emissiveIntensity:.2}), darkGlass=mat(0x182b3a,.28,.25), tireMat=mat(0x111315,1), chrome=mat(0x9da7ad,.32,.75);
   const road = new THREE.Mesh(new THREE.PlaneGeometry(15,260),asphalt);road.rotation.x=-Math.PI/2;road.position.set(0,-.035,-100);road.receiveShadow=true;scene.add(road);
   const leftGround=new THREE.Mesh(new THREE.PlaneGeometry(120,260),grass);leftGround.rotation.x=-Math.PI/2;leftGround.position.set(-67.5,-.09,-100);leftGround.receiveShadow=true;scene.add(leftGround);
   const rightGround=leftGround.clone();rightGround.position.x=67.5;scene.add(rightGround);
