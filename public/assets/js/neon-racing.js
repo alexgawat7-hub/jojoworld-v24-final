@@ -255,6 +255,14 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     for(const x of [-.86,.86]){
       const skirt=new THREE.Mesh(new THREE.BoxGeometry(.13,.17,2.42),carbon);skirt.position.set(x,.43,0);root.add(skirt);
       const blade=new THREE.Mesh(new THREE.BoxGeometry(.035,.045,2.15),chromeTrim);blade.position.set(x*1.02,.49,0);root.add(blade);
+      // [UPGRADED] Sculpted side cooling vent with inset mesh and three horizontal aero slats.
+      const ventX=x*1.035;
+      const ventFrame=new THREE.Mesh(new THREE.BoxGeometry(.035,.19,.66),chromeTrim);ventFrame.position.set(ventX,.66,-.12);root.add(ventFrame);
+      const ventInset=new THREE.Mesh(new THREE.BoxGeometry(.038,.15,.61),carbon);ventInset.position.set(x*1.055,.66,-.12);root.add(ventInset);
+      for(let slat=0;slat<3;slat++){
+        const ventBar=new THREE.Mesh(new THREE.BoxGeometry(.045,.018,.52),chromeTrim);
+        ventBar.position.set(x*1.078,.61+slat*.05,-.12);root.add(ventBar);
+      }
       const mirror=new THREE.Mesh(new THREE.SphereGeometry(.13,12,8),paint);mirror.scale.set(1,.55,1.2);mirror.position.set(x*1.04,1.02,-.58);root.add(mirror);
       const mirrorStem=new THREE.Mesh(new THREE.BoxGeometry(.045,.12,.08),carbon);mirrorStem.position.set(x*.98,.94,-.57);root.add(mirrorStem);
     }
