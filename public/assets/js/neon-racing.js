@@ -8,7 +8,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     $('lobby').href = '/live-games?token=' + encodeURIComponent(token);
     $('multiplayer').href = '/neon-racing-multiplayer?token=' + encodeURIComponent(token);
   }
-  let running=false, sound=false, audio=null, audioRig=null, last=0, progress=0, rivalProgress=0, rafId=0, pageLeaving=false;
+  let running=false, countdownActive=false, countdownTimer=null, sound=true, audio=null, audioRig=null, last=0, progress=0, rivalProgress=0, rafId=0, pageLeaving=false;
   let speed=0, steer=0, nitro=0, rivalBoost=0, braking=false, keys={}, edgeHitCooldown=0;
   let best=Number(localStorage.getItem('jojoworldNeonRacingBest')||0);
   $('best').textContent=best;
@@ -288,6 +288,47 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     audioRig.tireFilter.frequency.setTargetAtTime(braking?1850:900+Math.abs(steer)*1000,t,.06);
   }
   function beep(f=500){if(!sound)return;try{ensureAudio();if(!audio)return;const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.setValueAtTime(f,audio.currentTime);o.frequency.exponentialRampToValueAtTime(Math.max(90,f*.62),audio.currentTime+.18);g.gain.setValueAtTime(.0001,audio.currentTime);g.gain.exponentialRampToValueAtTime(.08,audio.currentTime+.015);g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+.22);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+.23)}catch{}}
+  function countdownSound(number){
+    if(!sound)return;
+    try{
+      ensureAudio();if(!audio)return;
+      const now=audio.currentTime;
+      const osc=audio.createOscillator(),gain=audio.createGain();
+      osc.type='square';osc.frequency.setValueAtTime(number===0?1040:620+number*95,now);
+      osc.frequency.exponentialRampToValueAtTime(number===0?520:Math.max(260,420+number*35),now+.2);
+      gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(number===0?.16:.095,now+.012);
+      gain.gain.exponentialRampToValueAtTime(.0001,now+(number===0?.48:.22));
+      osc.connect(gain);gain.connect(audio.destination);osc.start(now);osc.stop(now+(number===0?.5:.24));
+      if(number===0){
+        const low=audio.createOscillator(),lg=audio.createGain();
+        low.type='sawtooth';low.frequency.setValueAtTime(82,now);low.frequency.exponentialRampToValueAtTime(42,now+.62);
+        lg.gain.setValueAtTime(.0001,now);lg.gain.exponentialRampToValueAtTime(.13,now+.025);lg.gain.exponentialRampToValueAtTime(.0001,now+.65);
+        low.connect(lg);lg.connect(audio.destination);low.start(now);low.stop(now+.67);
+      }
+    }catch(err){console.warn('Countdown audio unavailable',err);}
+  }
+  function runCountdown(){
+    const panel=$('raceCountdown'),number=$('countdownNumber'),caption=$('countdownCaption');
+    panel.hidden=false;countdownActive=true;
+    const sequence=[3,2,1,0];
+    const labels=['3','2','1','GO!'];
+    let index=0;
+    const tick=()=>{
+      if(pageLeaving||!countdownActive)return;
+      number.textContent=labels[index];caption.textContent=index===3?'FULL THROTTLE!':'GET READY';
+      panel.classList.remove('pulse');void panel.offsetWidth;panel.classList.add('pulse');
+      countdownSound(sequence[index]);
+      if(index===3){
+        countdownTimer=setTimeout(()=>{
+          panel.hidden=true;countdownActive=false;running=true;last=0;
+          speed=0;beep(720);rafId=requestAnimationFrame(frame);
+        },650);
+      }else{
+        index++;countdownTimer=setTimeout(tick,850);
+      }
+    };
+    tick();
+  }
   function impactSound(){
     if(!sound)return;
     try{
@@ -357,7 +398,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
   function frame(t){
     rafId=0;
     if(pageLeaving)return;
-    if(!running){draw();return;}
+    if(!running){draw();if(countdownActive)rafId=requestAnimationFrame(frame);return;}
     const dt=Math.min(40,t-last||16);last=t;const sec=dt/1000;
     if(nitro>0)nitro=Math.max(0,nitro-sec);
     const boosting=nitro>0,target=braking?88:(boosting?245:198);
@@ -380,10 +421,17 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
   }
   function start(){
     if(pageLeaving)return;
-    running=true;progress=0;rivalProgress=0;speed=0;steer=0;nitro=0;rivalBoost=0;braking=false;driftAmount=0;edgeHitCooldown=0;last=0;keys={};player.position.x=0;
+    if(countdownTimer)clearTimeout(countdownTimer);
+    running=false;countdownActive=false;progress=0;rivalProgress=0;speed=0;steer=0;nitro=0;rivalBoost=0;braking=false;driftAmount=0;edgeHitCooldown=0;last=0;keys={};player.position.x=0;
+    rival.position.set(-2.8,0,-22);
     nitroPickups.forEach((p,i)=>{p.position.set([-3.6,0,3.6,0,-3.6][i],.95,-34-i*43);});
     for(const p of smoke){p.life=0;p.mesh.visible=false;}
-    $('score').textContent='0%';$('speed').textContent='0 km/h';$('overlay').hidden=true;beep(720);rafId=requestAnimationFrame(frame);
+    $('score').textContent='0%';$('speed').textContent='0 km/h';$('overlay').hidden=true;
+    $('start').textContent='RACE AGAIN';
+    ensureAudio();
+    if(rafId)cancelAnimationFrame(rafId);
+    rafId=requestAnimationFrame(frame);
+    runCountdown();
   }
   function hold(id,key){
     const b=$(id);if(!b)return;
@@ -397,12 +445,13 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
   $('sound').addEventListener('click',()=>{sound=!sound;$('sound').textContent=sound?'🔊 SOUND: ON':'🔊 SOUND: OFF';if(sound){ensureAudio();beep(600);}else if(audioRig&&audio){audioRig.engineGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.harmonicGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.motorGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.windGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.tireGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);}});
   window.addEventListener('pagehide',()=>{
     pageLeaving=true;
-    running=false;keys={};
+    running=false;countdownActive=false;if(countdownTimer)clearTimeout(countdownTimer);keys={};
     if(rafId){cancelAnimationFrame(rafId);rafId=0;}
     try{renderer.dispose();}catch(e){}
     try{if(audio&&audio.state!=='closed')audio.close();}catch(e){}
   },{once:true});
   window.addEventListener('resize',resize);
+  $('sound').textContent='🔊 SOUND: ON';
   resize();draw();
   // If WebGL is unavailable, show a clear message instead of a blank game panel.
   window.addEventListener('unhandledrejection',e=>{console.error('3D racing failed to load',e.reason);});
