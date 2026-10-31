@@ -25,3 +25,6 @@ button:disabled{opacity:.55;cursor:not-allowed;filter:saturate(.55)}
 
 /* Phase 3 — compact live race-position telemetry. */
 .rival-status{display:flex;align-items:center;justify-content:center;min-height:30px;margin:0 0 10px;padding:7px 10px;border:1px solid #65583f;border-radius:5px;background:linear-gradient(90deg,#1b252b,#242a2c,#1b252b);color:#e8d1a5;font-size:9px;font-weight:900;letter-spacing:1.15px;font-variant-numeric:tabular-nums;text-align:center}
+
+/* [ADDED] Clear live race-distance readout beneath the rival gap. */
+.distance-status{margin:-5px 0 11px;color:#d5c19b;font-size:9px;font-weight:850;letter-spacing:1.35px;font-variant-numeric:tabular-nums;text-align:left}
