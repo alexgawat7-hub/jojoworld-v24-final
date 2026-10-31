@@ -407,14 +407,18 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
   // [UPGRADED] Warm street fixtures with restrained emissive glow and soft road-surface light pools.
   const lampHousingMat=new THREE.MeshStandardMaterial({color:0x252d34,metalness:.72,roughness:.3});
   const lampLensMat=new THREE.MeshStandardMaterial({color:0xffe2b0,emissive:0xffb85e,emissiveIntensity:3.1,roughness:.22});
-  const lampPoolMat=new THREE.MeshBasicMaterial({color:0xffc77d,transparent:true,opacity:.105,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});
-  const lampPoolGeo=new THREE.CircleGeometry(2.65,32);
+  const lampPoolMat=new THREE.MeshBasicMaterial({color:0xffc77d,transparent:true,opacity:.09,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});
+  const lampPoolCoreMat=new THREE.MeshBasicMaterial({color:0xffd99b,transparent:true,opacity:.13,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});
+  const lampPoolGeo=new THREE.CircleGeometry(2.8,40);
+  const lampPoolCoreGeo=new THREE.CircleGeometry(1.42,32);
   function lamp(x,z,side){
     const g=new THREE.Group();const pole=new THREE.Mesh(new THREE.CylinderGeometry(.055,.09,5.5,8),mat(0x343b42,.48,.72));pole.position.y=2.75;g.add(pole);
     const arm=new THREE.Mesh(new THREE.BoxGeometry(.9,.08,.08),chrome);arm.position.set(-side*.38,5.4,0);g.add(arm);
     const head=new THREE.Mesh(new THREE.BoxGeometry(.62,.17,.42),lampHousingMat);head.position.set(-side*.72,5.32,0);g.add(head);
     const bulb=new THREE.Mesh(new THREE.BoxGeometry(.46,.045,.29),lampLensMat);bulb.position.set(-side*.72,5.215,0);g.add(bulb);
-    const pool=new THREE.Mesh(lampPoolGeo,lampPoolMat);pool.rotation.x=-Math.PI/2;pool.position.set(-side*3.4,.026,0);pool.scale.set(1.12,1.0,1);g.add(pool);
+    // Two soft additive layers create a brighter center and feathered amber falloff on the asphalt.
+    const pool=new THREE.Mesh(lampPoolGeo,lampPoolMat);pool.rotation.x=-Math.PI/2;pool.position.set(-side*3.4,.024,0);pool.scale.set(1.18,.92,1);g.add(pool);
+    const core=new THREE.Mesh(lampPoolCoreGeo,lampPoolCoreMat);core.rotation.x=-Math.PI/2;core.position.set(-side*3.4,.028,0);core.scale.set(1.08,.86,1);g.add(core);
     g.position.set(x,0,z);scene.add(g);roadside.push({group:g,z,side,kind:'lamp'});
   }
   // [UPGRADED] Layered steel crash barriers with restrained reflectors for a realistic night-road edge.
