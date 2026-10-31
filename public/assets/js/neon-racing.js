@@ -131,6 +131,17 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     const mark=new THREE.Mesh(new THREE.BoxGeometry(.112,.018,4.96),laneMat);mark.position.y=.04;dash.add(mark);
     dash.position.set(x,0,z);scene.add(dash);laneMarks.push(dash);
   }
+  // [UPGRADED] Fine transverse shoulder rumble strips add believable road-edge texture.
+  const rumbleMat=new THREE.MeshStandardMaterial({color:0x42494d,roughness:.9,metalness:.04});
+  const rumbleHighlightMat=new THREE.MeshStandardMaterial({color:0x737b7e,roughness:.68,metalness:.08});
+  for(const side of [-1,1]){
+    for(let z=-250;z<10;z+=6.4){
+      const groove=new THREE.Mesh(new THREE.BoxGeometry(.72,.012,.075),rumbleMat);
+      groove.position.set(side*8.28,.083,z);scene.add(groove);
+      const lip=new THREE.Mesh(new THREE.BoxGeometry(.72,.008,.022),rumbleHighlightMat);
+      lip.position.set(side*8.28,.092,z-.055);scene.add(lip);
+    }
+  }
   const roadside=[];
   // [UPGRADED] Continuous modular city sidewalks with curb stones and subtle paving joints.
   const sidewalkMat=new THREE.MeshStandardMaterial({color:0x626b70,roughness:.94,metalness:.04});
