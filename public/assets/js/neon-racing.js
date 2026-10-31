@@ -136,6 +136,29 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
       roadside.push({group:drain,z,side,kind:'storm-drain'});
     }
   }
+  // [UPGRADED] Compact curbside parking meters bring another grounded downtown detail.
+  const meterPoleMat=new THREE.MeshStandardMaterial({color:0x4b555c,metalness:.86,roughness:.34});
+  const meterBodyMat=new THREE.MeshStandardMaterial({color:0x26343c,metalness:.58,roughness:.3});
+  const meterScreenMat=new THREE.MeshStandardMaterial({color:0x9db8b7,emissive:0x29413d,emissiveIntensity:.32,roughness:.28});
+  for(const z of [-52,-132,-212]){
+    for(const side of [-1,1]){
+      const meter=new THREE.Group();
+      const foot=new THREE.Mesh(new THREE.CylinderGeometry(.13,.16,.08,12),meterPoleMat);
+      foot.position.y=.04;meter.add(foot);
+      const pole=new THREE.Mesh(new THREE.CylinderGeometry(.035,.045,1.12,10),meterPoleMat);
+      pole.position.y=.62;meter.add(pole);
+      const head=new THREE.Mesh(new THREE.BoxGeometry(.27,.38,.2),meterBodyMat);
+      head.position.set(0,1.25,0);head.rotation.x=-.08;meter.add(head);
+      const display=new THREE.Mesh(new THREE.PlaneGeometry(.16,.095),meterScreenMat);
+      display.position.set(0,1.3,.104);meter.add(display);
+      const cap=new THREE.Mesh(new THREE.BoxGeometry(.31,.045,.23),meterPoleMat);
+      cap.position.y=1.46;meter.add(cap);
+      const slot=new THREE.Mesh(new THREE.BoxGeometry(.075,.018,.012),meterScreenMat);
+      slot.position.set(0,1.16,.107);meter.add(slot);
+      meter.position.set(side*12.12,0,z);scene.add(meter);
+      roadside.push({group:meter,z,side,kind:'parking-meter'});
+    }
+  }
   function addCar(color,accent){
     const root=new THREE.Group();
     const paint=new THREE.MeshPhysicalMaterial({color,roughness:.2,metalness:.68,clearcoat:1,clearcoatRoughness:.12});
