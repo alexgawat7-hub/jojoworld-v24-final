@@ -195,8 +195,25 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
       if(!node.isMesh)return;
       node.castShadow=true;node.receiveShadow=true;
       if(node.material){
-        node.material=node.material.clone();
-        if(node.material.color && node.material.color.getHex()===0xffffff) node.material.color.setHex(paintColor);
+        const materials=Array.isArray(node.material)?node.material:[node.material];
+        const tuned=materials.map(original=>{
+          const material=original.clone();
+          if(material.color){
+            const hsl={h:0,s:0,l:0};
+            material.color.getHSL(hsl);
+            const isPaintSurface=(hsl.s>.34 && hsl.l>.12 && (hsl.h<.085 || hsl.h>.92));
+            if(material.color.getHex()===0xffffff || isPaintSurface){
+              material.color.setHex(paintColor);
+              if('metalness' in material)material.metalness=.58;
+              if('roughness' in material)material.roughness=.27;
+              if('clearcoat' in material)material.clearcoat=.82;
+              if('clearcoatRoughness' in material)material.clearcoatRoughness=.2;
+            }
+          }
+          if('envMapIntensity' in material)material.envMapIntensity=1.25;
+          return material;
+        });
+        node.material=Array.isArray(node.material)?tuned:tuned[0];
       }
     });
     root.children.forEach(child=>{child.visible=false;});
