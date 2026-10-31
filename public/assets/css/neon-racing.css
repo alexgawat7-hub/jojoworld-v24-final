@@ -8,3 +8,17 @@
 button:focus-visible,a:focus-visible{outline:2px solid #e2c18a;outline-offset:3px}
 button:disabled{opacity:.55;cursor:not-allowed;filter:saturate(.55)}
 @media(hover:none){.actions button:hover,.actions a:hover,.controls button:hover{filter:none}}
+
+/* [UPGRADED] Give the start/result overlay a clearer motorsport hierarchy. */
+.overlay{background:linear-gradient(180deg,#05090d9c,#05090dd9);backdrop-filter:blur(6px) saturate(.82)}
+.overlay-card{position:relative;overflow:hidden;padding:28px 24px 24px;border-color:#8d7958;background:linear-gradient(155deg,#303b41 0%,#182229 48%,#10171c 100%);box-shadow:0 24px 64px #000c,inset 0 1px #ffffff1c}
+.overlay-card:before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,#8e7048,#f0d9ad 48%,#8e7048)}
+.overlay-card:after{content:"JOJOWORLD MOTORSPORT";display:block;margin-top:15px;padding-top:11px;border-top:1px solid #ffffff16;color:#9eabb1;font-size:8px;font-weight:900;letter-spacing:2.2px}
+.overlay h2{font-size:clamp(21px,5vw,26px);letter-spacing:.45px}
+.overlay p{max-width:34ch;margin:0 auto;color:#c1cbd0}
+.overlay button{margin-top:17px;letter-spacing:1.3px}
+.countdown-card{position:relative;overflow:hidden;border-color:#c6a875;background:linear-gradient(145deg,#202d35f5,#0b1219f5);box-shadow:0 22px 70px #000d,inset 0 1px #ffffff20}
+.countdown-card:before{content:"";position:absolute;left:12%;right:12%;top:0;height:2px;background:linear-gradient(90deg,transparent,#e2c18a,transparent)}
+.countdown-kicker{color:#e3c58f}
+.countdown-card strong{text-shadow:0 4px 24px #d7b77a33}
+@media(max-width:520px){.overlay-card{padding:23px 18px 19px}.overlay h2{font-size:21px}.countdown-card{width:min(86%,290px)}}
