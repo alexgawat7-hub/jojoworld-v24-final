@@ -877,7 +877,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     progress+=speed*sec*.090;
     rivalProgress+=sec*16.4;
     if(keys.left)steer=Math.max(-1,steer-sec*1.7);else if(keys.right)steer=Math.min(1,steer+sec*1.7);else steer*=Math.pow(.91,sec*60);
-    $('score').textContent=Math.min(100,Math.floor(progress/10))+'%';$('speed').textContent=Math.round(speed)+' km/h';$('distanceStatus').textContent='DISTANCE  •  '+Math.min(1000,Math.floor(progress))+' / 1,000 M';const speedMeterFill=$('speedMeterFill');if(speedMeterFill)speedMeterFill.style.width=(Math.min(205,speed)/205*100)+'%';const speedMeter=$('speedMeterFill')?.parentElement;if(speedMeter)speedMeter.setAttribute('aria-valuenow',String(Math.round(speed)));
+    $('score').textContent=Math.min(100,Math.floor(progress/10))+'%';$('speed').textContent=Math.round(speed)+' km/h';$('distanceStatus').textContent='DISTANCE  •  '+Math.min(1000,Math.floor(progress))+' / 1,000 M';$('driveStatus').textContent=braking?'DRIVE MODE  •  BRAKING':'DRIVE MODE  •  ACCELERATING';$('driveStatus').classList.toggle('is-braking',braking);const speedMeterFill=$('speedMeterFill');if(speedMeterFill)speedMeterFill.style.width=(Math.min(205,speed)/205*100)+'%';const speedMeter=$('speedMeterFill')?.parentElement;if(speedMeter)speedMeter.setAttribute('aria-valuenow',String(Math.round(speed)));
     const rivalGap=Math.round(Math.abs(rivalProgress-progress));
     $('rivalStatus').textContent=rivalGap<2?'RIVAL: SIDE BY SIDE':(rivalProgress>progress?'RIVAL AHEAD  •  '+rivalGap+' m':'YOU AHEAD  •  '+rivalGap+' m');
     draw();
@@ -890,7 +890,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     if(countdownTimer)clearTimeout(countdownTimer);
     running=false;countdownActive=false;progress=0;rivalProgress=0;speed=0;steer=0;braking=false;driftAmount=0;edgeHitCooldown=0;last=0;keys={};player.position.x=0;
     rival.position.set(-2.8,0,-12);
-    $('score').textContent='0%';$('speed').textContent='0 km/h';$('speedMeterFill').style.width='0%';$('speedMeterFill').parentElement.setAttribute('aria-valuenow','0');$('overlay').hidden=true;
+    $('score').textContent='0%';$('speed').textContent='0 km/h';$('driveStatus').textContent='DRIVE MODE  •  READY';$('driveStatus').classList.remove('is-braking');$('speedMeterFill').style.width='0%';$('speedMeterFill').parentElement.setAttribute('aria-valuenow','0');$('overlay').hidden=true;
     $('start').textContent='RACE AGAIN';
     ensureAudio();
     if(rafId)cancelAnimationFrame(rafId);
