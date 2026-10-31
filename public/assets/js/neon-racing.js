@@ -350,12 +350,32 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
   }
   finishGate.add(finishLights);
 
-  // A few overhead road signs with real 3D posts.
-  for(const z of [-72,-150,-225]){
-    const sign=new THREE.Group();
+  // [UPGRADED] Legible overhead urban direction signs with reflective faces and route details.
+  const roadSignFace=new THREE.MeshStandardMaterial({color:0x18313a,metalness:.28,roughness:.48});
+  const roadSignTrim=new THREE.MeshStandardMaterial({color:0xb5c0c4,metalness:.78,roughness:.3});
+  const signLabels=[
+    {top:'CITY CENTER',bottom:'DOWNTOWN  •  EXIT 08',route:'08'},
+    {top:'RIVERSIDE',bottom:'NEXT EXIT  •  2 KM',route:'12'},
+    {top:'NIGHT DISTRICT',bottom:'CITY ROUTE  •  KEEP LEFT',route:'05'}
+  ];
+  for(let si=0;si<3;si++){
+    const z=[-72,-150,-225][si],sign=new THREE.Group();
     const postMat=mat(0x6c747a,.55,.5);
-    for(const x of [-1,1]){const p=new THREE.Mesh(new THREE.BoxGeometry(.12,4.5,.12),postMat);p.position.set(x*7,2.25,0);sign.add(p);}
-    const board=new THREE.Mesh(new THREE.BoxGeometry(13,.9,.22),mat(0x1b3540,.65,.2));board.position.y=4.15;sign.add(board);
+    for(const x of [-1,1]){
+      const p=new THREE.Mesh(new THREE.BoxGeometry(.12,4.5,.12),postMat);p.position.set(x*7,2.25,0);sign.add(p);
+      const base=new THREE.Mesh(new THREE.BoxGeometry(.48,.12,.48),roadSignTrim);base.position.set(x*7,.08,0);sign.add(base);
+    }
+    const board=new THREE.Mesh(new THREE.BoxGeometry(13,.9,.22),roadSignFace);board.position.y=4.15;sign.add(board);
+    const topEdge=new THREE.Mesh(new THREE.BoxGeometry(13,.045,.24),roadSignTrim);topEdge.position.set(0,4.61,0);sign.add(topEdge);
+    const label=signLabels[si],canvas=document.createElement('canvas');canvas.width=1300;canvas.height=180;
+    const ctx=canvas.getContext('2d');ctx.fillStyle='#17313b';ctx.fillRect(0,0,1300,180);
+    ctx.fillStyle='#e6edf0';ctx.font='700 58px Arial';ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(label.top,42,58);
+    ctx.fillStyle='#b9c9cf';ctx.font='600 31px Arial';ctx.fillText(label.bottom,44,130);
+    ctx.fillStyle='#d6e2e5';ctx.fillRect(1080,24,170,132);
+    ctx.fillStyle='#18313a';ctx.font='900 78px Arial';ctx.textAlign='center';ctx.fillText(label.route,1165,94);
+    const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
+    const faceMat=new THREE.MeshBasicMaterial({map:texture,side:THREE.DoubleSide});
+    const face=new THREE.Mesh(new THREE.PlaneGeometry(12.82,.82),faceMat);face.position.set(0,4.15,.116);sign.add(face);
     scene.add(sign);sign.position.z=z;roadside.push({group:sign,z,side:0,kind:'sign'});
   }
 
