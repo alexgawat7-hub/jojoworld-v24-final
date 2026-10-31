@@ -273,9 +273,16 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     }
     const grille=new THREE.Mesh(new THREE.BoxGeometry(.92,.12,.045),carbon);grille.position.set(0,.48,-1.94);root.add(grille);
     for(const x of [-.68,.68]){const intake=new THREE.Mesh(new THREE.BoxGeometry(.3,.16,.05),carbon);intake.position.set(x,.48,-1.92);root.add(intake);}
-    const tailBar=new THREE.Mesh(new THREE.BoxGeometry(1.42,.075,.045),new THREE.MeshStandardMaterial({color:0xff2525,emissive:0xff1010,emissiveIntensity:2.2}));tailBar.position.set(0,.72,1.92);root.add(tailBar);
+    // [UPGRADED] Layered rear lamp housing with a continuous LED blade and hooked corner signatures.
+    const rearHousingMat=new THREE.MeshStandardMaterial({color:0x10171d,metalness:.68,roughness:.34});
+    const rearLedMat=new THREE.MeshStandardMaterial({color:0xff3030,emissive:0xff1010,emissiveIntensity:1.7,roughness:.24});
+    const tailHousing=new THREE.Mesh(new THREE.BoxGeometry(1.58,.16,.065),rearHousingMat);tailHousing.position.set(0,.72,1.91);root.add(tailHousing);
+    const tailBar=new THREE.Mesh(new THREE.BoxGeometry(1.43,.045,.025),rearLedMat.clone());tailBar.position.set(0,.75,1.952);root.add(tailBar);root.userData.brakeLights.push(tailBar);
     const tailMat=new THREE.MeshStandardMaterial({color:0xff2424,emissive:0xff1010,emissiveIntensity:1.7});
-    for(const x of [-.66,.66]){const tail=new THREE.Mesh(new THREE.BoxGeometry(.3,.11,.05),tailMat.clone());tail.position.set(x,.72,1.93);root.add(tail);root.userData.brakeLights.push(tail);}
+    for(const x of [-.66,.66]){
+      const tail=new THREE.Mesh(new THREE.BoxGeometry(.25,.105,.028),tailMat.clone());tail.position.set(x,.72,1.955);root.add(tail);root.userData.brakeLights.push(tail);
+      const hook=new THREE.Mesh(new THREE.BoxGeometry(.045,.105,.026),tailMat.clone());hook.position.set(x*1.34,.69,1.956);root.add(hook);root.userData.brakeLights.push(hook);
+    }
     // Rear engine vents add a recognizable exotic-car detail.
     for(let i=-2;i<=2;i++){const vent=new THREE.Mesh(new THREE.BoxGeometry(.045,.018,.48),carbon);vent.position.set(i*.16,.68,1.35);root.add(vent);}
     scene.add(root);return root;
