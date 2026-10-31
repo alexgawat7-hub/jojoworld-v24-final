@@ -710,13 +710,13 @@ function makeRemoteBoard(host,label){const app=makePixiApp(host,200,400,label),g
 try{if(window.PIXI){pixiApp=makePixiApp(boardHost,300,600,'Animated PixiJS Tetris game board');pixiBg=new PIXI.Graphics();pixiGrid=new PIXI.Graphics();pixiBlocks=new PIXI.Graphics();pixiFx=new PIXI.Graphics();pixiOverlay=new PIXI.Container();pixiText=new PIXI.Text('',{fontFamily:'Arial, sans-serif',fontSize:22,fontWeight:'900',fill:0xffe39b,stroke:0x17132c,strokeThickness:4,dropShadow:true,dropShadowColor:0x55d9ff,dropShadowBlur:8,dropShadowDistance:0});pixiText.anchor.set(.5);pixiOverlay.addChild(pixiText);pixiApp.stage.addChild(pixiBg,pixiGrid,pixiBlocks,pixiFx,pixiOverlay);nextApp=makePixiApp($('nextBoard'),120,120,'Next Tetris block');nextGraphics=new PIXI.Graphics();nextApp.stage.addChild(nextGraphics);remoteBoards.youBoard=makeRemoteBoard($('youBoard'),'Your battle board');remoteBoards.rivalBoard=makeRemoteBoard($('rivalBoard'),'Rival battle board');$('pixiStatus').textContent='PIXIJS ACTIVE';$('pixiStatus').style.color='#70f5ff'}else{$('pixiStatus').textContent='PIXIJS UNAVAILABLE';$('gameNotice').textContent='PixiJS failed to load. Refresh the game or reopen it from Game Lobby.'}}catch(e){pixiApp=null;console.error('[TETRIS PIXI] initialization failed',e);$('pixiStatus').textContent='PIXIJS ERROR';$('gameNotice').textContent='Tetris graphics failed to initialize. Refresh the game.'}
 /* [UPGRADED] [SOLO ULTRA HD] High-contrast crystal blocks with vivid color, deep bevels, glass highlights, and readable seams. */
 function pixiCell(g,x,y,color,size,alpha){
- const a=alpha===undefined?1:alpha,px=x*size+1,py=y*size+1,w=size-2,h=size-2,hex=PIXI.utils.string2hex(color);
- const top=Math.max(2,size*.12),side=Math.max(2,size*.09),shade=Math.max(2,size*.15),inset=Math.max(1.5,size*.07);
- /* Saturated full-cell base keeps connected pieces seamless. */
+ const a=alpha===undefined?1:alpha,px=x*size,py=y*size,w=size,h=size,hex=PIXI.utils.string2hex(color);
+ const top=Math.max(2,size*.12),side=Math.max(2,size*.075),shade=Math.max(2,size*.12),inset=Math.max(1.5,size*.07);
+ /* Full-cell color removes the dark gutters so neighboring tetromino tiles read as one solid piece. */
  g.beginFill(hex,a);g.drawRect(px,py,w,h);g.endFill();
- /* Deep lower/right bevel gives each block a solid, sculpted 3D edge. */
- g.beginFill(0x030817,.40*a);g.moveTo(px,py+h-shade);g.lineTo(px+w,py+h-shade);g.lineTo(px+w,py+h);g.lineTo(px,py+h);g.closePath();g.endFill();
- g.beginFill(0x050a1a,.30*a);g.moveTo(px+w-side,py);g.lineTo(px+w,py);g.lineTo(px+w,py+h);g.lineTo(px+w-side,py+h-shade);g.closePath();g.endFill();
+ /* Soft contact shadow stays inside each tile: dimensional depth without separating the blocks. */
+ g.beginFill(0x030817,.27*a);g.moveTo(px,py+h-shade);g.lineTo(px+w,py+h-shade);g.lineTo(px+w,py+h);g.lineTo(px,py+h);g.closePath();g.endFill();
+ g.beginFill(0x050a1a,.20*a);g.moveTo(px+w-side,py);g.lineTo(px+w,py);g.lineTo(px+w,py+h);g.lineTo(px+w-side,py+h-shade);g.closePath();g.endFill();
  /* Bright glass crown and diagonal crystal facet. */
  g.beginFill(0xffffff,.42*a);g.moveTo(px,py);g.lineTo(px+w,py);g.lineTo(px+w*.70,py+top);g.lineTo(px,py+top);g.closePath();g.endFill();
  g.beginFill(0xffffff,.22*a);g.moveTo(px,py+top);g.lineTo(px+w*.70,py+top);g.lineTo(px+w*.38,py+h*.52);g.lineTo(px,py+h*.39);g.closePath();g.endFill();
@@ -724,9 +724,10 @@ function pixiCell(g,x,y,color,size,alpha){
 g.beginFill(0xffffff,.19*a);g.moveTo(px+w*.16,py+top+size*.025);g.lineTo(px+w*.31,py+top+size*.025);g.lineTo(px+w*.62,py+h*.48);g.lineTo(px+w*.51,py+h*.53);g.closePath();g.endFill();
  g.beginFill(0x07101f,.13*a);g.moveTo(px+w*.38,py+h*.52);g.lineTo(px+w,py+top);g.lineTo(px+w-side,py+h-shade);g.lineTo(px+w*.55,py+h-shade);g.closePath();g.endFill();
  /* Crisp luminous top/left rails and a fine inset edge improve visibility on mobile. */
- g.beginFill(0xffffff,.58*a);g.drawRect(px,py,w,Math.max(1.8,size*.065));g.endFill();
- g.beginFill(0xffffff,.34*a);g.drawRect(px,py+top,Math.max(1.8,size*.065),Math.max(1,h-top-shade));g.endFill();
- g.lineStyle(Math.max(1,size*.035),0xffffff,.27*a);g.drawRect(px+.7,py+.7,Math.max(1,w-1.4),Math.max(1,h-1.4));
+ g.beginFill(0xffffff,.38*a);g.drawRect(px+1,py+1,Math.max(1,w-2),Math.max(1.5,size*.045));g.endFill();
+ g.beginFill(0xffffff,.22*a);g.drawRect(px+1,py+top,Math.max(1.5,size*.045),Math.max(1,h-top-shade));g.endFill();
+ /* Fine inset glint, not a heavy outline: adjacent cells remain visually connected. */
+ g.lineStyle(Math.max(.7,size*.022),0xffffff,.16*a);g.drawRect(px+.6,py+.6,Math.max(1,w-1.2),Math.max(1,h-1.2));
  g.lineStyle(Math.max(1,size*.025),hex,.9*a);g.moveTo(px+inset,py+h-shade*.62);g.lineTo(px+inset,py+h-inset);g.lineTo(px+w-inset,py+h-inset);
  /* Specular streak plus tiny glint: bright but not distracting. */
  g.lineStyle(Math.max(1.2,size*.055),0xffffff,.88*a);g.moveTo(px+size*.17,py+size*.22);g.lineTo(px+size*.52,py+size*.22);
