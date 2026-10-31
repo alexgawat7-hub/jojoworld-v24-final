@@ -22,3 +22,6 @@ button:disabled{opacity:.55;cursor:not-allowed;filter:saturate(.55)}
 .countdown-kicker{color:#e3c58f}
 .countdown-card strong{text-shadow:0 4px 24px #d7b77a33}
 @media(max-width:520px){.overlay-card{padding:23px 18px 19px}.overlay h2{font-size:21px}.countdown-card{width:min(86%,290px)}}
+
+/* Phase 3 — compact live race-position telemetry. */
+.rival-status{display:flex;align-items:center;justify-content:center;min-height:30px;margin:0 0 10px;padding:7px 10px;border:1px solid #65583f;border-radius:5px;background:linear-gradient(90deg,#1b252b,#242a2c,#1b252b);color:#e8d1a5;font-size:9px;font-weight:900;letter-spacing:1.15px;font-variant-numeric:tabular-nums;text-align:center}
