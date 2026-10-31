@@ -2,3 +2,9 @@
 /* [UPGRADED] Respect mobile safe areas and reduce motion when requested. */
 @supports(padding:max(0px)){.app{padding-left:max(11px,env(safe-area-inset-left));padding-right:max(11px,env(safe-area-inset-right));padding-top:max(10px,env(safe-area-inset-top));padding-bottom:max(16px,env(safe-area-inset-bottom))}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* [UPGRADED] Consistent premium interaction states and keyboard focus. */
+.actions button:hover,.actions a:hover,.controls button:hover{border-color:#b99b6a;color:#f5dfb8;filter:brightness(1.08)}
+button:focus-visible,a:focus-visible{outline:2px solid #e2c18a;outline-offset:3px}
+button:disabled{opacity:.55;cursor:not-allowed;filter:saturate(.55)}
+@media(hover:none){.actions button:hover,.actions a:hover,.controls button:hover{filter:none}}
