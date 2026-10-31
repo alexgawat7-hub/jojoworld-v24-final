@@ -183,6 +183,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     const center=box.getCenter(new THREE.Vector3());
     model.position.sub(center);
     if(size.x>size.z) model.rotation.y=Math.PI/2;
+    model.rotation.y+=Math.PI; // face the circuit's forward (-Z) direction
     const orientedBox=new THREE.Box3().setFromObject(model);
     const orientedSize=orientedBox.getSize(new THREE.Vector3());
     const length=Math.max(orientedSize.x,orientedSize.z);
@@ -203,7 +204,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     root.userData.realModel=model;
   }
   carLoader.load(
-    'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/models/gltf/ferrari.glb',
+    'https://threejs.org/examples/models/gltf/ferrari.glb',
     gltf=>{
       fitVehicleModel(gltf.scene,player,0x183f68);
       fitVehicleModel(gltf.scene,rival,0x7f2028);
