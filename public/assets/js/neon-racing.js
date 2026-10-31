@@ -29,16 +29,18 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
   renderer.domElement.setAttribute('aria-label','Real-time 3D street racing game');
   mount.replaceChildren(renderer.domElement);
 
-  scene.add(new THREE.HemisphereLight(0xc4d8ff,0x39402f,2.0));
-  const sun = new THREE.DirectionalLight(0xffd0a0,3.0);
+  // [UPGRADED] Night-city lighting: restrained ambient fill, cool moonlight and warm street pools.
+  scene.add(new THREE.HemisphereLight(0x7188ad,0x111820,.72));
+  const sun = new THREE.DirectionalLight(0x9db9e8,.52);
   sun.position.set(-18,28,12);sun.castShadow=true;
   sun.shadow.mapSize.set(1024,1024);
   sun.shadow.camera.left=-24;sun.shadow.camera.right=24;sun.shadow.camera.top=35;sun.shadow.camera.bottom=-25;
   scene.add(sun);
-  const fill = new THREE.DirectionalLight(0x8acbff,1.0);fill.position.set(12,10,-30);scene.add(fill);
-  // Soft local street lighting adds depth while keeping the scene light enough for mobile.
-  const streetGlow = new THREE.PointLight(0xffc77a,.65,22,2);
+  const fill = new THREE.DirectionalLight(0x6e9bd0,.38);fill.position.set(12,10,-30);scene.add(fill);
+  const streetGlow = new THREE.PointLight(0xffbd72,1.05,25,2);
   streetGlow.position.set(-6,4,-10);scene.add(streetGlow);
+  const farStreetGlow = new THREE.PointLight(0x668fc8,.62,30,2);
+  farStreetGlow.position.set(7,3,-28);scene.add(farStreetGlow);
 
   const mat=(color,roughness=.8,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
   // [UPGRADED] Procedural asphalt is a GPU-ready DataTexture; no Canvas API is used.
