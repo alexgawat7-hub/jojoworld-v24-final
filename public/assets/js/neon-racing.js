@@ -110,19 +110,26 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     reflector.position.set(side*8.9,.12,z);scene.add(reflector);reflectorMeshes.push(reflector);
   }
   const shoulder=mat(0x626b72,.92), grass=mat(0x263d3a,1), concrete=mat(0x858e96,.8);
-  const laneMat=new THREE.MeshStandardMaterial({color:0xc9c6ba,roughness:.62,emissive:0x29261d,emissiveIntensity:.2}), darkGlass=mat(0x182b3a,.28,.25), tireMat=mat(0x111315,1), chrome=mat(0x9da7ad,.32,.75);
+  const laneMat=new THREE.MeshStandardMaterial({color:0xd5d1c5,roughness:.48,metalness:.08,emissive:0x39372e,emissiveIntensity:.24});
+  const laneEdgeMat=new THREE.MeshStandardMaterial({color:0x343a3d,roughness:.72,metalness:.12});
+  const shoulderLineMat=new THREE.MeshStandardMaterial({color:0xb9c2c3,roughness:.52,metalness:.12,emissive:0x20282b,emissiveIntensity:.16});
+  const darkGlass=mat(0x182b3a,.28,.25), tireMat=mat(0x111315,1), chrome=mat(0x9da7ad,.32,.75);
   const road = new THREE.Mesh(new THREE.PlaneGeometry(15,260),asphalt);road.rotation.x=-Math.PI/2;road.position.set(0,-.035,-100);road.receiveShadow=true;scene.add(road);
   const leftGround=new THREE.Mesh(new THREE.PlaneGeometry(120,260),grass);leftGround.rotation.x=-Math.PI/2;leftGround.position.set(-67.5,-.09,-100);leftGround.receiveShadow=true;scene.add(leftGround);
   const rightGround=leftGround.clone();rightGround.position.x=67.5;scene.add(rightGround);
-  // Shoulders and continuous road edge lines.
+  // Shoulders and continuous road-edge lines with a dark inset and restrained reflective paint.
   for(const side of [-1,1]){
     const sh=new THREE.Mesh(new THREE.BoxGeometry(2,.12,260),shoulder);sh.position.set(side*8.5,.015,-100);sh.receiveShadow=true;scene.add(sh);
-    const edge=new THREE.Mesh(new THREE.BoxGeometry(.13,.025,260),laneMat);edge.position.set(side*7.55,.045,-100);scene.add(edge);
+    const edgeBed=new THREE.Mesh(new THREE.BoxGeometry(.2,.028,260),laneEdgeMat);edgeBed.position.set(side*7.55,.043,-100);scene.add(edgeBed);
+    const edge=new THREE.Mesh(new THREE.BoxGeometry(.105,.018,260),shoulderLineMat);edge.position.set(side*7.55,.064,-100);scene.add(edge);
   }
-  // Repeating lane marks move through the camera view for an endless road.
+  // Repeating lane dashes use a dark painted border and a narrower reflective center.
   const laneMarks=[];
   for(let z=-245;z<15;z+=12)for(const x of [-2.5,2.5]){
-    const mark=new THREE.Mesh(new THREE.BoxGeometry(.13,.026,5),laneMat);mark.position.set(x,.018,z);scene.add(mark);laneMarks.push(mark);
+    const dash=new THREE.Group();
+    const border=new THREE.Mesh(new THREE.BoxGeometry(.19,.026,5.12),laneEdgeMat);border.position.y=.018;dash.add(border);
+    const mark=new THREE.Mesh(new THREE.BoxGeometry(.112,.018,4.96),laneMat);mark.position.y=.04;dash.add(mark);
+    dash.position.set(x,0,z);scene.add(dash);laneMarks.push(dash);
   }
   const roadside=[];
   // [UPGRADED] Continuous modular city sidewalks with curb stones and subtle paving joints.
