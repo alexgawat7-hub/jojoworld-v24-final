@@ -285,9 +285,24 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     const pool=new THREE.Mesh(lampPoolGeo,lampPoolMat);pool.rotation.x=-Math.PI/2;pool.position.set(-side*3.4,.026,0);pool.scale.set(1.12,1.0,1);g.add(pool);
     g.position.set(x,0,z);scene.add(g);roadside.push({group:g,z,side,kind:'lamp'});
   }
+  // [UPGRADED] Layered steel crash barriers with restrained reflectors for a realistic night-road edge.
+  const barrierSteel=new THREE.MeshStandardMaterial({color:0x68747d,metalness:.82,roughness:.3});
+  const barrierDark=new THREE.MeshStandardMaterial({color:0x242d34,metalness:.58,roughness:.48});
+  const barrierReflector=new THREE.MeshStandardMaterial({color:0xffd49a,emissive:0x7a431b,emissiveIntensity:.72,roughness:.3});
   function rail(side){
-    const g=new THREE.Group();const beam=new THREE.Mesh(new THREE.BoxGeometry(.18,.22,260),chrome);beam.position.set(side*9.6,1.0,-100);g.add(beam);
-    for(let z=-228;z<12;z+=8){const post=new THREE.Mesh(new THREE.BoxGeometry(.15,1.0,.18),concrete);post.position.set(side*9.6,.48,z);g.add(post);}
+    const g=new THREE.Group();
+    const beam=new THREE.Mesh(new THREE.BoxGeometry(.2,.3,260),barrierSteel);
+    beam.position.set(side*9.6,1.02,-100);beam.castShadow=true;beam.receiveShadow=true;g.add(beam);
+    const lowerBeam=new THREE.Mesh(new THREE.BoxGeometry(.12,.12,260),barrierDark);
+    lowerBeam.position.set(side*9.6,.62,-100);g.add(lowerBeam);
+    for(let z=-228;z<12;z+=8){
+      const post=new THREE.Mesh(new THREE.BoxGeometry(.16,1.05,.2),barrierDark);
+      post.position.set(side*9.6,.48,z);post.castShadow=true;g.add(post);
+      const reflector=new THREE.Mesh(new THREE.BoxGeometry(.055,.2,.035),barrierReflector);
+      reflector.position.set(side*9.485,1.08,z-1.9);g.add(reflector);
+      const foot=new THREE.Mesh(new THREE.BoxGeometry(.42,.09,.34),barrierSteel);
+      foot.position.set(side*9.6,.08,z);g.add(foot);
+    }
     scene.add(g);
   }
   rail(-1);rail(1);
