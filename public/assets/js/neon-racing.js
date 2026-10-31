@@ -10,7 +10,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     $('multiplayer').href = '/neon-racing-multiplayer?token=' + encodeURIComponent(token);
   }
   let running=false, countdownActive=false, countdownTimer=null, sound=true, audio=null, audioRig=null, last=0, progress=0, rivalProgress=0, rafId=0, pageLeaving=false;
-  let speed=0, steer=0, nitro=0, rivalBoost=0, braking=false, keys={}, edgeHitCooldown=0;
+  let speed=0, steer=0, braking=false, keys={}, edgeHitCooldown=0;
   let best=Number(localStorage.getItem('jojoworldNeonRacingBest')||0);
   $('best').textContent=best;
 
@@ -97,7 +97,6 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     const mark=new THREE.Mesh(new THREE.BoxGeometry(.13,.026,5),laneMat);mark.position.set(x,.018,z);scene.add(mark);laneMarks.push(mark);
   }
   const roadside=[];
-  const nitroPickups=[];
   function addCar(color,accent){
     const root=new THREE.Group();
     const paint=new THREE.MeshPhysicalMaterial({color,roughness:.2,metalness:.68,clearcoat:1,clearcoatRoughness:.12});
@@ -215,39 +214,6 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
   // [ADDED] Make the solo AI opponent unmistakable and easy to track during the race.
   rival.scale.setScalar(.92);rival.position.set(-2.8,0,-12);
   // Rival identification stays in the race HUD; no floating arcade glow or name tag.
-  // Auto-collected nitro canisters: drive through one to trigger a short boost.
-  const pickupCoreMat=new THREE.MeshStandardMaterial({color:0x8fffff,emissive:0x27dfff,emissiveIntensity:3,metalness:.25,roughness:.22});
-  const pickupRingMat=new THREE.MeshStandardMaterial({color:0xff9f43,emissive:0xff5b20,emissiveIntensity:2.2,metalness:.2,roughness:.3});
-  for(let i=0;i<5;i++){
-    const g=new THREE.Group();
-    const core=new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,.85,12),pickupCoreMat);core.rotation.z=Math.PI/2;g.add(core);
-    const ring=new THREE.Mesh(new THREE.TorusGeometry(.48,.07,8,18),pickupRingMat);g.add(ring);
-    const glow=new THREE.PointLight(0x36ddff,1.7,5);g.add(glow);
-    g.position.set([-3.6,0,3.6,0,-3.6][i],.95,-34-i*43);scene.add(g);nitroPickups.push(g);
-  }
-  // Lightweight tire-smoke particles used during hard steering/drifts.
-  const smokeMaterial=new THREE.MeshStandardMaterial({color:0xc3c8ca,transparent:true,opacity:.22,roughness:1,depthWrite:false});
-  const smoke=[];
-  for(let i=0;i<26;i++){
-    const puff=new THREE.Mesh(new THREE.SphereGeometry(.22,7,6),smokeMaterial.clone());
-    puff.visible=false;scene.add(puff);smoke.push({mesh:puff,life:0});
-  }
-  let smokeCursor=0, driftAmount=0;
-  function emitSmoke(){
-    for(const x of [-.78,.78]){
-      const p=smoke[smokeCursor++%smoke.length];p.life=.55+Math.random()*.35;
-      p.mesh.visible=true;p.mesh.position.set(player.position.x+x,.42,player.position.z+1.35);
-      const s=.35+Math.random()*.3;p.mesh.scale.setScalar(s);p.mesh.material.opacity=.22;
-    }
-  }
-  function updateSmoke(sec){
-    for(const p of smoke){
-      if(p.life<=0)continue;
-      p.life-=sec;p.mesh.position.y+=sec*1.15;p.mesh.position.x+=(p.mesh.position.x-player.position.x)*sec*.25;
-      p.mesh.scale.multiplyScalar(1+sec*1.1);p.mesh.material.opacity=Math.max(0,p.life*.25);
-      if(p.life<=0)p.mesh.visible=false;
-    }
-  }
   // Street furniture: detailed low-rise buildings, trees, lamps, signs and guardrails.
   function building(x,z,side,index){
     const group=new THREE.Group();const width=4+((index*7)%5),height=5+((index*11)%15),depth=4+((index*3)%4);
@@ -325,12 +291,12 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     if(!sound)return;ensureAudio();if(!audioRig||!audio)return;
     if(audio.state==='suspended')audio.resume().catch(()=>{});
     const t=audio.currentTime,throttle=running?Math.max(.12,speed/245):0;
-    audioRig.engine.frequency.setTargetAtTime(38+speed*.48+(nitro>0?15:0),t,.06);
+    audioRig.engine.frequency.setTargetAtTime(38+speed*.48+,t,.06);
     audioRig.engineGain.gain.setTargetAtTime(running?.025+throttle*.045:.0001,t,.08);
     audioRig.engineFilter.frequency.setTargetAtTime(180+speed*2.2,t,.08);
     audioRig.harmonic.frequency.setTargetAtTime(76+speed*.92,t,.07);
     audioRig.harmonicGain.gain.setTargetAtTime(running?.006+throttle*.018:.0001,t,.08);
-    audioRig.motor.frequency.setTargetAtTime(28+speed*.24+(nitro>0?8:0),t,.07);
+    audioRig.motor.frequency.setTargetAtTime(28+speed*.24+,t,.07);
     audioRig.motorGain.gain.setTargetAtTime(running?.012+throttle*.026:.0001,t,.08);
     audioRig.motorFilter.frequency.setTargetAtTime(80+speed*.7,t,.08);
     audioRig.windGain.gain.setTargetAtTime(running?Math.min(.14,speed/245*.14):.0001,t,.12);
@@ -393,11 +359,6 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
       osc.connect(filter);filter.connect(gain);gain.connect(audio.destination);osc.start(now);osc.stop(now+.23);
     }catch{}
   }
-  function collectNitro(pickup){
-    nitro=2.15;pickup.position.z=-245-Math.random()*18;pickup.position.x=[-3.6,0,3.6][Math.floor(Math.random()*3)];
-    pickup.rotation.y=0;beep(760);
-    if(sound&&audio){try{const o=audio.createOscillator(),g=audio.createGain();o.type='sawtooth';o.frequency.setValueAtTime(180,audio.currentTime);o.frequency.exponentialRampToValueAtTime(850,audio.currentTime+.28);g.gain.setValueAtTime(.0001,audio.currentTime);g.gain.exponentialRampToValueAtTime(.11,audio.currentTime+.025);g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+.34);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+.35);}catch{}}
-  }
   function draw(){
     if(pageLeaving)return;
     const playerX=steer*6.55;
@@ -415,27 +376,22 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     for(const hub of player.userData.hubs){hub.rotation.x+=speed*.00025;if(hub.position.z<0)hub.rotation.y=steer*.22;}
     for(const rim of player.userData.rims){rim.rotation.x+=speed*.00025;if(rim.position.z<0)rim.rotation.y=steer*.22;}
     for(const tail of player.userData.brakeLights){tail.material.emissiveIntensity=braking?4.2:1.4;tail.material.color.setHex(braking?0xff5555:0xff2424);}
-    for(const beam of player.userData.headlights)beam.intensity=nitro>0?3.0:2.2;
+    for(const beam of player.userData.headlights)beam.intensity=2.2;
     for(const tail of rival.userData.brakeLights){tail.material.emissiveIntensity=1.4;}
     for(const wheel of rival.userData.wheels)wheel.rotation.x+=speed*.00018;for(const hub of rival.userData.hubs)hub.rotation.x+=speed*.00018;for(const rim of rival.userData.rims)rim.rotation.x+=speed*.00018;
     rival.position.x=-2.8+Math.sin(progress*.013)*.8;
     const gap=rivalProgress-progress;
     rival.position.z=THREE.MathUtils.clamp(-12-gap*.55,-72,7);
     camera.position.x+=(player.position.x*.48-camera.position.x)*.06;
-    camera.position.y=5.0+(nitro>0?.12:0);
+    camera.position.y=5.0;
     camera.lookAt(player.position.x*.35,1.0,-16);
     // Recycle lane marks and roadside models toward the camera for continuous travel.
     const movement=speed*.00125;
     for(const m of laneMarks){m.position.z+=movement;if(m.position.z>12)m.position.z-=260;}
     for(const m of reflectorMeshes){m.position.z+=movement;if(m.position.z>12)m.position.z-=260;}
     streetGlow.position.x=-6+player.position.x*.12;
-    streetGlow.intensity=.35+Math.min(speed/245,.9)*.45;
+    streetGlow.intensity=.35+Math.min(speed/205,.9)*.45;
     for(const o of roadside){o.group.position.z+=movement;if(o.group.position.z>18){o.group.position.z-=260;o.z=o.group.position.z;}}
-    for(const p of nitroPickups){p.position.z+=movement;p.rotation.y+=.035;p.position.y=.95+Math.sin(performance.now()*.004+p.position.x)*.12;if(p.position.z>2){p.position.z=-245-Math.random()*18;p.position.x=[-3.6,0,3.6][Math.floor(Math.random()*3)];}else if(p.position.z>-.9&&p.position.z<1.5&&Math.abs(p.position.x-player.position.x)<1.65){collectNitro(p);}}
-    if(nitro>0){
-      // Quick FOV kick conveys speed without making the phone camera unstable.
-      camera.fov=THREE.MathUtils.lerp(camera.fov,68,.12);
-    }else camera.fov=THREE.MathUtils.lerp(camera.fov,62,.08);
     camera.updateProjectionMatrix();
     renderer.render(scene,camera);
     updateAudio();
@@ -452,18 +408,12 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     if(pageLeaving)return;
     if(!running){draw();if(countdownActive)rafId=requestAnimationFrame(frame);return;}
     const dt=Math.min(40,t-last||16);last=t;const sec=dt/1000;
-    if(nitro>0)nitro=Math.max(0,nitro-sec);
-    const boosting=nitro>0,target=braking?88:(boosting?245:198);
+    const target=braking?82:205;
     speed+=(target-speed)*Math.min(1,sec*2.4);
     edgeHitCooldown=Math.max(0,edgeHitCooldown-sec);
-    const hardTurn=Math.abs(steer)>.56&&speed>125&&!braking;
-    driftAmount+=((hardTurn?1:0)-driftAmount)*Math.min(1,sec*(hardTurn?4.5:2.2));
-    if(hardTurn&&Math.random()<.72)emitSmoke();
-    updateSmoke(sec);
-    /* [FIXED] Give the player a fair passing pace: normal throttle now beats the rival's cruise speed, while nitro creates a clear overtake burst. */
+    /* Distance-based pace lets the player close the initial gap and pass without scripted lane swapping. */
     progress+=speed*sec*.090;
-    rivalBoost=Math.max(0,rivalBoost-sec);if(rivalBoost<=0&&Math.random()<.008)rivalBoost=.75;
-    rivalProgress+=sec*(rivalBoost>0?17.0:14.8);
+    rivalProgress+=sec*16.4;
     if(keys.left)steer=Math.max(-1,steer-sec*1.7);else if(keys.right)steer=Math.min(1,steer+sec*1.7);else steer*=Math.pow(.91,sec*60);
     $('score').textContent=Math.min(100,Math.floor(progress/10))+'%';$('speed').textContent=Math.round(speed)+' km/h';
     draw();
@@ -474,10 +424,8 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
   function start(){
     if(pageLeaving)return;
     if(countdownTimer)clearTimeout(countdownTimer);
-    running=false;countdownActive=false;progress=0;rivalProgress=0;speed=0;steer=0;nitro=0;rivalBoost=0;braking=false;driftAmount=0;edgeHitCooldown=0;last=0;keys={};player.position.x=0;
-    rival.position.set(-2.8,0,-22);
-    nitroPickups.forEach((p,i)=>{p.position.set([-3.6,0,3.6,0,-3.6][i],.95,-34-i*43);});
-    for(const p of smoke){p.life=0;p.mesh.visible=false;}
+    running=false;countdownActive=false;progress=0;rivalProgress=0;speed=0;steer=0;braking=false;driftAmount=0;edgeHitCooldown=0;last=0;keys={};player.position.x=0;
+    rival.position.set(-2.8,0,-12);
     $('score').textContent='0%';$('speed').textContent='0 km/h';$('overlay').hidden=true;
     $('start').textContent='RACE AGAIN';
     ensureAudio();
