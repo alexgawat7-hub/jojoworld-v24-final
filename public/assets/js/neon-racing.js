@@ -282,6 +282,28 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
       const conduit=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,.9,8),trimMat);
       conduit.rotation.z=Math.PI/2;conduit.position.set(width*.22,height+.24,depth*.12);group.add(conduit);
     }
+    // [UPGRADED] Select buildings receive restrained street-facing shopfronts for a lived-in downtown feel.
+    if(index%4===0){
+      const roadward=-side;
+      const shopGlass=new THREE.MeshStandardMaterial({color:0x294453,emissive:0x172b35,emissiveIntensity:.42,metalness:.22,roughness:.24});
+      const signFace=new THREE.MeshStandardMaterial({color:0x39434a,emissive:index%2?0x49301b:0x253e50,emissiveIntensity:.62,metalness:.38,roughness:.38});
+      const awningMat=new THREE.MeshStandardMaterial({color:index%2?0x39434a:0x343c43,metalness:.42,roughness:.5});
+      const frontageX=roadward*(width/2+.055);
+      const shopWindow=new THREE.Mesh(new THREE.BoxGeometry(.075,1.35,2.35),shopGlass);
+      shopWindow.position.set(frontageX,1.12,-.15);group.add(shopWindow);
+      const door=new THREE.Mesh(new THREE.BoxGeometry(.09,1.72,.72),darkMat);
+      door.position.set(frontageX+roadward*.025,1.0,depth*.31);group.add(door);
+      const doorHandle=new THREE.Mesh(new THREE.BoxGeometry(.035,.12,.035),trimMat);
+      doorHandle.position.set(frontageX+roadward*.085,1.0,depth*.31-.2);group.add(doorHandle);
+      const fascia=new THREE.Mesh(new THREE.BoxGeometry(.16,.48,2.65),signFace);
+      fascia.position.set(frontageX+roadward*.07,2.08,-.12);group.add(fascia);
+      const awning=new THREE.Mesh(new THREE.BoxGeometry(.62,.12,2.85),awningMat);
+      awning.position.set(frontageX+roadward*.31,1.76,-.12);group.add(awning);
+      const awningEdge=new THREE.Mesh(new THREE.BoxGeometry(.035,.16,2.85),trimMat);
+      awningEdge.position.set(frontageX+roadward*.61,1.72,-.12);group.add(awningEdge);
+      const lowerTrim=new THREE.Mesh(new THREE.BoxGeometry(.12,.1,2.55),trimMat);
+      lowerTrim.position.set(frontageX+roadward*.08,.39,-.12);group.add(lowerTrim);
+    }
     group.position.set(x,0,z);scene.add(group);roadside.push({group,z,side,kind:'building'});
   }
   function tree(x,z,side){
