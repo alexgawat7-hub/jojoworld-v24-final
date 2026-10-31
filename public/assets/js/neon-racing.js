@@ -118,6 +118,24 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
       walk.position.z=z;scene.add(walk);roadside.push({group:walk,z,side,kind:'sidewalk'});
     }
   }
+  // [UPGRADED] Curbside storm-drain grates add subtle, believable street infrastructure.
+  const drainFrameMat=new THREE.MeshStandardMaterial({color:0x424b50,metalness:.82,roughness:.48});
+  const drainBarMat=new THREE.MeshStandardMaterial({color:0x20282d,metalness:.9,roughness:.38});
+  for(const z of [-28,-98,-178,-248]){
+    for(const side of [-1,1]){
+      const drain=new THREE.Group();
+      const frame=new THREE.Mesh(new THREE.BoxGeometry(.48,.055,1.28),drainFrameMat);
+      frame.position.y=.025;drain.add(frame);
+      const inset=new THREE.Mesh(new THREE.BoxGeometry(.39,.025,1.18),drainBarMat);
+      inset.position.y=.057;drain.add(inset);
+      for(let i=0;i<9;i++){
+        const bar=new THREE.Mesh(new THREE.BoxGeometry(.34,.028,.045),drainFrameMat);
+        bar.position.set(0,.078,-.51+i*.128);drain.add(bar);
+      }
+      drain.position.set(side*9.42,0,z);scene.add(drain);
+      roadside.push({group:drain,z,side,kind:'storm-drain'});
+    }
+  }
   function addCar(color,accent){
     const root=new THREE.Group();
     const paint=new THREE.MeshPhysicalMaterial({color,roughness:.2,metalness:.68,clearcoat:1,clearcoatRoughness:.12});
