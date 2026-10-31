@@ -34,3 +34,6 @@ button:disabled{opacity:.55;cursor:not-allowed;filter:saturate(.55)}
 
 /* [ADDED] Driving state feedback in the race HUD. */
 .drive-status{margin:-4px 0 10px;color:#aebbc2;font-size:9px;font-weight:850;letter-spacing:1.35px}.drive-status.is-braking{color:#f0a08f;text-shadow:0 0 8px #b94c3b55}
+
+/* [ADDED] Track-edge warning state for the driving HUD. */
+.drive-status.is-edge{color:#ffb18f;text-shadow:0 0 10px #e05b3f88}
