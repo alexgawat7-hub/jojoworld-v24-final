@@ -828,7 +828,12 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     for(const beam of player.userData.headlights)beam.intensity=2.2;
     for(const tail of rival.userData.brakeLights){tail.material.emissiveIntensity=1.4;}
     for(const wheel of rival.userData.wheels)wheel.rotation.x+=speed*.00018;for(const hub of rival.userData.hubs)hub.rotation.x+=speed*.00018;for(const rim of rival.userData.rims)rim.rotation.x+=speed*.00018;
-    rival.position.x=-2.8+Math.sin(progress*.013)*.8;
+    // Phase 3 — Racing Experience: give the rival a smooth, readable racing line.
+    // Its pace and race outcome are unchanged; only its lane choice varies between passes.
+    const rivalLaneCycle=Math.floor(progress/180)%4;
+    const rivalLaneTarget=[-2.8,-1.15,-3.9,-2.1][rivalLaneCycle];
+    const rivalLine=rivalLaneTarget+Math.sin(progress*.018)*.22;
+    rival.position.x+=(rivalLine-rival.position.x)*.035;
     const gap=rivalProgress-progress;
     rival.position.z=THREE.MathUtils.clamp(-12-gap*.55,-72,7);
     camera.position.x+=(player.position.x*.48-camera.position.x)*.06;
