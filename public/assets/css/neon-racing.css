@@ -28,3 +28,6 @@ button:disabled{opacity:.55;cursor:not-allowed;filter:saturate(.55)}
 
 /* [ADDED] Clear live race-distance readout beneath the rival gap. */
 .distance-status{margin:-5px 0 11px;color:#d5c19b;font-size:9px;font-weight:850;letter-spacing:1.35px;font-variant-numeric:tabular-nums;text-align:left}
+
+/* [ADDED] Compact live speed meter. */
+.speed-meter{height:4px;margin-top:7px;overflow:hidden;border-radius:8px;background:#080f14;border:1px solid #46545c}.speed-meter i{display:block;width:0;height:100%;border-radius:8px;background:linear-gradient(90deg,#a98a59,#f0d8a8);box-shadow:0 0 8px #d8b47788;transition:width .12s linear}.speed-card{min-width:0}
