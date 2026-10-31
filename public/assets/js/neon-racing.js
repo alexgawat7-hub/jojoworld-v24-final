@@ -239,6 +239,19 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     // Front splitter, rear diffuser and deep side skirts.
     const splitter=new THREE.Mesh(new THREE.BoxGeometry(1.98,.075,.38),carbon);splitter.position.set(0,.39,-1.88);root.add(splitter);
     const diffuser=new THREE.Mesh(new THREE.BoxGeometry(1.55,.12,.36),carbon);diffuser.position.set(0,.39,1.78);root.add(diffuser);
+    // [UPGRADED] Premium rear diffuser with layered aero strakes and twin metallic exhaust outlets.
+    const diffuserShelf=new THREE.Mesh(new THREE.BoxGeometry(1.86,.055,.48),carbon);diffuserShelf.position.set(0,.335,1.82);root.add(diffuserShelf);
+    const diffuserEdge=new THREE.Mesh(new THREE.BoxGeometry(1.92,.035,.075),chromeTrim);diffuserEdge.position.set(0,.305,2.035);root.add(diffuserEdge);
+    for(const x of [-.68,-.34,0,.34,.68]){
+      const fin=new THREE.Mesh(new THREE.BoxGeometry(.045,.16,.42),carbon);fin.position.set(x,.29,1.82);fin.rotation.x=-.08;root.add(fin);
+    }
+    const exhaustOuterMat=new THREE.MeshStandardMaterial({color:0x343d44,metalness:.96,roughness:.22});
+    const exhaustInnerMat=new THREE.MeshStandardMaterial({color:0x090d11,metalness:.55,roughness:.5});
+    for(const x of [-.57,.57]){
+      const tip=new THREE.Mesh(new THREE.CylinderGeometry(.115,.13,.16,20,1,true),exhaustOuterMat);tip.rotation.x=Math.PI/2;tip.position.set(x,.48,1.99);root.add(tip);
+      const inner=new THREE.Mesh(new THREE.CircleGeometry(.092,20),exhaustInnerMat);inner.position.set(x,.48,2.078);root.add(inner);
+      const lip=new THREE.Mesh(new THREE.TorusGeometry(.112,.012,8,24),chromeTrim);lip.position.set(x,.48,2.075);root.add(lip);
+    }
     for(const x of [-.86,.86]){
       const skirt=new THREE.Mesh(new THREE.BoxGeometry(.13,.17,2.42),carbon);skirt.position.set(x,.43,0);root.add(skirt);
       const blade=new THREE.Mesh(new THREE.BoxGeometry(.035,.045,2.15),chromeTrim);blade.position.set(x*1.02,.49,0);root.add(blade);
