@@ -856,7 +856,9 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
   }
   function finish(won){
     running=false;
-    if(won&&Math.floor(progress)>best){best=Math.floor(progress);localStorage.setItem('jojoworldNeonRacingBest',String(best));$('best').textContent=best;}
+    // A personal best records the player's farthest distance, even if the rival wins.
+    const finishDistance=Math.min(1000,Math.floor(progress));
+    if(finishDistance>best){best=finishDistance;localStorage.setItem('jojoworldNeonRacingBest',String(best));$('best').textContent=best;}
     $('overlay').hidden=false;$('overlayTitle').textContent=won?'YOU WIN!':'RACE FINISHED';
     $('overlayText').textContent=(won?'You crossed the finish line first!':'Your rival reached the finish line first.')+' Race distance: 1,000 m. Your distance: '+Math.min(1000,Math.floor(progress))+' m.';
     $('start').textContent='RACE AGAIN';beep(won?880:260);
