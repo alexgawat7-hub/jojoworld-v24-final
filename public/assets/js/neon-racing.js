@@ -53,6 +53,20 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
       w:2+Math.floor(Math.random()*8),
       shade:Math.floor(Math.random()*12)
     }));
+    // Fine longitudinal aggregate streaks and irregular repair patches break up the flat asphalt.
+    const streaks=Array.from({length:46},()=>({
+      x:Math.floor(Math.random()*width),
+      w:1+Math.floor(Math.random()*3),
+      shade:3+Math.floor(Math.random()*9),
+      phase:Math.random()*Math.PI*2
+    }));
+    const patches=Array.from({length:34},()=>({
+      x:Math.floor(Math.random()*width),
+      y:Math.floor(Math.random()*height),
+      rx:3+Math.floor(Math.random()*13),
+      ry:8+Math.floor(Math.random()*34),
+      shade:3+Math.floor(Math.random()*10)
+    }));
     for(let y=0;y<height;y++){
       for(let x=0;x<width;x++){
         const i=(y*width+x)*4;
@@ -61,10 +75,21 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
         for(const band of wear){
           if(x>=band.x&&x<band.x+band.w) v-=band.shade;
         }
-        v=Math.max(18,Math.min(92,v));
+        for(const streak of streaks){
+          if(x>=streak.x&&x<streak.x+streak.w){
+            const fade=.55+.45*Math.sin(y*.035+streak.phase);
+            v-=Math.round(streak.shade*fade);
+          }
+        }
+        for(const patch of patches){
+          const dx=(x-patch.x)/patch.rx,dy=(y-patch.y)/patch.ry;
+          const distance=dx*dx+dy*dy;
+          if(distance<1)v-=Math.round(patch.shade*(1-distance));
+        }
+        v=Math.max(16,Math.min(92,v));
         data[i]=v;
-        data[i+1]=Math.max(20,Math.min(96,v+4));
-        data[i+2]=Math.max(24,Math.min(102,v+9));
+        data[i+1]=Math.max(18,Math.min(96,v+4));
+        data[i+2]=Math.max(22,Math.min(102,v+9));
         data[i+3]=255;
       }
     }
@@ -76,7 +101,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     return texture;
   }
   // [UPGRADED] Darker, slightly smoother asphalt catches nearby street lights without looking wet.
-  const asphalt= new THREE.MeshStandardMaterial({color:0xffffff,map:makeRoadTexture(),roughness:.82,metalness:.09});
+  const asphalt= new THREE.MeshStandardMaterial({color:0xffffff,map:makeRoadTexture(),roughness:.76,metalness:.12});
   // Fine shoulder reflectors and restrained warm road-edge markers.
   const reflectorMat=new THREE.MeshStandardMaterial({color:0xffdca5,emissive:0x6b421b,emissiveIntensity:.78,roughness:.34});
   const reflectorMeshes=[];
