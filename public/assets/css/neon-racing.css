@@ -13,9 +13,9 @@ input, textarea, [contenteditable="true"] {
 }
 
 /* [ADDED] Premium race-start countdown overlay and starting lights. */
-.race-countdown{position:absolute;inset:0;z-index:5;display:grid;place-items:center;padding:14px;background:radial-gradient(ellipse at center,#101b36df,#030713eF);backdrop-filter:blur(5px)}
+.race-countdown{position:absolute;inset:0;z-index:5;display:grid;place-items:center;padding:14px;background:transparent;pointer-events:none}
 .race-countdown[hidden]{display:none}
-.countdown-card{width:min(88%,330px);padding:20px 18px 18px;text-align:center;border:1px solid #62f6f0aa;border-radius:22px;background:linear-gradient(155deg,#182641f5,#090e20f5);box-shadow:0 0 32px #4df5ff35,inset 0 1px #ffffff20}
+.countdown-card{width:min(88%,330px);padding:20px 18px 18px;text-align:center;border:1px solid #62f6f0aa;border-radius:22px;background:linear-gradient(155deg,#182641d9,#090e20d9);box-shadow:0 0 32px #4df5ff35,inset 0 1px #ffffff20}
 .countdown-kicker{font-size:10px;font-weight:1000;letter-spacing:3px;color:#79fff2}
 .countdown-card strong{display:block;font-size:clamp(76px,23vw,118px);line-height:1.02;font-weight:1000;font-style:italic;color:#fff;text-shadow:0 0 14px #55f8ff,0 0 42px #55f8ff88}
 .countdown-card span{display:block;margin:4px 0 16px;font-size:12px;font-weight:1000;letter-spacing:4px;color:#ff83d9}
