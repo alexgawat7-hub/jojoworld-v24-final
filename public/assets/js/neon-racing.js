@@ -905,6 +905,13 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
   hold('left','left');hold('right','right');hold('brake','brake');
   window.addEventListener('keydown',e=>{if(['ArrowLeft','a','A'].includes(e.key)){keys.left=true;e.preventDefault();}if(['ArrowRight','d','D'].includes(e.key)){keys.right=true;e.preventDefault();}if(e.code==='Space'){e.preventDefault();}if(['ArrowDown','s','S'].includes(e.key)){braking=true;e.preventDefault();}});
   window.addEventListener('keyup',e=>{if(['ArrowLeft','a','A'].includes(e.key))keys.left=false;if(['ArrowRight','d','D'].includes(e.key))keys.right=false;if(['ArrowDown','s','S'].includes(e.key))braking=false;});
+  // Release held controls when focus is lost so steering/braking cannot remain stuck.
+  function releaseRaceControls(){
+    keys={left:false,right:false};braking=false;
+    ['left','right','brake'].forEach(id=>{const button=$(id);if(button&&button.releasePointerCapture){try{for(const pointerId of button.getPointerCapture?[]:[])button.releasePointerCapture(pointerId);}catch{}}});
+  }
+  window.addEventListener('blur',releaseRaceControls);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseRaceControls();});
   $('start').addEventListener('click',start);$('restart').addEventListener('click',start);
   $('sound').addEventListener('click',()=>{sound=!sound;$('sound').textContent=sound?'SOUND: ON':'SOUND: OFF';if(sound){ensureAudio();beep(600);}else if(audioRig&&audio){audioRig.engineGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.harmonicGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.motorGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.windGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.tireGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);}});
   window.addEventListener('pagehide',()=>{
