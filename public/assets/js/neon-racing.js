@@ -876,7 +876,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     /* Distance-based pace lets the player close the initial gap and pass without scripted lane swapping. */
     progress+=speed*sec*.090;
     rivalProgress+=sec*16.4;
-    if(keys.left)steer=Math.max(-1,steer-sec*1.7);else if(keys.right)steer=Math.min(1,steer+sec*1.7);else steer*=Math.pow(.91,sec*60);
+    if(keys.left&&!keys.right)steer=Math.max(-1,steer-sec*1.7);else if(keys.right&&!keys.left)steer=Math.min(1,steer+sec*1.7);else steer*=Math.pow(.91,sec*60);
     $('score').textContent=Math.min(100,Math.floor(progress/10))+'%';$('speed').textContent=Math.round(speed)+' km/h';$('distanceStatus').textContent='DISTANCE  •  '+Math.min(1000,Math.floor(progress))+' / 1,000 M';$('driveStatus').textContent=edgeWarning>0?'TRACK EDGE  •  SLOW DOWN':(braking?'DRIVE MODE  •  BRAKING':'DRIVE MODE  •  ACCELERATING');$('driveStatus').classList.toggle('is-braking',braking&&!edgeWarning);$('driveStatus').classList.toggle('is-edge',edgeWarning>0);const speedMeterFill=$('speedMeterFill');if(speedMeterFill)speedMeterFill.style.width=(Math.min(205,speed)/205*100)+'%';const speedMeter=$('speedMeterFill')?.parentElement;if(speedMeter)speedMeter.setAttribute('aria-valuenow',String(Math.round(speed)));
     const rivalGap=Math.round(Math.abs(rivalProgress-progress));
     $('rivalStatus').textContent=rivalGap<2?'RIVAL: SIDE BY SIDE':(rivalProgress>progress?'RIVAL AHEAD  •  '+rivalGap+' m':'YOU AHEAD  •  '+rivalGap+' m');
