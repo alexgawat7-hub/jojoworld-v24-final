@@ -238,12 +238,31 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
   // Street furniture: detailed low-rise buildings, trees, lamps, signs and guardrails.
   function building(x,z,side,index){
     const group=new THREE.Group();const width=4+((index*7)%5),height=5+((index*11)%15),depth=4+((index*3)%4);
-    const bmat=mat([0x414c58,0x55575b,0x3c4852,0x5c5c5a][index%4],.94);
-    const block=new THREE.Mesh(new THREE.BoxGeometry(width,height,depth),bmat);block.position.y=height/2;block.castShadow=true;block.receiveShadow=true;group.add(block);
-    const windowMat=new THREE.MeshStandardMaterial({color:index%2?0xffc887:0x9ebdd0,emissive:index%2?0x5d3516:0x182d40,emissiveIntensity:.55,roughness:.45});
-    const rows=Math.max(2,Math.floor(height/2));
-    for(let row=0;row<rows;row++)for(let col=-1;col<=1;col++){
-      const win=new THREE.Mesh(new THREE.BoxGeometry(.42,.58,.035),windowMat);win.position.set(col*1.05,1.15+row*1.45,depth/2+.025);group.add(win);
+    const facadeMat=mat([0x303b48,0x41464d,0x293945,0x4a4b4b][index%4],.88);
+    const trimMat=new THREE.MeshStandardMaterial({color:0x87939b,metalness:.58,roughness:.42});
+    const darkMat=new THREE.MeshStandardMaterial({color:0x101923,roughness:.72,metalness:.18});
+    const block=new THREE.Mesh(new THREE.BoxGeometry(width,height,depth),facadeMat);block.position.y=height/2;block.castShadow=true;block.receiveShadow=true;group.add(block);
+    // Recessed-looking window bays, broken up by concrete piers for a less toy-like facade.
+    const rows=Math.max(2,Math.floor((height-1.1)/1.55));
+    const cols=Math.max(2,Math.floor((width-.9)/1.35));
+    for(let col=0;col<=cols;col++){
+      const px=-width/2+.48+col*((width-.96)/cols);
+      const pier=new THREE.Mesh(new THREE.BoxGeometry(.12,height-.45,.12),trimMat);pier.position.set(px,height/2,depth/2+.045);group.add(pier);
+    }
+    for(let row=0;row<rows;row++)for(let col=0;col<cols;col++){
+      const px=-width/2+.72+col*((width-1.44)/Math.max(1,cols-1));
+      const py=1.05+row*1.48;
+      const lit=((index*13+row*7+col*3)%9)<5;
+      const paneMat=lit
+        ? new THREE.MeshStandardMaterial({color:index%2?0xffd29a:0xa9c9df,emissive:index%2?0x68401e:0x263f58,emissiveIntensity:.72,roughness:.34,metalness:.12})
+        : darkMat;
+      const pane=new THREE.Mesh(new THREE.BoxGeometry(.62,.82,.045),paneMat);pane.position.set(px,py,depth/2+.075);group.add(pane);
+      const sill=new THREE.Mesh(new THREE.BoxGeometry(.7,.055,.09),trimMat);sill.position.set(px,py-.45,depth/2+.095);group.add(sill);
+    }
+    // A restrained roof parapet and corner edges give each block a finished silhouette.
+    const parapet=new THREE.Mesh(new THREE.BoxGeometry(width+.18,.22,depth+.18),trimMat);parapet.position.y=height+.08;group.add(parapet);
+    for(const sx of [-1,1]){
+      const edge=new THREE.Mesh(new THREE.BoxGeometry(.13,height,.13),trimMat);edge.position.set(sx*(width/2-.08),height/2,depth/2+.06);group.add(edge);
     }
     group.position.set(x,0,z);scene.add(group);roadside.push({group,z,side,kind:'building'});
   }
