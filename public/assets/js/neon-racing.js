@@ -321,7 +321,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
       if(index===3){
         countdownTimer=setTimeout(()=>{
           panel.hidden=true;countdownActive=false;running=true;last=0;
-          speed=0;beep(720);rafId=requestAnimationFrame(frame);
+          speed=0;beep(720);
         },650);
       }else{
         index++;countdownTimer=setTimeout(tick,850);
