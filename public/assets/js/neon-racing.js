@@ -262,9 +262,13 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     }
     // Thin blade headlights, front air intakes and sculpted rear LED light bar.
     root.userData.brakeLights=[];root.userData.headlights=[];
+    const headlightBezelMat=new THREE.MeshStandardMaterial({color:0x101820,metalness:.72,roughness:.3});
+    const ledSignatureMat=new THREE.MeshStandardMaterial({color:0xe9f7ff,emissive:0x9bdcff,emissiveIntensity:1.35,roughness:.24,metalness:.12});
     for(const x of [-.62,.62]){
-      const lamp=new THREE.Mesh(new THREE.BoxGeometry(.56,.055,.045),light);lamp.position.set(x,.67,-1.94);lamp.rotation.z=x<0?-.08:.08;root.add(lamp);
-      const lower=new THREE.Mesh(new THREE.BoxGeometry(.34,.035,.035),chromeTrim);lower.position.set(x,.59,-1.93);root.add(lower);
+      const bezel=new THREE.Mesh(new THREE.BoxGeometry(.64,.105,.055),headlightBezelMat);bezel.position.set(x,.67,-1.925);bezel.rotation.z=x<0?-.08:.08;root.add(bezel);
+      const lamp=new THREE.Mesh(new THREE.BoxGeometry(.56,.055,.045),light);lamp.position.set(x,.68,-1.965);lamp.rotation.z=x<0?-.08:.08;root.add(lamp);
+      const signature=new THREE.Mesh(new THREE.BoxGeometry(.39,.018,.018),ledSignatureMat);signature.position.set(x,.605,-1.966);signature.rotation.z=x<0?-.06:.06;root.add(signature);
+      const lower=new THREE.Mesh(new THREE.BoxGeometry(.34,.025,.035),chromeTrim);lower.position.set(x,.565,-1.93);root.add(lower);
       const beam=new THREE.SpotLight(accent,2.5,38,Math.PI/7,.7,1.3);beam.position.set(x*.86,.72,-1.86);beam.target.position.set(x*1.2,.08,-23);root.add(beam);root.add(beam.target);root.userData.headlights.push(beam);
     }
     const grille=new THREE.Mesh(new THREE.BoxGeometry(.92,.12,.045),carbon);grille.position.set(0,.48,-1.94);root.add(grille);
