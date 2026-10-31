@@ -390,7 +390,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     for(const wheel of rival.userData.wheels)wheel.rotation.x+=speed*.00018;for(const hub of rival.userData.hubs)hub.rotation.x+=speed*.00018;for(const rim of rival.userData.rims)rim.rotation.x+=speed*.00018;
     rival.position.x=-2.8+Math.sin(progress*.013)*.8;
     const gap=rivalProgress-progress;
-    rival.position.z=-Math.max(10,Math.min(62,14+gap*.12));
+    rival.position.z=THREE.MathUtils.clamp(-22-gap*.85,-70,12);
     camera.position.x+=(player.position.x*.48-camera.position.x)*.06;
     camera.position.y=5.0+(nitro>0?.12:0);
     camera.lookAt(player.position.x*.35,1.0,-16);
@@ -432,8 +432,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.m
     updateSmoke(sec);
     /* [FIXED] Give the player a fair passing pace: normal throttle now beats the rival's cruise speed, while nitro creates a clear overtake burst. */
     progress+=speed*sec*.090;
-    rivalBoost=Math.max(0,rivalBoost-sec);if(rivalBoost<=0&&Math.random()<.045)rivalBoost=1.1;
-    rivalProgress+=sec*(rivalBoost>0?18.8:16.2);
+    rivalBoost=Math.max(0,rivalBoost-sec);if(rivalBoost<=0&&Math.random()<.008)rivalBoost=.75;
+    rivalProgress+=sec*(rivalBoost>0?17.0:14.8);
     if(keys.left)steer=Math.max(-1,steer-sec*1.7);else if(keys.right)steer=Math.min(1,steer+sec*1.7);else steer*=Math.pow(.91,sec*60);
     $('score').textContent=Math.min(100,Math.floor(progress/10))+'%';$('speed').textContent=Math.round(speed)+' km/h';
     draw();
