@@ -294,6 +294,42 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     }
     const grille=new THREE.Mesh(new THREE.BoxGeometry(.92,.12,.045),carbon);grille.position.set(0,.48,-1.94);root.add(grille);
     for(const x of [-.68,.68]){const intake=new THREE.Mesh(new THREE.BoxGeometry(.3,.16,.05),carbon);intake.position.set(x,.48,-1.92);root.add(intake);}
+    // [UPGRADED] Phase 33: layered front-bumper air intakes and carbon-fiber aero detailing.
+    const intakeEdgeMat=new THREE.MeshStandardMaterial({color:0x77858d,metalness:.88,roughness:.28});
+    const intakeShadowMat=new THREE.MeshStandardMaterial({color:0x05090e,metalness:.28,roughness:.62});
+    const centerIntakeInset=new THREE.Mesh(new THREE.BoxGeometry(.78,.085,.022),intakeShadowMat);
+    centerIntakeInset.position.set(0,.48,-1.973);root.add(centerIntakeInset);
+    for(let fin=0;fin<5;fin++){
+      const slat=new THREE.Mesh(new THREE.BoxGeometry(.68,.012,.018),chromeTrim);
+      slat.position.set(0,.449+fin*.015,-1.99);root.add(slat);
+    }
+    const centerIntakeTop=new THREE.Mesh(new THREE.BoxGeometry(.98,.018,.055),carbon);
+    centerIntakeTop.position.set(0,.555,-1.958);root.add(centerIntakeTop);
+    const centerIntakeLip=new THREE.Mesh(new THREE.BoxGeometry(.94,.014,.026),intakeEdgeMat);
+    centerIntakeLip.position.set(0,.405,-1.982);root.add(centerIntakeLip);
+    for(const x of [-.68,.68]){
+      const ductInset=new THREE.Mesh(new THREE.BoxGeometry(.255,.125,.022),intakeShadowMat);
+      ductInset.position.set(x,.48,-1.965);root.add(ductInset);
+      const ductTop=new THREE.Mesh(new THREE.BoxGeometry(.32,.018,.045),carbon);
+      ductTop.position.set(x,.568,-1.95);root.add(ductTop);
+      const ductLip=new THREE.Mesh(new THREE.BoxGeometry(.31,.014,.026),intakeEdgeMat);
+      ductLip.position.set(x,.392,-1.972);root.add(ductLip);
+      for(let fin=0;fin<3;fin++){
+        const vane=new THREE.Mesh(new THREE.BoxGeometry(.018,.105,.018),chromeTrim);
+        vane.position.set(x-.075+fin*.075,.48,-1.984);root.add(vane);
+      }
+    }
+    // Subtle carbon canards and a slim metallic splitter edge finish the nose.
+    for(const x of [-.82,.82]){
+      const canard=new THREE.Mesh(new THREE.BoxGeometry(.24,.025,.19),carbon);
+      canard.position.set(x,.405,-1.88);canard.rotation.y=x<0?-.12:.12;root.add(canard);
+      const canardEdge=new THREE.Mesh(new THREE.BoxGeometry(.2,.012,.025),chromeTrim);
+      canardEdge.position.set(x,.416,-1.965);root.add(canardEdge);
+    }
+    const bumperCarbonBand=new THREE.Mesh(new THREE.BoxGeometry(1.92,.045,.07),carbon);
+    bumperCarbonBand.position.set(0,.365,-1.91);root.add(bumperCarbonBand);
+    const splitterEdge=new THREE.Mesh(new THREE.BoxGeometry(2.02,.018,.11),chromeTrim);
+    splitterEdge.position.set(0,.335,-1.99);root.add(splitterEdge);
     // [UPGRADED] Layered rear lamp housing with a continuous LED blade and hooked corner signatures.
     const rearHousingMat=new THREE.MeshStandardMaterial({color:0x10171d,metalness:.68,roughness:.34});
     const rearLedMat=new THREE.MeshStandardMaterial({color:0xff3030,emissive:0xff1010,emissiveIntensity:1.7,roughness:.24});
