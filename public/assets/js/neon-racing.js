@@ -263,8 +263,11 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
           if(material.color){
             const hsl={h:0,s:0,l:0};
             material.color.getHSL(hsl);
-            const isPaintSurface=(hsl.s>.34 && hsl.l>.12 && (hsl.h<.085 || hsl.h>.92));
-            if(material.color.getHex()===0xffffff || isPaintSurface){
+            const materialName=(material.name||'').toLowerCase();
+            const excludedSurface=/glass|window|windshield|tire|rubber|wheel|rim|chrome|metal|light|lamp|trim|carbon/.test(materialName);
+            const namedPaint=/body|paint|exterior|car.?shell/.test(materialName);
+            const isPaintSurface=!excludedSurface && (namedPaint || (hsl.s>.34 && hsl.l>.12 && (hsl.h<.085 || hsl.h>.92)));
+            if(!excludedSurface && (material.color.getHex()===0xffffff || isPaintSurface)){
               material.color.setHex(paintColor);
               if('metalness' in material)material.metalness=.58;
               if('roughness' in material)material.roughness=.27;
@@ -727,7 +730,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
   function finish(won){
     running=false;
     if(won&&Math.floor(progress)>best){best=Math.floor(progress);localStorage.setItem('jojoworldNeonRacingBest',String(best));$('best').textContent=best;}
-    $('overlay').hidden=false;$('overlayTitle').textContent=won?'🏁 YOU WIN!':'🏁 RACE FINISHED';
+    $('overlay').hidden=false;$('overlayTitle').textContent=won?'YOU WIN!':'RACE FINISHED';
     $('overlayText').textContent=(won?'You crossed the finish line first!':'Your rival reached the finish line first.')+' Race distance: 1,000 m. Your distance: '+Math.min(1000,Math.floor(progress))+' m.';
     $('start').textContent='RACE AGAIN';beep(won?880:260);
   }
@@ -772,7 +775,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
   window.addEventListener('keydown',e=>{if(['ArrowLeft','a','A'].includes(e.key)){keys.left=true;e.preventDefault();}if(['ArrowRight','d','D'].includes(e.key)){keys.right=true;e.preventDefault();}if(e.code==='Space'){e.preventDefault();}if(['ArrowDown','s','S'].includes(e.key)){braking=true;e.preventDefault();}});
   window.addEventListener('keyup',e=>{if(['ArrowLeft','a','A'].includes(e.key))keys.left=false;if(['ArrowRight','d','D'].includes(e.key))keys.right=false;if(['ArrowDown','s','S'].includes(e.key))braking=false;});
   $('start').addEventListener('click',start);$('restart').addEventListener('click',start);
-  $('sound').addEventListener('click',()=>{sound=!sound;$('sound').textContent=sound?'🔊 SOUND: ON':'🔊 SOUND: OFF';if(sound){ensureAudio();beep(600);}else if(audioRig&&audio){audioRig.engineGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.harmonicGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.motorGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.windGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.tireGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);}});
+  $('sound').addEventListener('click',()=>{sound=!sound;$('sound').textContent=sound?'SOUND: ON':'SOUND: OFF';if(sound){ensureAudio();beep(600);}else if(audioRig&&audio){audioRig.engineGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.harmonicGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.motorGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.windGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);audioRig.tireGain.gain.setTargetAtTime(.0001,audio.currentTime,.04);}});
   window.addEventListener('pagehide',()=>{
     pageLeaving=true;
     running=false;countdownActive=false;if(countdownTimer)clearTimeout(countdownTimer);keys={};
@@ -781,7 +784,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     try{if(audio&&audio.state!=='closed')audio.close();}catch(e){}
   },{once:true});
   window.addEventListener('resize',resize);
-  $('sound').textContent='🔊 SOUND: ON';
+  $('sound').textContent='SOUND: ON';
   resize();draw();
   // If WebGL is unavailable, show a clear message instead of a blank game panel.
   window.addEventListener('unhandledrejection',e=>{console.error('3D racing failed to load',e.reason);});
