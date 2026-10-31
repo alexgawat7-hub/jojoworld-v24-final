@@ -839,6 +839,10 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     camera.position.x+=(player.position.x*.48-camera.position.x)*.06;
     camera.position.y=5.0;
     camera.lookAt(player.position.x*.35,1.0,-16);
+    // Phase 3 — subtle cockpit-style camera response: speed widens the view,
+    // while steering adds a restrained lean without changing handling or controls.
+    camera.fov=62+Math.min(1,speed/205)*2.4;
+    camera.rotateZ(-steer*.014-driftAmount*steer*.012);
     // Recycle lane marks and roadside models toward the camera for continuous travel.
     const movement=speed*.00125;
     for(const m of laneMarks){m.position.z+=movement;if(m.position.z>12)m.position.z-=260;}
