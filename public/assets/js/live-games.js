@@ -10,12 +10,13 @@ arcadeSound.addEventListener('click',()=>{arcadeSoundOn=!arcadeSoundOn;try{local
 if(token){
  const q='?token='+encodeURIComponent(token);
  const coinShop=document.getElementById('coinShop');if(coinShop)coinShop.href='/coin-shop'+q;
- const scatterLink=document.getElementById('scatter'),diceLink=document.getElementById('dice'),rushLink=document.getElementById('rush'),battleLink=document.getElementById('battle');const racingLink=document.getElementById('racing'),colorGameLink=document.getElementById('colorGame'),tetrisLink=document.getElementById('tetris'),hulaRoomLink=document.getElementById('hulaRoom');
+ const scatterLink=document.getElementById('scatter'),diceLink=document.getElementById('dice'),rushLink=document.getElementById('rush'),battleLink=document.getElementById('battle');const racingLink=document.getElementById('racing'),racingMultiplayerLink=document.getElementById('racingMultiplayer'),colorGameLink=document.getElementById('colorGame'),tetrisLink=document.getElementById('tetris'),hulaRoomLink=document.getElementById('hulaRoom');
  if(scatterLink)scatterLink.href='/scatter-spin'+q;
  if(diceLink)diceLink.href='/dice-arena'+q;
  if(rushLink)rushLink.href='/neon-tap-rush'+q;
  if(battleLink)battleLink.href='/neon-battle'+q;
  if(racingLink)racingLink.href='/neon-racing'+q;
+ if(racingMultiplayerLink)racingMultiplayerLink.href='/neon-racing-multiplayer'+q;
  if(colorGameLink)colorGameLink.href='/color-game'+q;
  if(tetrisLink)tetrisLink.href='/tetris'+q;
  if(hulaRoomLink)hulaRoomLink.href='/hula-room'+q;
