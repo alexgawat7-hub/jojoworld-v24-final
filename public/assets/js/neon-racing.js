@@ -100,6 +100,24 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     const mark=new THREE.Mesh(new THREE.BoxGeometry(.13,.026,5),laneMat);mark.position.set(x,.018,z);scene.add(mark);laneMarks.push(mark);
   }
   const roadside=[];
+  // [UPGRADED] Continuous modular city sidewalks with curb stones and subtle paving joints.
+  const sidewalkMat=new THREE.MeshStandardMaterial({color:0x626b70,roughness:.94,metalness:.04});
+  const curbMat=new THREE.MeshStandardMaterial({color:0x858b8e,roughness:.88,metalness:.06});
+  const jointMat=new THREE.MeshStandardMaterial({color:0x343c41,roughness:1});
+  for(let z=-5;z>-260;z-=10){
+    for(const side of [-1,1]){
+      const walk=new THREE.Group();
+      const slab=new THREE.Mesh(new THREE.BoxGeometry(2.8,.16,10),sidewalkMat);
+      slab.position.set(side*11.1,-.005,0);slab.receiveShadow=true;walk.add(slab);
+      const curb=new THREE.Mesh(new THREE.BoxGeometry(.24,.28,10),curbMat);
+      curb.position.set(side*9.68,.08,0);curb.castShadow=true;walk.add(curb);
+      for(const seamZ of [-3.35,0,3.35]){
+        const seam=new THREE.Mesh(new THREE.BoxGeometry(2.68,.012,.035),jointMat);
+        seam.position.set(side*11.1,.078,seamZ);walk.add(seam);
+      }
+      walk.position.z=z;scene.add(walk);roadside.push({group:walk,z,side,kind:'sidewalk'});
+    }
+  }
   function addCar(color,accent){
     const root=new THREE.Group();
     const paint=new THREE.MeshPhysicalMaterial({color,roughness:.2,metalness:.68,clearcoat:1,clearcoatRoughness:.12});
