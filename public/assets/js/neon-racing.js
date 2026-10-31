@@ -899,8 +899,13 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
   }
   function hold(id,key){
     const b=$(id);if(!b)return;
-    b.addEventListener('pointerdown',e=>{e.preventDefault();keys[key]=true;if(key==='brake')braking=true;});
-    ['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,()=>{keys[key]=false;if(key==='brake')braking=false;}));
+    const release=()=>{keys[key]=false;if(key==='brake')braking=false;};
+    b.addEventListener('pointerdown',e=>{
+      e.preventDefault();
+      try{b.setPointerCapture(e.pointerId);}catch{}
+      keys[key]=true;if(key==='brake')braking=true;
+    });
+    ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>b.addEventListener(ev,release));
   }
   hold('left','left');hold('right','right');hold('brake','brake');
   window.addEventListener('keydown',e=>{if(['ArrowLeft','a','A'].includes(e.key)){keys.left=true;e.preventDefault();}if(['ArrowRight','d','D'].includes(e.key)){keys.right=true;e.preventDefault();}if(e.code==='Space'){e.preventDefault();}if(['ArrowDown','s','S'].includes(e.key)){braking=true;e.preventDefault();}});
