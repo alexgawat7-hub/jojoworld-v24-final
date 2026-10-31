@@ -10,7 +10,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     $('multiplayer').href = '/neon-racing-multiplayer?token=' + encodeURIComponent(token);
   }
   let running=false, countdownActive=false, countdownTimer=null, sound=true, audio=null, audioRig=null, last=0, progress=0, rivalProgress=0, rafId=0, pageLeaving=false;
-  let speed=0, steer=0, braking=false, keys={}, edgeHitCooldown=0;
+  let speed=0, steer=0, braking=false, keys={}, edgeHitCooldown=0, driftAmount=0;
   let best=Number(localStorage.getItem('jojoworldNeonRacingBest')||0);
   $('best').textContent=best;
 
@@ -412,6 +412,8 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
     const target=braking?82:205;
     speed+=(target-speed)*Math.min(1,sec*2.4);
     edgeHitCooldown=Math.max(0,edgeHitCooldown-sec);
+    const hardTurn=Math.abs(steer)>.62&&speed>125&&!braking;
+    driftAmount+=((hardTurn?1:0)-driftAmount)*Math.min(1,sec*(hardTurn?3.2:1.8));
     /* Distance-based pace lets the player close the initial gap and pass without scripted lane swapping. */
     progress+=speed*sec*.090;
     rivalProgress+=sec*16.4;
