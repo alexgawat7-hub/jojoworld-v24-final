@@ -908,7 +908,6 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
   // Release held controls when focus is lost so steering/braking cannot remain stuck.
   function releaseRaceControls(){
     keys={left:false,right:false};braking=false;
-    ['left','right','brake'].forEach(id=>{const button=$(id);if(button&&button.releasePointerCapture){try{for(const pointerId of button.getPointerCapture?[]:[])button.releasePointerCapture(pointerId);}catch{}}});
   }
   window.addEventListener('blur',releaseRaceControls);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseRaceControls();});
