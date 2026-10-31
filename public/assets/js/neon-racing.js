@@ -315,6 +315,19 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.166.1/examples/
       doorHandle.position.set(frontageX+roadward*.085,1.0,depth*.31-.2);group.add(doorHandle);
       const fascia=new THREE.Mesh(new THREE.BoxGeometry(.16,.48,2.65),signFace);
       fascia.position.set(frontageX+roadward*.07,2.08,-.12);group.add(fascia);
+      // [UPGRADED] Real storefront lettering on a road-facing illuminated sign panel.
+      const shopCanvas=document.createElement('canvas');shopCanvas.width=768;shopCanvas.height=144;
+      const shopCtx=shopCanvas.getContext('2d');
+      shopCtx.fillStyle='#202b33';shopCtx.fillRect(0,0,768,144);
+      shopCtx.strokeStyle='#aebbc1';shopCtx.lineWidth=5;shopCtx.strokeRect(8,8,752,128);
+      shopCtx.fillStyle=index%2?'#e7c99d':'#d5e2e8';
+      shopCtx.font='900 66px Arial';shopCtx.textAlign='center';shopCtx.textBaseline='middle';
+      shopCtx.fillText(['NIGHT CAFE','CITY MARKET','MOTOR WORKS','RIVERSIDE'][Math.floor(index/4)%4],384,73);
+      const shopTexture=new THREE.CanvasTexture(shopCanvas);shopTexture.colorSpace=THREE.SRGBColorSpace;
+      const shopLabelMat=new THREE.MeshBasicMaterial({map:shopTexture,side:THREE.DoubleSide});
+      const shopLabel=new THREE.Mesh(new THREE.PlaneGeometry(2.48,.43),shopLabelMat);
+      shopLabel.position.set(frontageX+roadward*.165,2.08,-.12);
+      shopLabel.rotation.y=roadward*Math.PI/2;group.add(shopLabel);
       const awning=new THREE.Mesh(new THREE.BoxGeometry(.62,.12,2.85),awningMat);
       awning.position.set(frontageX+roadward*.31,1.76,-.12);group.add(awning);
       const awningEdge=new THREE.Mesh(new THREE.BoxGeometry(.035,.16,2.85),trimMat);
